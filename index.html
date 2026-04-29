@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MEL CoP Participant Registration</title>
+  <title>Participant Registration</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="app-wrapper">
     <header class="app-header">
-      <p class="app-subtitle">Mastercard Foundation Ghana MEL CoP Convening</p>
-      <h1 class="app-title">Participant Registration</h1>
+      <p class="app-subtitle" id="app-subtitle">Participant Registration</p>
+      <h1 class="app-title" id="app-title">MEL CoP Convening</h1>
     </header>
 
     <nav class="tabs">
@@ -18,7 +18,6 @@
       <button class="tab" id="tab-participants" onclick="showTab('participants')">Participants</button>
     </nav>
 
-    <!-- Register Pane -->
     <div id="pane-register">
       <div class="success-msg" id="success">Participant registered successfully.</div>
       <div class="form-grid">
@@ -65,7 +64,6 @@
       </div>
     </div>
 
-    <!-- Participants Pane -->
     <div id="pane-participants" style="display:none">
       <div class="stats" id="stats-grid"></div>
       <div class="toolbar">
@@ -75,10 +73,11 @@
           <button class="btn-danger" onclick="if(confirm('Clear ALL participants? This cannot be undone.'))clearAll()">Clear all</button>
         </div>
       </div>
-      <div id="list-container"></div>
+      <div id="list-container"><div class="empty">Loading...</div></div>
     </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
