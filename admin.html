@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin — Participants App</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app-wrapper">
+    <header class="app-header" style="display:flex;justify-content:space-between;align-items:flex-start">
+      <div>
+        <p class="app-subtitle">Admin Panel</p>
+        <h1 class="app-title">Participants App</h1>
+      </div>
+      <button class="btn-secondary" onclick="showPane('create')">+ New event</button>
+    </header>
+
+    <!-- Create Event -->
+    <div id="pane-create" style="display:none">
+      <div class="section-card">
+        <p class="section-title">Create new event</p>
+        <div class="form-grid">
+          <div class="form-group"><label>Event name *</label><input type="text" id="e-name" placeholder="e.g. MEL CoP Convening 2026" /></div>
+          <div class="form-group"><label>Organizer</label><input type="text" id="e-organizer" placeholder="e.g. METSS LBG" /></div>
+          <div class="form-group">
+            <label>Program</label>
+            <select id="e-prog">
+              <option value="">-- Select --</option>
+              <option>AYAW</option><option>FIRST+II</option><option>BIA</option>
+              <option>FILMA</option><option>MCF</option><option>Other</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Event date</label><input type="date" id="e-date" /></div>
+        </div>
+        <div class="form-actions">
+          <button class="btn-primary" onclick="createEvent()">Create event</button>
+          <button class="btn-secondary" onclick="showPane('events')">Cancel</button>
+          <span id="e-err" class="err-msg"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Event created — share link -->
+    <div id="pane-link" style="display:none">
+      <div class="section-card">
+        <p class="section-title">Event created</p>
+        <p style="font-size:14px;color:var(--text-muted);margin-bottom:1rem">Share this link with participants:</p>
+        <div class="link-box">
+          <span id="share-link"></span>
+          <button class="btn-sm" onclick="copyLink()">Copy</button>
+        </div>
+        <div class="form-actions" style="margin-top:1rem">
+          <button class="btn-primary" onclick="showPane('events')">View all events</button>
+          <button class="btn-secondary" onclick="showPane('create')">Create another</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Events list -->
+    <div id="pane-events">
+      <div id="events-loading" class="empty">Loading events...</div>
+      <div id="events-list" style="display:none"></div>
+    </div>
+
+    <!-- Participants for one event -->
+    <div id="pane-participants" style="display:none">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem">
+        <div>
+          <button class="btn-sm" onclick="showPane('events')" style="margin-bottom:6px">← Back to events</button>
+          <h2 class="section-title" id="view-event-name" style="margin:0"></h2>
+        </div>
+        <button class="btn-secondary" onclick="exportCSV()">Export CSV</button>
+      </div>
+      <div class="stats" id="view-stats"></div>
+      <input type="text" id="p-search" placeholder="Search name, org, role..." oninput="filterParticipants()" class="search-input" style="margin-bottom:1rem;width:100%" />
+      <div id="participants-list"></div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="admin.js"></script>
+</body>
+</html>

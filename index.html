@@ -8,24 +8,28 @@
 </head>
 <body>
   <div class="app-wrapper">
-    <header class="app-header">
-      <p class="app-subtitle" id="app-subtitle">Participant Registration</p>
-      <h1 class="app-title" id="app-title">MEL CoP Convening</h1>
-    </header>
+    <div id="no-event" style="display:none">
+      <div class="empty-state">
+        <p class="empty-title">No event specified</p>
+        <p class="empty-sub">Use a registration link provided by your program coordinator.</p>
+        <a href="admin.html" class="btn-secondary" style="display:inline-block;margin-top:1rem;text-decoration:none">Admin panel</a>
+      </div>
+    </div>
 
-    <nav class="tabs">
-      <button class="tab active" onclick="showTab('register')">Register</button>
-      <button class="tab" id="tab-participants" onclick="showTab('participants')">Participants</button>
-    </nav>
+    <div id="event-ui" style="display:none">
+      <header class="app-header">
+        <p class="app-subtitle" id="event-program"></p>
+        <h1 class="app-title" id="event-name"></h1>
+        <p class="event-meta" id="event-meta"></p>
+      </header>
 
-    <div id="pane-register">
-      <div class="success-msg" id="success">Participant registered successfully.</div>
+      <div class="success-msg" id="success">You have been registered successfully.</div>
       <div class="form-grid">
         <div class="form-group"><label>Full name *</label><input type="text" id="f-name" placeholder="e.g. Ama Asante" /></div>
         <div class="form-group"><label>Organization *</label><input type="text" id="f-org" placeholder="e.g. Farmerline Ghana" /></div>
         <div class="form-group"><label>Role / Title</label><input type="text" id="f-role" placeholder="e.g. M&E Officer" /></div>
         <div class="form-group">
-          <label>Program / Affiliation *</label>
+          <label>Program / Affiliation</label>
           <select id="f-prog">
             <option value="">-- Select --</option>
             <option value="AYAW">AYAW</option>
@@ -58,22 +62,9 @@
         <div class="form-group full"><label>Notes (dietary, accessibility, etc.)</label><textarea id="f-notes" rows="2"></textarea></div>
       </div>
       <div class="form-actions">
-        <button class="btn-primary" onclick="registerParticipant()">Register participant</button>
-        <button class="btn-secondary" onclick="clearForm()">Clear</button>
+        <button class="btn-primary" id="submit-btn" onclick="registerParticipant()">Register</button>
         <span id="err-msg" class="err-msg"></span>
       </div>
-    </div>
-
-    <div id="pane-participants" style="display:none">
-      <div class="stats" id="stats-grid"></div>
-      <div class="toolbar">
-        <input type="text" id="search" placeholder="Search name, org, program..." oninput="renderList()" class="search-input" />
-        <div class="toolbar-actions">
-          <button class="btn-secondary" onclick="exportCSV()">Export CSV</button>
-          <button class="btn-danger" onclick="if(confirm('Clear ALL participants? This cannot be undone.'))clearAll()">Clear all</button>
-        </div>
-      </div>
-      <div id="list-container"><div class="empty">Loading...</div></div>
     </div>
   </div>
 

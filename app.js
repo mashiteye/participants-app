@@ -2,53 +2,55 @@ const SUPABASE_URL = 'https://hcdgrdkahowzestlpges.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_77y00O7e6OzsqUdsO5tfIg_BLGgV3Oy';
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-let participants = [];
+const params = new URLSearchParams(window.location.search);
+const eventId = params.get('event');
 
-async function load() {
-  const { data, error } = await db.from('participants').select('*').order('created_at', { ascending: false });
-  if (error) { console.error('Load error:', error); return; }
-  participants = data || [];
-  updateTabCount();
-}
+async function init() {
+  if (!eventId) { document.getElementById('no-event').style.display = 'block'; return; }
 
-function showTab(t) {
-  document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
-  const tabs = document.querySelectorAll('.tab');
-  tabs[t === 'register' ? 0 : 1].classList.add('active');
-  document.getElementById('pane-register').style.display = t === 'register' ? 'block' : 'none';
-  document.getElementById('pane-participants').style.display = t === 'participants' ? 'block' : 'none';
-  if (t === 'participants') { load().then(() => { renderStats(); renderList(); }); }
+  const { data, error } = await db.from('events').select('*').eq('id', eventId).single();
+  if (error || !data) { document.getElementById('no-event').style.display = 'block'; return; }
+
+  document.getElementById('event-ui').style.display = 'block';
+  document.getElementById('event-name').textContent = data.name;
+  document.getElementById('event-program').textContent = data.program || 'Participant Registration';
+  document.getElementById('event-meta').textContent = [
+    data.organizer,
+    data.event_date ? new Date(data.event_date).toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' }) : null
+  ].filter(Boolean).join(' · ');
+  document.title = data.name + ' — Registration';
 }
 
 function val(id) { return document.getElementById(id).value.trim(); }
 
 async function registerParticipant() {
-  const name = val('f-name'), org = val('f-org'), prog = val('f-prog');
+  const name = val('f-name'), org = val('f-org');
   const errEl = document.getElementById('err-msg');
 
-  if (!name || !org || !prog) {
-    errEl.textContent = 'Name, organization, and program are required.';
+  if (!name || !org) {
+    errEl.textContent = 'Name and organization are required.';
     errEl.style.display = 'inline';
     return;
   }
   errEl.style.display = 'none';
 
-  const btn = document.querySelector('.btn-primary');
+  const btn = document.getElementById('submit-btn');
   btn.textContent = 'Saving...';
   btn.disabled = true;
 
   const { error } = await db.from('participants').insert([{
     name, org,
     role: val('f-role'),
-    prog,
+    prog: val('f-prog') || 'Other',
     phone: val('f-phone'),
     email: val('f-email'),
     region: val('f-region'),
     gender: val('f-gender'),
-    notes: val('f-notes')
+    notes: val('f-notes'),
+    event_id: eventId
   }]);
 
-  btn.textContent = 'Register participant';
+  btn.textContent = 'Register';
   btn.disabled = false;
 
   if (error) {
@@ -57,103 +59,12 @@ async function registerParticipant() {
     return;
   }
 
-  await load();
-  clearForm();
-  const s = document.getElementById('success');
-  s.classList.add('show');
-  setTimeout(() => s.classList.remove('show'), 3000);
-}
-
-function clearForm() {
   ['f-name','f-org','f-role','f-phone','f-email','f-notes'].forEach(id => document.getElementById(id).value = '');
   ['f-prog','f-region','f-gender'].forEach(id => document.getElementById(id).selectedIndex = 0);
-  document.getElementById('err-msg').style.display = 'none';
+
+  const s = document.getElementById('success');
+  s.classList.add('show');
+  setTimeout(() => s.classList.remove('show'), 4000);
 }
 
-function badgeClass(prog) {
-  const map = { AYAW:'ayaw', 'FIRST+II':'first', BIA:'bia', FILMA:'filma', MCF:'mcf' };
-  return 'badge badge-' + (map[prog] || 'other');
-}
-
-function renderStats() {
-  const progs = ['AYAW','FIRST+II','BIA','FILMA','MCF','Other'];
-  const counts = {};
-  participants.forEach(p => { counts[p.prog] = (counts[p.prog] || 0) + 1; });
-  let html = `<div class="stat-card"><div class="stat-num">${participants.length}</div><div class="stat-label">Total</div></div>`;
-  progs.forEach(p => {
-    if (counts[p]) html += `<div class="stat-card"><div class="stat-num">${counts[p]}</div><div class="stat-label">${p}</div></div>`;
-  });
-  document.getElementById('stats-grid').innerHTML = html;
-}
-
-function renderList() {
-  const q = (document.getElementById('search').value || '').toLowerCase();
-  const filtered = participants.filter(p =>
-    p.name.toLowerCase().includes(q) ||
-    p.org.toLowerCase().includes(q) ||
-    p.prog.toLowerCase().includes(q) ||
-    (p.role || '').toLowerCase().includes(q)
-  );
-  const container = document.getElementById('list-container');
-  if (!filtered.length) {
-    container.innerHTML = `<div class="empty">${participants.length ? 'No results.' : 'No participants registered yet.'}</div>`;
-    return;
-  }
-  let html = `<div style="overflow-x:auto"><table>
-    <thead><tr>
-      <th class="col-name">Name</th><th class="col-org">Organization</th>
-      <th class="col-role">Role</th><th class="col-prog">Program</th>
-      <th class="col-phone">Phone</th><th class="col-act"></th>
-    </tr></thead><tbody>`;
-  filtered.forEach(p => {
-    html += `<tr>
-      <td title="${esc(p.name)}">${esc(p.name)}</td>
-      <td title="${esc(p.org)}">${esc(p.org)}</td>
-      <td>${esc(p.role) || '&mdash;'}</td>
-      <td><span class="${badgeClass(p.prog)}">${esc(p.prog)}</span></td>
-      <td>${esc(p.phone) || '&mdash;'}</td>
-      <td style="text-align:right"><button class="btn-sm danger" onclick="deleteP('${p.id}')">Remove</button></td>
-    </tr>`;
-  });
-  html += `</tbody></table></div>`;
-  container.innerHTML = html;
-}
-
-function esc(str) {
-  if (!str) return '';
-  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-async function deleteP(id) {
-  if (!confirm('Remove this participant?')) return;
-  const { error } = await db.from('participants').delete().eq('id', id);
-  if (error) { alert('Delete failed: ' + error.message); return; }
-  await load(); renderStats(); renderList();
-}
-
-async function clearAll() {
-  const { error } = await db.from('participants').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-  if (error) { alert('Clear failed: ' + error.message); return; }
-  await load(); renderStats(); renderList();
-}
-
-function updateTabCount() {
-  const el = document.getElementById('tab-participants');
-  el.textContent = participants.length ? `Participants (${participants.length})` : 'Participants';
-}
-
-function exportCSV() {
-  const headers = ['Name','Organization','Role','Program','Phone','Email','Region','Gender','Notes','Registered'];
-  const rows = participants.map(p =>
-    [p.name,p.org,p.role,p.prog,p.phone,p.email,p.region,p.gender,p.notes,p.created_at]
-      .map(v => `"${(v||'').replace(/"/g,'""')}"`)
-      .join(',')
-  );
-  const csv = [headers.join(','), ...rows].join('\n');
-  const a = document.createElement('a');
-  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
-  a.download = `participants-${new Date().toISOString().slice(0,10)}.csv`;
-  a.click();
-}
-
-load();
+init();

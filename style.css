@@ -261,3 +261,20 @@ tr:hover td { background: var(--bg-secondary); }
   .search-input { width: 100%; }
   .toolbar-actions { justify-content: flex-end; }
 }
+
+.event-meta { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+.section-card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1.5rem; margin-bottom: 1.5rem; }
+.section-title { font-size: 15px; font-weight: 500; margin-bottom: 1.25rem; }
+.link-box { display: flex; align-items: center; gap: 10px; background: var(--bg-secondary); border: 0.5px solid var(--border); border-radius: var(--radius-md); padding: 10px 14px; font-size: 13px; font-family: monospace; word-break: break-all; }
+.link-box span { flex: 1; }
+.event-card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem; margin-bottom: 10px; }
+.event-card-main { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; }
+.event-card-name { font-size: 15px; font-weight: 500; }
+.event-card-meta { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
+.event-card-count { text-align: right; }
+.count-num { display: block; font-size: 22px; font-weight: 500; }
+.count-label { font-size: 11px; color: var(--text-muted); }
+.event-card-actions { display: flex; gap: 8px; border-top: 0.5px solid var(--border); padding-top: 1rem; }
+.empty-state { text-align: center; padding: 4rem 2rem; }
+.empty-title { font-size: 16px; font-weight: 500; margin-bottom: 8px; }
+.empty-sub { font-size: 14px; color: var(--text-muted); }
