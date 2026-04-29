@@ -17,8 +17,8 @@ function showPane(name) {
 
 function val(id) { return document.getElementById(id).value.trim(); }
 
-async function createEvent() {
-  alert("createEvent called — JS is working");
+async function submitEvent() {
+  
   const errEl = document.getElementById('e-err');
   try {
     const name = val('e-name');
