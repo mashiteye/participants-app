@@ -1,5 +1,5 @@
 const SUPABASE_URL = 'https://hcdgrdkahowzestlpges.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_77y00O7e6OzsqUdsO5tfIg_BLGgV3Oy';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhjZGdyZGthaG93emVzdGxwZ2VzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0OTE2OTUsImV4cCI6MjA5MzA2NzY5NX0.oaG-mdgtJ4EuHUM1y3_n3fESiG3cu8RRpSb8Ww6O36c';
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const BASE_URL = window.location.origin + window.location.pathname.replace('admin.html', '');
