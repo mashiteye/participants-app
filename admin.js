@@ -18,30 +18,38 @@ function showPane(name) {
 function val(id) { return document.getElementById(id).value.trim(); }
 
 async function createEvent() {
-  const name = val('e-name');
   const errEl = document.getElementById('e-err');
-  if (!name) { errEl.textContent = 'Event name is required.'; errEl.style.display = 'inline'; return; }
-  errEl.style.display = 'none';
+  try {
+    const name = val('e-name');
+    if (!name) { errEl.textContent = 'Event name is required.'; errEl.style.display = 'inline'; return; }
+    errEl.style.display = 'none';
 
-  const btn = document.querySelector('#pane-create .btn-primary');
-  btn.textContent = 'Creating...'; btn.disabled = true;
+    const btn = document.querySelector('#pane-create .btn-primary');
+    btn.textContent = 'Creating...'; btn.disabled = true;
 
-  const { data, error } = await db.from('events').insert([{
-    name,
-    organizer: val('e-organizer'),
-    program: val('e-prog') || null,
-    event_date: document.getElementById('e-date').value || null
-  }]).select().single();
+    const payload = {
+      name,
+      organizer: val('e-organizer') || null,
+      program: document.getElementById('e-prog').value || null,
+      event_date: document.getElementById('e-date').value || null
+    };
 
-  btn.textContent = 'Create event'; btn.disabled = false;
+    const { data, error } = await db.from('events').insert([payload]).select();
 
-  if (error) { errEl.textContent = 'Error: ' + error.message; errEl.style.display = 'inline'; return; }
+    btn.textContent = 'Create event'; btn.disabled = false;
 
-  ['e-name','e-organizer','e-date'].forEach(id => document.getElementById(id).value = '');
-  document.getElementById('e-prog').selectedIndex = 0;
+    if (error) { errEl.textContent = 'Error: ' + error.message; errEl.style.display = 'inline'; return; }
+    if (!data || !data.length) { errEl.textContent = 'No data returned from insert.'; errEl.style.display = 'inline'; return; }
 
-  document.getElementById('share-link').textContent = BASE_URL + 'index.html?event=' + data.id;
-  showPane('link');
+    ['e-name','e-organizer','e-date'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('e-prog').selectedIndex = 0;
+
+    document.getElementById('share-link').textContent = BASE_URL + 'index.html?event=' + data[0].id;
+    showPane('link');
+  } catch(e) {
+    errEl.textContent = 'Unexpected error: ' + e.message;
+    errEl.style.display = 'inline';
+  }
 }
 
 function copyLink() {
