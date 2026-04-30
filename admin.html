@@ -13,12 +13,13 @@
         <p class="app-subtitle">Admin Panel</p>
         <h1 class="app-title">Participants App</h1>
       </div>
-      <div style="display:flex;gap:8px"><button class="btn-secondary" onclick="loadEvents()">↻ Refresh</button><button class="btn-secondary" onclick="showPane('create')">+ New event</button></div>
+      <button class="btn-secondary" onclick="loadEvents()">↻ Refresh</button>
     </header>
 
     <!-- Create Event -->
     <div id="pane-create" style="display:none">
       <div class="section-card">
+        <button class="btn-sm" onclick="showPane('events')" style="margin-bottom:1rem">← Back to events</button>
         <p class="section-title">Create new event</p>
         <div class="form-grid">
           <div class="form-group"><label>Event name *</label><input type="text" id="e-name" placeholder="e.g. MEL CoP Convening 2026" /></div>
@@ -110,6 +111,9 @@
     </div>
     <!-- Events list -->
     <div id="pane-events">
+      <div style="display:flex;justify-content:flex-end;margin-bottom:1rem">
+        <button class="btn-secondary" onclick="showPane('create')">+ New event</button>
+      </div>
       <div id="events-loading" class="empty">Loading events...</div>
       <div id="events-list" style="display:none"></div>
     </div>
@@ -127,7 +131,7 @@
         </div>
       </div>
       <div class="stats" id="view-stats"></div>
-      <input type="text" id="p-search" placeholder="Search name, org, position..." oninput="filterParticipants()" class="search-input" style="margin-bottom:1rem;width:100%" />
+      <input type="text" id="p-search" placeholder="Search name, org, position, code..." oninput="filterParticipants()" class="search-input" style="margin-bottom:1rem;width:100%" />
       <div id="participants-list"></div>
     </div>
   </div>

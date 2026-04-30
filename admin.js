@@ -152,7 +152,8 @@ function filterParticipants() {
     p.name.toLowerCase().includes(q) ||
     p.org.toLowerCase().includes(q) ||
     (p.position_title || '').toLowerCase().includes(q) ||
-    (p.prog || '').toLowerCase().includes(q)
+    (p.prog || '').toLowerCase().includes(q) ||
+    (p.code || '').toLowerCase().includes(q)
   );
   const container = document.getElementById('participants-list');
   if (!filtered.length) {
