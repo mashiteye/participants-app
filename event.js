@@ -15,6 +15,8 @@ async function init() {
   if (error || !ev) { document.getElementById('no-event').style.display = 'block'; return; }
 
   eventDays = ev.days || 1;
+  // Store for stats use
+  window._eventDays = eventDays;
   document.getElementById('event-ui').style.display = 'block';
   document.getElementById('event-name').textContent = ev.name;
   document.getElementById('event-code-prog').textContent = [ev.event_code, ev.program].filter(Boolean).join(' · ') || 'Participant View';
@@ -29,8 +31,16 @@ async function init() {
 }
 
 async function loadParticipants() {
-  const { data } = await db.from('participants').select('*').eq('event_id', eventId).order('code', { ascending: true });
-  allParticipants = data || [];
+  const [{ data: parts }, { data: att }] = await Promise.all([
+    db.from('participants').select('*').eq('event_id', eventId).order('code', { ascending: true }),
+    db.from('attendance').select('day').eq('event_id', eventId)
+  ]);
+  allParticipants = parts || [];
+  // Build day counts
+  window._attendanceByDay = {};
+  (att || []).forEach(a => {
+    window._attendanceByDay[a.day] = (window._attendanceByDay[a.day] || 0) + 1;
+  });
   renderStats();
   filterParticipants();
 }
@@ -42,6 +52,15 @@ function renderStats() {
   let html = `<div class="stat-card"><div class="stat-num">${total}</div><div class="stat-label">Registered</div></div>`;
   if (female) html += `<div class="stat-card"><div class="stat-num">${female}</div><div class="stat-label">Female</div></div>`;
   if (male) html += `<div class="stat-card"><div class="stat-num">${male}</div><div class="stat-label">Male</div></div>`;
+
+  // Per-day attendance stats — fetched separately
+  if (window._attendanceByDay) {
+    const numDays = window._eventDays || 1;
+    Array.from({ length: numDays }, (_, i) => 'Day ' + (i + 1)).forEach(d => {
+      const c = window._attendanceByDay[d] || 0;
+      html += `<div class="stat-card"><div class="stat-num">${c}</div><div class="stat-label">${d}</div></div>`;
+    });
+  }
   document.getElementById('view-stats').innerHTML = html;
 }
 

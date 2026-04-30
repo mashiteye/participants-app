@@ -131,13 +131,19 @@ async function deleteEvent(id) {
 
 let currentAttendance = {};
 
+let currentEventDays = 1;
+
 async function viewParticipants(eventId, eventName) {
   currentEventId = eventId;
   document.getElementById('view-event-name').textContent = eventName;
   showPane('participants');
 
-  const { data: parts } = await db.from('participants').select('*').eq('event_id', eventId).order('created_at', { ascending: false });
+  const [{ data: parts }, { data: ev }] = await Promise.all([
+    db.from('participants').select('*').eq('event_id', eventId).order('created_at', { ascending: false }),
+    db.from('events').select('days').eq('id', eventId).single()
+  ]);
   currentParticipants = parts || [];
+  currentEventDays = ev?.days || 1;
   currentAttendance = {};
   try {
     const { data: att } = await db.from('attendance').select('*').eq('event_id', eventId);
@@ -166,7 +172,10 @@ function renderStats() {
   if (totalSigned) html += `<div class="stat-card"><div class="stat-num">${totalSigned}</div><div class="stat-label">Signed</div></div>`;
   if (female) html += `<div class="stat-card"><div class="stat-num">${female}</div><div class="stat-label">Female</div></div>`;
   if (male) html += `<div class="stat-card"><div class="stat-num">${male}</div><div class="stat-label">Male</div></div>`;
-  Object.entries(dayCounts).sort().forEach(([d, c]) => {
+  // Only show days within the event's configured day count
+  const validDays = Array.from({ length: currentEventDays }, (_, i) => 'Day ' + (i + 1));
+  validDays.forEach(d => {
+    const c = dayCounts[d] || 0;
     html += `<div class="stat-card"><div class="stat-num">${c}</div><div class="stat-label">${d}</div></div>`;
   });
   document.getElementById('view-stats').innerHTML = html;
