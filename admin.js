@@ -161,6 +161,7 @@ function filterParticipants() {
   }
   let html = `<div style="overflow-x:auto"><table>
     <thead><tr>
+      <th class="col-role">Code</th>
       <th class="col-name">Name</th>
       <th class="col-role">Sex</th>
       <th class="col-org">Organization</th>
@@ -174,6 +175,7 @@ function filterParticipants() {
       ? `<img src="${p.signature}" style="height:32px;max-width:80px;object-fit:contain" />`
       : '&mdash;';
     html += `<tr>
+      <td style="font-weight:600;font-family:monospace">${esc(p.code) || '&mdash;'}</td>
       <td title="${esc(p.name)}">${esc(p.name)}</td>
       <td>${esc(p.sex) || '&mdash;'}</td>
       <td title="${esc(p.org)}">${esc(p.org)}</td>
@@ -188,9 +190,9 @@ function filterParticipants() {
 }
 
 function exportCSV() {
-  const headers = ['Name','Sex','Organization','Program','Position','Email','Phone','Day','MEL Response','Registered'];
+  const headers = ['Code','Name','Sex','Organization','Program','Position','Email','Phone','Day','MEL Response','Registered'];
   const rows = currentParticipants.map(p =>
-    [p.name, p.sex, p.org, p.prog, p.position_title, p.email, p.phone, p.day_attended, p.notes, p.created_at]
+    [p.code, p.name, p.sex, p.org, p.prog, p.position_title, p.email, p.phone, p.day_attended, p.notes, p.created_at]
       .map(v => `"${(v||'').replace(/"/g,'""')}"`)
       .join(',')
   );

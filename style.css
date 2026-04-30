@@ -140,11 +140,12 @@ textarea { resize: vertical; }
 .success-msg {
   background: var(--success-bg);
   color: var(--success-text);
-  padding: 12px 14px;
+  padding: 16px;
   border-radius: var(--radius-md);
   font-size: 14px;
   margin-bottom: 1.25rem;
   display: none;
+  text-align: center;
 }
 .success-msg.show { display: block; }
 .err-msg { font-size: 13px; color: var(--danger); display: none; margin-bottom: 0.75rem; }

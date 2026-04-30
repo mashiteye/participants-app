@@ -4,7 +4,7 @@ const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const params = new URLSearchParams(window.location.search);
 const eventId = params.get('event');
-
+let eventPrefix = 'P';
 let sigCanvas, sigCtx, drawing = false;
 
 async function init() {
@@ -13,18 +13,21 @@ async function init() {
   const { data, error } = await db.from('events').select('*').eq('id', eventId).single();
   if (error || !data) { document.getElementById('no-event').style.display = 'block'; return; }
 
+  // Derive prefix from program name e.g. AYAW → AYW, MEL CoP → MEL
+  if (data.program) {
+    eventPrefix = data.program.replace(/[^A-Z]/g, '').slice(0, 3) || 'P';
+  }
+
   document.getElementById('event-ui').style.display = 'block';
   document.getElementById('event-name').textContent = data.name;
   document.getElementById('event-program').textContent = data.program || 'Participant Registration';
   document.title = data.name;
 
-  // MEL question
   if (data.mel_question) {
     document.getElementById('mel-question-group').style.display = 'block';
     document.getElementById('mel-question-label').textContent = data.mel_question;
   }
 
-  // Day buttons
   const days = data.days || 1;
   if (days > 1) {
     const container = document.getElementById('day-buttons');
@@ -67,9 +70,7 @@ function initSignature() {
   sigCanvas.addEventListener('touchend', () => drawing = false);
 }
 
-function hideSigHint() {
-  document.querySelector('.sig-hint').style.display = 'none';
-}
+function hideSigHint() { document.querySelector('.sig-hint').style.display = 'none'; }
 
 function clearSig() {
   sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
@@ -77,8 +78,7 @@ function clearSig() {
 }
 
 function isSigEmpty() {
-  const data = sigCtx.getImageData(0, 0, sigCanvas.width, sigCanvas.height).data;
-  return !data.some(v => v !== 0);
+  return !sigCtx.getImageData(0, 0, sigCanvas.width, sigCanvas.height).data.some(v => v !== 0);
 }
 
 function setSex(val) {
@@ -89,12 +89,21 @@ function setSex(val) {
 
 function setDay(val) {
   document.getElementById('f-day').value = val;
-  document.querySelectorAll('#day-buttons .toggle-btn').forEach(b => {
-    b.classList.toggle('active', b.textContent === val);
-  });
+  document.querySelectorAll('#day-buttons .toggle-btn').forEach(b => b.classList.toggle('active', b.textContent === val));
 }
 
 function val(id) { return document.getElementById(id).value.trim(); }
+
+async function getNextCode() {
+  const { data } = await db.from('participants').select('code').eq('event_id', eventId).not('code', 'is', null);
+  if (!data || !data.length) return eventPrefix + '-001';
+  const nums = data.map(p => {
+    const parts = (p.code || '').split('-');
+    return parseInt(parts[parts.length - 1]) || 0;
+  });
+  const next = Math.max(...nums) + 1;
+  return eventPrefix + '-' + String(next).padStart(3, '0');
+}
 
 async function registerParticipant() {
   const errEl = document.getElementById('err-msg');
@@ -109,36 +118,40 @@ async function registerParticipant() {
   if (isSigEmpty()) { errEl.textContent = 'Please provide your signature.'; errEl.style.display = 'block'; return; }
   errEl.style.display = 'none';
 
-  const signature = sigCanvas.toDataURL('image/png');
-
   const btn = document.getElementById('submit-btn');
   btn.textContent = 'Submitting...'; btn.disabled = true;
 
+  const code = await getNextCode();
+  const signature = sigCanvas.toDataURL('image/png');
+
   const { error } = await db.from('participants').insert([{
-    name, sex, org,
-    prog,
+    name, sex, org, prog,
     position_title: position,
     email, phone,
     notes: val('f-mel'),
     day_attended: day,
     signature,
-    event_id: eventId
+    event_id: eventId,
+    code
   }]);
 
   btn.textContent = 'Submit & Sign'; btn.disabled = false;
 
   if (error) { errEl.textContent = 'Error: ' + error.message; errEl.style.display = 'block'; return; }
 
-  // Reset form
+  // Reset
   ['f-name','f-org','f-prog','f-position','f-email','f-phone','f-mel'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('f-sex').value = '';
   document.getElementById('f-day').value = document.getElementById('day-group').style.display === 'none' ? 'Day 1' : '';
   document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
   clearSig();
 
-  const s = document.getElementById('success');
-  s.style.display = 'block';
-  setTimeout(() => s.style.display = 'none', 4000);
+  // Show code confirmation
+  document.getElementById('confirm-code').textContent = code;
+  document.getElementById('confirm-name').textContent = name;
+  document.getElementById('success').style.display = 'block';
+  document.getElementById('success').scrollIntoView({ behavior: 'smooth' });
+  setTimeout(() => document.getElementById('success').style.display = 'none', 8000);
 }
 
 init();
