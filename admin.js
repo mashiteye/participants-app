@@ -83,7 +83,8 @@ async function loadEvents() {
   events.forEach(e => {
     const count = countMap[e.id] || 0;
     const dateStr = e.event_date ? new Date(e.event_date).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' }) : '';
-    const meta = [e.program, e.organizer, dateStr, e.days > 1 ? e.days + ' days' : null].filter(Boolean).join(' · ');
+    const progDisplay = (e.program && e.program !== 'Other') ? e.program : null;
+    const meta = [progDisplay, e.organizer, dateStr, e.days > 1 ? e.days + ' days' : null].filter(Boolean).join(' · ');
     html += `<div class="event-card">
       <div class="event-card-main">
         <div>
@@ -381,7 +382,7 @@ function getProgram(selectId, otherId) {
   const val = document.getElementById(selectId).value;
   if (val === 'Other') {
     const other = document.getElementById(otherId).value.trim();
-    return other || 'Other';
+    return other || null;  // null if no name specified — don't save "Other"
   }
   return val || null;
 }

@@ -35,7 +35,8 @@ async function init() {
     } else { errEl.style.display = 'none'; }
   });
   document.getElementById('event-name').textContent = data.name;
-  document.getElementById('event-program').textContent = [data.event_code, data.program].filter(Boolean).join(' · ') || 'Registration';
+  const displayProg = (data.program && data.program !== 'Other') ? data.program : null;
+  document.getElementById('event-program').textContent = [data.event_code, displayProg].filter(Boolean).join(' · ') || 'Registration';
   document.getElementById('event-meta').textContent = [
     data.organizer,
     data.event_date ? new Date(data.event_date).toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' }) : null

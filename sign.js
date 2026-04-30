@@ -34,7 +34,8 @@ async function init() {
 
     // Populate header
     document.getElementById('event-name').textContent = eventData.name;
-    document.getElementById('event-code-prog').textContent = [eventData.event_code, eventData.program].filter(Boolean).join(' · ') || 'Attendance';
+    const signDisplayProg = (eventData.program && eventData.program !== 'Other') ? eventData.program : null;
+    document.getElementById('event-code-prog').textContent = [eventData.event_code, signDisplayProg].filter(Boolean).join(' · ') || 'Attendance';
     document.getElementById('event-meta').textContent = [
       eventData.organizer,
       eventData.event_date ? new Date(eventData.event_date).toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' }) : null

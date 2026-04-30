@@ -19,7 +19,8 @@ async function init() {
   window._eventDays = eventDays;
   document.getElementById('event-ui').style.display = 'block';
   document.getElementById('event-name').textContent = ev.name;
-  document.getElementById('event-code-prog').textContent = [ev.event_code, ev.program].filter(Boolean).join(' · ') || 'Participant View';
+  const evDisplayProg = (ev.program && ev.program !== 'Other') ? ev.program : null;
+  document.getElementById('event-code-prog').textContent = [ev.event_code, evDisplayProg].filter(Boolean).join(' · ') || 'Participant View';
   document.getElementById('event-meta').textContent = [
     ev.organizer,
     ev.event_date ? new Date(ev.event_date).toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' }) : null,
