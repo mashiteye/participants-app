@@ -113,10 +113,12 @@ async function submitAttendance() {
   const s = document.getElementById('success');
   s.style.display = 'block';
   s.scrollIntoView({ behavior: 'smooth' });
-  document.getElementById('participant-card').style.display = 'none';
-  document.getElementById('day-group').style.display = 'none';
-  document.getElementById('submit-btn').style.display = 'none';
-  document.querySelectorAll('.field-group').forEach(g => g.style.display = 'none');
+  // Reset signature for another possible signing
+  clearSig();
+  document.querySelectorAll('#day-buttons .toggle-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('f-day').value = '';
+  btn.textContent = 'Sign Attendance'; btn.disabled = false;
+  setTimeout(() => s.style.display = 'none', 5000);
 }
 
 init();

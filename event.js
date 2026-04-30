@@ -67,9 +67,9 @@ function filterParticipants() {
       <th style="width:22%">Position</th>
     </tr></thead><tbody>`;
   filtered.forEach(p => {
-    html += `<tr>
+    html += `<tr style="cursor:pointer" onclick="openSignForm('${p.id}')">
       <td style="font-weight:700;font-family:monospace;color:var(--orange)">${esc(p.code) || '&mdash;'}</td>
-      <td><span class="td-link" onclick="openSignForm('${p.id}')">${esc(p.name)}</span></td>
+      <td style="font-weight:500">${esc(p.name)}</td>
       <td>${esc(p.sex) || '&mdash;'}</td>
       <td title="${esc(p.org)}">${esc(p.org)}</td>
       <td>${esc(p.position_title) || '&mdash;'}</td>
@@ -97,3 +97,69 @@ function esc(str) {
 }
 
 init();
+
+// ── Edit event (password protected) ──
+function promptEditEvent() {
+  document.getElementById('pwd-input').value = '';
+  document.getElementById('pwd-err').style.display = 'none';
+  const m = document.getElementById('pwd-modal');
+  m.style.display = 'flex';
+  setTimeout(() => document.getElementById('pwd-input').focus(), 100);
+}
+
+function closePwdModal() {
+  document.getElementById('pwd-modal').style.display = 'none';
+}
+
+function checkPwd() {
+  const pwd = document.getElementById('pwd-input').value;
+  if (pwd === 'METSSLBG') {
+    closePwdModal();
+    openEditModal();
+  } else {
+    document.getElementById('pwd-err').style.display = 'block';
+    document.getElementById('pwd-input').value = '';
+  }
+}
+
+async function openEditModal() {
+  const { data: ev } = await db.from('events').select('*').eq('id', eventId).single();
+  if (!ev) return;
+  document.getElementById('em-name').value = ev.name || '';
+  document.getElementById('em-organizer').value = ev.organizer || '';
+  document.getElementById('em-program').value = ev.program || '';
+  document.getElementById('em-date').value = ev.event_date || '';
+  document.getElementById('em-days').value = String(ev.days || 1);
+  document.getElementById('em-mel').value = ev.mel_question || '';
+  document.getElementById('em-err').style.display = 'none';
+  document.getElementById('edit-modal').style.display = 'block';
+}
+
+function closeEditModal() {
+  document.getElementById('edit-modal').style.display = 'none';
+}
+
+async function saveEventEdit() {
+  const name = document.getElementById('em-name').value.trim();
+  const errEl = document.getElementById('em-err');
+  if (!name) { errEl.textContent = 'Event name is required.'; errEl.style.display = 'block'; return; }
+
+  const btn = document.querySelector('#edit-modal .btn-submit');
+  btn.textContent = 'Saving...'; btn.disabled = true;
+
+  const { error } = await db.from('events').update({
+    name,
+    organizer: document.getElementById('em-organizer').value.trim() || null,
+    program: document.getElementById('em-program').value.trim() || null,
+    event_date: document.getElementById('em-date').value || null,
+    days: parseInt(document.getElementById('em-days').value) || 1,
+    mel_question: document.getElementById('em-mel').value.trim() || null
+  }).eq('id', eventId);
+
+  btn.textContent = 'Save changes'; btn.disabled = false;
+
+  if (error) { errEl.textContent = 'Error: ' + error.message; errEl.style.display = 'block'; return; }
+  closeEditModal();
+  // Refresh header
+  init();
+}

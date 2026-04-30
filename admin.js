@@ -200,9 +200,9 @@ function filterParticipants() {
 }
 
 function exportCSV() {
-  const headers = ['Code','Name','Sex','Organization','Program','Position','Email','Phone','Day','MEL Response','Registered'];
+  const headers = ['Code','Name','Sex','Organization','Program','Position','Email','Phone','Day','Signed','MEL Response','Registered'];
   const rows = currentParticipants.map(p =>
-    [p.code, p.name, p.sex, p.org, p.prog, p.position_title, p.email, p.phone, p.day_attended, p.notes, p.created_at]
+    [p.code, p.name, p.sex, p.org, p.prog, p.position_title, p.email, p.phone, p.day_attended, p.signature ? 'Yes' : 'No', p.notes, p.created_at]
       .map(v => `"${(v||'').replace(/"/g,'""')}"`)
       .join(',')
   );

@@ -24,9 +24,48 @@
     <div class="reg-body">
       <div class="reg-nav">
         <span class="reg-form-title">Participant Search</span>
-        <div style="display:flex;gap:8px">
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="reg-back-btn" onclick="promptEditEvent()">&#9998; Edit Event</button>
           <button class="reg-back-btn" onclick="openPreReg()">Pre-register</button>
           <button class="reg-back-btn" style="background:var(--orange);color:white;border-color:var(--orange)" onclick="openWalkin()">+ Walk-in</button>
+        </div>
+      </div>
+
+      <!-- Password modal -->
+      <div id="pwd-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:100;display:none;align-items:center;justify-content:center">
+        <div style="background:white;border-radius:12px;padding:1.5rem;width:300px;max-width:90vw">
+          <p style="font-weight:700;font-size:15px;margin-bottom:1rem">Enter admin password</p>
+          <input type="password" id="pwd-input" placeholder="Password" style="margin-bottom:0.75rem" onkeydown="if(event.key==='Enter')checkPwd()" />
+          <p id="pwd-err" style="font-size:12px;color:var(--red);display:none;margin-bottom:0.75rem">Incorrect password.</p>
+          <div style="display:flex;gap:8px">
+            <button class="btn-primary" onclick="checkPwd()" style="flex:1">Confirm</button>
+            <button class="btn-secondary" onclick="closePwdModal()" style="flex:1">Cancel</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Edit event modal -->
+      <div id="edit-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:100;overflow-y:auto;padding:2rem 1rem">
+        <div style="background:white;border-radius:12px;padding:1.5rem;max-width:500px;margin:0 auto">
+          <p style="font-weight:700;font-size:15px;margin-bottom:1.25rem">Edit Event</p>
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <div class="field-group"><label>Event name *</label><input type="text" id="em-name" /></div>
+            <div class="field-group"><label>Organizer</label><input type="text" id="em-organizer" /></div>
+            <div class="field-group"><label>Program</label><input type="text" id="em-program" /></div>
+            <div class="field-group"><label>Event date</label><input type="date" id="em-date" /></div>
+            <div class="field-group"><label>Number of days</label>
+              <select id="em-days">
+                <option value="1">1 day</option><option value="2">2 days</option>
+                <option value="3">3 days</option><option value="4">4 days</option><option value="5">5 days</option>
+              </select>
+            </div>
+            <div class="field-group"><label>MEL Question</label><input type="text" id="em-mel" /></div>
+          </div>
+          <p id="em-err" style="font-size:13px;color:var(--red);display:none;margin-top:0.75rem"></p>
+          <div style="display:flex;gap:8px;margin-top:1.25rem">
+            <button class="btn-submit" onclick="saveEventEdit()" style="margin-top:0">Save changes</button>
+            <button class="btn-secondary" onclick="closeEditModal()" style="flex:0 0 auto">Cancel</button>
+          </div>
         </div>
       </div>
 
