@@ -194,16 +194,34 @@ async function submitAttendance() {
     const existing = existingAttendance[currentDay];
     if (existing) {
       // Update existing row — no duplicate
-      await db.from('attendance').update({ signature_url: publicUrl, signed_at: new Date().toISOString() }).eq('id', existing.id);
-      existingAttendance[currentDay] = { ...existing, signature_url: publicUrl };
+      const { error: updErr } = await db.from('attendance')
+        .update({ signature_url: publicUrl, signed_at: new Date().toISOString() })
+        .eq('id', existing.id);
+      if (updErr) {
+        errEl.textContent = 'Save failed: ' + updErr.message;
+        errEl.style.display = 'block';
+        btn.textContent = resignMode ? 'Update Signature' : 'Sign Attendance';
+        btn.disabled = false;
+        return;
+      }
+      // Re-fetch to confirm DB has the new value
+      const { data: confirmed } = await db.from('attendance').select('*').eq('id', existing.id).single();
+      existingAttendance[currentDay] = confirmed || { ...existing, signature_url: publicUrl };
     } else {
       // New day — insert new row
-      const { data: newRow } = await db.from('attendance').insert([{
+      const { data: newRow, error: insErr } = await db.from('attendance').insert([{
         participant_id: participantId,
         event_id: eventId,
         day: currentDay,
         signature_url: publicUrl
       }]).select().single();
+      if (insErr) {
+        errEl.textContent = 'Save failed: ' + insErr.message;
+        errEl.style.display = 'block';
+        btn.textContent = 'Sign Attendance';
+        btn.disabled = false;
+        return;
+      }
       if (newRow) existingAttendance[currentDay] = newRow;
     }
 

@@ -550,3 +550,171 @@ async function exportPDF() {
     btn.disabled = false;
   }
 }
+
+// ── PDF Export ──
+async function exportPDF() {
+  const btn = [...document.querySelectorAll('.btn-secondary')].find(b => b.textContent === 'Export PDF');
+  if (btn) { btn.textContent = 'Building PDF...'; btn.disabled = true; }
+
+  try {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+    const pageW = doc.internal.pageSize.getWidth();
+    const pageH = doc.internal.pageSize.getHeight();
+    const eventName = document.getElementById('view-event-name').textContent;
+
+    // Fetch attendance for this event
+    const { data: attendance } = await db.from('attendance')
+      .select('*').eq('event_id', currentEventId).order('signed_at', { ascending: true });
+    const attMap = {};
+    (attendance || []).forEach(a => {
+      if (!attMap[a.participant_id]) attMap[a.participant_id] = [];
+      attMap[a.participant_id].push(a);
+    });
+
+    // ── Header ──
+    doc.setFillColor(235, 0, 27);
+    doc.rect(0, 0, pageW * 0.45, 22, 'F');
+    doc.setFillColor(243, 112, 33);
+    doc.rect(pageW * 0.45, 0, pageW * 0.35, 22, 'F');
+    doc.setFillColor(247, 158, 27);
+    doc.rect(pageW * 0.8, 0, pageW * 0.2, 22, 'F');
+
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(14); doc.setFont('helvetica', 'bold');
+    doc.text(eventName, 10, 10);
+    doc.setFontSize(8); doc.setFont('helvetica', 'normal');
+    doc.text('Attendance Register  ·  Generated: ' + new Date().toLocaleString(), 10, 16);
+    doc.text('Total registered: ' + currentParticipants.length + '  ·  Signed: ' + Object.keys(attMap).length, 10, 21);
+
+    // ── Pre-fetch all signature images ──
+    async function urlToBase64(url) {
+      try {
+        const res = await fetch(url);
+        const blob = await res.blob();
+        return await new Promise(resolve => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.readAsDataURL(blob);
+        });
+      } catch { return null; }
+    }
+
+    // Collect all unique signature URLs
+    const sigCache = {};
+    const urlsToFetch = [];
+    currentParticipants.forEach(p => {
+      (attMap[p.id] || []).forEach(a => {
+        if (a.signature_url && !sigCache[a.signature_url]) urlsToFetch.push(a.signature_url);
+      });
+    });
+    await Promise.all(urlsToFetch.map(async url => {
+      sigCache[url] = await urlToBase64(url);
+    }));
+
+    // ── Table ──
+    const SIG_H = 18; // mm height for signature rows
+    const COL_WIDTHS = [18, 42, 12, 42, 36, 22, 30, 35];
+    const COL_HEADERS = ['Code', 'Name', 'Sex', 'Organization', 'Position', 'Type', 'Days Signed', 'Signature'];
+    const MARGIN = 8;
+    const TABLE_TOP = 26;
+    const COL_X = COL_WIDTHS.reduce((acc, w, i) => { acc.push(i === 0 ? MARGIN : acc[i-1] + COL_WIDTHS[i-1]); return acc; }, []);
+
+    // Header row
+    doc.setFillColor(26, 26, 26);
+    doc.rect(MARGIN, TABLE_TOP, pageW - MARGIN * 2, 7, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(7); doc.setFont('helvetica', 'bold');
+    COL_HEADERS.forEach((h, i) => doc.text(h, COL_X[i] + 1.5, TABLE_TOP + 4.5));
+
+    let y = TABLE_TOP + 7;
+    doc.setFont('helvetica', 'normal');
+
+    for (let idx = 0; idx < currentParticipants.length; idx++) {
+      const p = currentParticipants[idx];
+      const att = attMap[p.id] || [];
+      const rowH = att.some(a => a.signature_url) ? SIG_H : 8;
+
+      // Page break
+      if (y + rowH > pageH - 10) {
+        doc.addPage();
+        y = 10;
+        doc.setFillColor(26, 26, 26);
+        doc.rect(MARGIN, y, pageW - MARGIN * 2, 7, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(7); doc.setFont('helvetica', 'bold');
+        COL_HEADERS.forEach((h, i) => doc.text(h, COL_X[i] + 1.5, y + 4.5));
+        doc.setFont('helvetica', 'normal');
+        y += 7;
+      }
+
+      // Row background
+      doc.setFillColor(idx % 2 === 0 ? 250 : 245, idx % 2 === 0 ? 250 : 245, idx % 2 === 0 ? 248 : 243);
+      doc.rect(MARGIN, y, pageW - MARGIN * 2, rowH, 'F');
+
+      // Row border
+      doc.setDrawColor(220, 220, 220);
+      doc.rect(MARGIN, y, pageW - MARGIN * 2, rowH, 'S');
+
+      // Text cells
+      doc.setTextColor(26, 26, 26);
+      doc.setFontSize(7.5);
+
+      const truncate = (s, maxLen) => s && s.length > maxLen ? s.slice(0, maxLen - 1) + '…' : (s || '');
+      const textY = y + (rowH > 8 ? 5 : 5);
+
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(243, 112, 33);
+      doc.text(truncate(p.code || '—', 12), COL_X[0] + 1.5, textY);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(26, 26, 26);
+      doc.text(truncate(p.name || '', 28), COL_X[1] + 1.5, textY);
+      doc.text(truncate(p.sex || '—', 8), COL_X[2] + 1.5, textY);
+      doc.text(truncate(p.org || '', 28), COL_X[3] + 1.5, textY);
+      doc.text(truncate(p.position_title || '', 22), COL_X[4] + 1.5, textY);
+
+      // Reg type badge text
+      const rt = p.reg_type || 'Pre-registration';
+      doc.setTextColor(rt === 'Walk-in' ? 243 : 0, rt === 'Walk-in' ? 112 : 92, rt === 'Walk-in' ? 33 : 42);
+      doc.text(rt === 'Walk-in' ? 'Walk-in' : 'Pre-reg', COL_X[5] + 1.5, textY);
+
+      doc.setTextColor(26, 26, 26);
+      const days = att.map(a => a.day).join(', ');
+      doc.text(truncate(days || '—', 20), COL_X[6] + 1.5, textY);
+
+      // Signature image — use most recent
+      const sigRecord = att.filter(a => a.signature_url).slice(-1)[0];
+      if (sigRecord && sigCache[sigRecord.signature_url]) {
+        try {
+          doc.addImage(sigCache[sigRecord.signature_url], 'PNG',
+            COL_X[7] + 1, y + 1, COL_WIDTHS[7] - 2, rowH - 2);
+        } catch(e) {
+          doc.setFontSize(6); doc.setTextColor(150,150,150);
+          doc.text('[sig error]', COL_X[7] + 1.5, textY);
+        }
+      } else if (!att.length || !sigRecord) {
+        doc.setFontSize(6); doc.setTextColor(180,180,180);
+        doc.text('Not signed', COL_X[7] + 1.5, textY);
+      }
+
+      y += rowH;
+    }
+
+    // Footer
+    const pages = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= pages; i++) {
+      doc.setPage(i);
+      doc.setFontSize(6.5); doc.setTextColor(150,150,150);
+      doc.text('Page ' + i + ' of ' + pages + '  ·  ' + eventName + '  ·  Participants App — METSS LBG',
+        MARGIN, pageH - 4);
+    }
+
+    doc.save('attendance-' + eventName.replace(/\s+/g, '-') + '-' + new Date().toISOString().slice(0,10) + '.pdf');
+
+  } catch(e) {
+    alert('PDF export failed: ' + e.message);
+  } finally {
+    if (btn) { btn.textContent = 'Export PDF'; btn.disabled = false; }
+  }
+}
