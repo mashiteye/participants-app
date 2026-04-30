@@ -136,16 +136,16 @@ async function viewParticipants(eventId, eventName) {
   document.getElementById('view-event-name').textContent = eventName;
   showPane('participants');
 
-  const [{ data: parts }, { data: att }] = await Promise.all([
-    db.from('participants').select('*').eq('event_id', eventId).order('created_at', { ascending: false }),
-    db.from('attendance').select('*').eq('event_id', eventId)
-  ]);
+  const { data: parts } = await db.from('participants').select('*').eq('event_id', eventId).order('created_at', { ascending: false });
   currentParticipants = parts || [];
   currentAttendance = {};
-  (att || []).forEach(a => {
-    if (!currentAttendance[a.participant_id]) currentAttendance[a.participant_id] = [];
-    currentAttendance[a.participant_id].push(a);
-  });
+  try {
+    const { data: att } = await db.from('attendance').select('*').eq('event_id', eventId);
+    (att || []).forEach(a => {
+      if (!currentAttendance[a.participant_id]) currentAttendance[a.participant_id] = [];
+      currentAttendance[a.participant_id].push(a);
+    });
+  } catch(e) { console.warn('Attendance table not available:', e.message); }
   renderStats();
   filterParticipants();
 }
@@ -203,9 +203,9 @@ function filterParticipants() {
     const sigCell = att.length > 0
       ? att.map(a => a.signature_url ? `<a href="${a.signature_url}" target="_blank" style="color:var(--orange);font-size:11px">${a.day}</a>` : '').filter(Boolean).join(' ')
       : (p.signature ? `<img src="${p.signature}" style="height:28px;max-width:60px;object-fit:contain" title="Legacy signature" />` : '&mdash;');
-    html += `<tr>
+    html += `<tr data-pid="${p.id}" style="cursor:pointer">
       <td style="font-weight:700;font-family:monospace;color:var(--orange)">${esc(p.code) || '&mdash;'}</td>
-      <td title="${esc(p.name)}">${esc(p.name)}</td>
+      <td title="${esc(p.name)}" style="font-weight:500">${esc(p.name)}</td>
       <td>${esc(p.sex) || '&mdash;'}</td>
       <td title="${esc(p.org)}">${esc(p.org)}</td>
       <td>${esc(p.position_title) || '&mdash;'}</td>
@@ -216,6 +216,17 @@ function filterParticipants() {
   });
   html += `</tbody></table></div>`;
   container.innerHTML = html;
+
+  // Event delegation for row clicks → open sign form
+  const tbody = container.querySelector('tbody');
+  if (tbody) {
+    tbody.addEventListener('click', e => {
+      const row = e.target.closest('tr[data-pid]');
+      if (row) {
+        window.open(BASE_URL + 'sign.html?participant=' + row.dataset.pid + '&event=' + currentEventId, '_blank');
+      }
+    });
+  }
 }
 
 async function exportCSV() {
