@@ -121,7 +121,10 @@
           <button class="btn-sm" onclick="showPane('events')" style="margin-bottom:6px">← Back to events</button>
           <h2 class="section-title" id="view-event-name" style="margin:0"></h2>
         </div>
-        <button class="btn-secondary" onclick="exportCSV()">Export CSV</button>
+        <div style="display:flex;gap:8px">
+          <button class="btn-secondary" onclick="openRegLink()">Open registration form</button>
+          <button class="btn-secondary" onclick="exportCSV()">Export CSV</button>
+        </div>
       </div>
       <div class="stats" id="view-stats"></div>
       <input type="text" id="p-search" placeholder="Search name, org, position..." oninput="filterParticipants()" class="search-input" style="margin-bottom:1rem;width:100%" />

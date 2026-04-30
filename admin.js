@@ -257,3 +257,7 @@ async function fetchAndEdit(id) {
   if (error || !data) { alert('Could not load event.'); return; }
   openEdit(data);
 }
+
+function openRegLink() {
+  window.open(BASE_URL + 'index.html?event=' + currentEventId, '_blank');
+}
