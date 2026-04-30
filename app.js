@@ -135,7 +135,8 @@ async function registerParticipant() {
     email, phone,
     notes: fval('f-mel'),
     event_id: eventId,
-    code
+    code,
+    reg_type: isWalkin ? 'Walk-in' : 'Pre-registration'
   };
   if (isWalkin) {
     payload.day_attended = fval('f-day');

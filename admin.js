@@ -188,14 +188,15 @@ function filterParticipants() {
   }
   let html = `<div style="overflow-x:auto"><table>
     <thead><tr>
-      <th style="width:10%">Code</th>
-      <th style="width:20%">Name</th>
-      <th style="width:7%">Sex</th>
-      <th style="width:20%">Organization</th>
-      <th style="width:16%">Position</th>
-      <th style="width:12%">Program</th>
+      <th style="width:9%">Code</th>
+      <th style="width:16%">Name</th>
+      <th style="width:6%">Sex</th>
+      <th style="width:16%">Organization</th>
+      <th style="width:13%">Position</th>
+      <th style="width:10%">Program</th>
+      <th style="width:11%">Type</th>
       <th style="width:10%">Days Signed</th>
-      <th style="width:5%">Sig</th>
+      <th style="width:9%">Sig</th>
     </tr></thead><tbody>`;
   filtered.forEach(p => {
     const att = currentAttendance[p.id] || [];
@@ -203,6 +204,9 @@ function filterParticipants() {
     const sigCell = att.length > 0
       ? att.map(a => a.signature_url ? `<a href="${a.signature_url}" target="_blank" style="color:var(--orange);font-size:11px">${a.day}</a>` : '').filter(Boolean).join(' ')
       : (p.signature ? `<img src="${p.signature}" style="height:28px;max-width:60px;object-fit:contain" title="Legacy signature" />` : '&mdash;');
+    const regTypeBadge = p.reg_type === 'Walk-in'
+      ? '<span style="background:#fff3e8;color:var(--orange);font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px">Walk-in</span>'
+      : '<span style="background:#f0f9f4;color:#005c2a;font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px">Pre-reg</span>';
     html += `<tr data-pid="${p.id}" style="cursor:pointer">
       <td style="font-weight:700;font-family:monospace;color:var(--orange)">${esc(p.code) || '&mdash;'}</td>
       <td title="${esc(p.name)}" style="font-weight:500">${esc(p.name)}</td>
@@ -210,6 +214,7 @@ function filterParticipants() {
       <td title="${esc(p.org)}">${esc(p.org)}</td>
       <td>${esc(p.position_title) || '&mdash;'}</td>
       <td>${esc(p.prog) || '&mdash;'}</td>
+      <td>${regTypeBadge}</td>
       <td style="font-size:12px">${daysSigned}</td>
       <td>${sigCell}</td>
     </tr>`;

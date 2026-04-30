@@ -18,9 +18,9 @@
     <div class="reg-header">
       <img src="banner.jpg" alt="" class="reg-header-banner" />
       <div class="reg-header-content">
-      <p class="reg-header-sub" id="event-code-prog"></p>
-      <p class="reg-header-title" id="event-name"></p>
-      <p class="reg-header-meta" id="event-meta"></p>
+        <p class="reg-header-sub" id="event-code-prog"></p>
+        <p class="reg-header-title" id="event-name"></p>
+        <p class="reg-header-meta" id="event-meta"></p>
       </div>
     </div>
 
@@ -30,14 +30,14 @@
         <button class="reg-back-btn" onclick="goBack()">← Participant Search</button>
       </div>
 
-      <!-- Success — scoped to sign form only -->
+      <!-- Success message — scoped, never hides form fields -->
       <div id="sign-success" style="display:none;background:var(--success-bg);color:var(--success-text);padding:16px;border-radius:8px;margin-bottom:1.25rem;text-align:center">
         <p style="font-size:15px;font-weight:700;margin-bottom:4px">Attendance recorded!</p>
-        <p style="font-size:13px;margin-bottom:2px"><span id="confirm-name"></span> · <span id="confirm-code" style="font-family:monospace;font-weight:700;color:var(--orange)"></span></p>
-        <p style="font-size:13px">Signed for <strong id="confirm-day"></strong>.</p>
+        <p style="font-size:13px"><span id="confirm-name"></span> · <span id="confirm-code" style="font-family:monospace;font-weight:700;color:var(--orange)"></span></p>
+        <p style="font-size:13px;margin-top:2px">Signed for <strong id="confirm-day"></strong>.</p>
       </div>
 
-      <!-- Participant card — always visible, never hidden -->
+      <!-- Participant card — always visible -->
       <div style="background:white;border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:1rem 1.25rem;margin-bottom:1.25rem">
         <div style="display:flex;justify-content:space-between;align-items:center">
           <div>
@@ -46,28 +46,42 @@
           </div>
           <p style="font-size:22px;font-weight:800;font-family:monospace;color:var(--orange)" id="p-code"></p>
         </div>
-        <p id="already-signed" style="display:none;font-size:12px;color:var(--green);font-weight:600;margin-top:8px;padding-top:8px;border-top:0.5px solid var(--border)"></p>
+        <p id="already-signed" style="display:none;font-size:12px;color:var(--orange);font-weight:600;margin-top:8px;padding-top:8px;border-top:0.5px solid var(--border)"></p>
       </div>
 
-      <!-- Day selection — scoped -->
+      <!-- Day selection -->
       <div class="field-group" id="day-group" style="display:none">
         <label>Select Day *</label>
         <div class="toggle-group" id="day-buttons"></div>
         <input type="hidden" id="f-day" />
       </div>
 
-      <!-- Signature — scoped -->
-      <div class="field-group">
-        <label>Signature *</label>
-        <div class="sig-container">
-          <canvas id="sig-canvas"></canvas>
-          <p class="sig-hint">Sign here</p>
+      <!-- Existing signature preview (read-only) -->
+      <div id="existing-sig-label" style="display:none;font-size:12px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:6px">Saved Signature</div>
+      <img id="existing-sig-preview" style="display:none;width:100%;max-height:130px;object-fit:contain;border:1px solid var(--border);border-radius:var(--radius-md);background:white;margin-bottom:0.75rem" />
+
+      <!-- Re-sign prompt -->
+      <div id="resign-section" style="display:none;margin-bottom:1rem">
+        <p style="font-size:13px;color:var(--text-muted);margin-bottom:8px">This day is already signed. To update the signature, click Re-sign.</p>
+        <div style="display:flex;gap:8px">
+          <button class="btn-secondary" onclick="enableResign()">✎ Re-sign</button>
         </div>
-        <button class="btn-clear-sig" onclick="clearSig()">Clear</button>
+      </div>
+
+      <!-- Signature canvas (shown for new days or after Re-sign) -->
+      <div id="sig-section" style="display:none">
+        <div class="field-group">
+          <label>Signature *</label>
+          <div class="sig-container">
+            <canvas id="sig-canvas"></canvas>
+            <p class="sig-hint">Sign here</p>
+          </div>
+          <button class="btn-clear-sig" onclick="clearSig()">Clear</button>
+        </div>
       </div>
 
       <span id="err-msg" class="err-msg" style="display:none"></span>
-      <button class="btn-submit" id="submit-btn" onclick="submitAttendance()">Sign Attendance</button>
+      <button class="btn-submit" id="submit-btn" onclick="submitAttendance()" style="display:none">Sign Attendance</button>
     </div>
   </div>
 

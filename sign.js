@@ -10,26 +10,29 @@ const BASE_URL = window.location.origin + window.location.pathname.replace('sign
 let sigCanvas, sigCtx, drawing = false;
 let participant = null;
 let eventData = null;
+let currentDay = null;
+let existingAttendance = {}; // day -> attendance record
+let resignMode = false;
 
 async function init() {
-  if (!participantId || !eventId) {
-    showError('Missing participant or event ID in link.');
-    return;
-  }
+  if (!participantId || !eventId) { showError('Missing participant or event ID.'); return; }
 
   try {
-    const [pRes, evRes] = await Promise.all([
+    const [pRes, evRes, attRes] = await Promise.all([
       db.from('participants').select('*').eq('id', participantId).single(),
-      db.from('events').select('*').eq('id', eventId).single()
+      db.from('events').select('*').eq('id', eventId).single(),
+      db.from('attendance').select('*').eq('participant_id', participantId).eq('event_id', eventId)
     ]);
 
-    if (pRes.error || !pRes.data) { showError('Participant not found: ' + (pRes.error?.message || 'unknown')); return; }
-    if (evRes.error || !evRes.data) { showError('Event not found: ' + (evRes.error?.message || 'unknown')); return; }
+    if (pRes.error || !pRes.data) { showError('Participant not found: ' + (pRes.error?.message || '')); return; }
+    if (evRes.error || !evRes.data) { showError('Event not found: ' + (evRes.error?.message || '')); return; }
 
     participant = pRes.data;
     eventData = evRes.data;
+    existingAttendance = {};
+    (attRes.data || []).forEach(a => { existingAttendance[a.day] = a; });
 
-    document.getElementById('sign-ui').style.display = 'block';
+    // Populate header
     document.getElementById('event-name').textContent = eventData.name;
     document.getElementById('event-code-prog').textContent = [eventData.event_code, eventData.program].filter(Boolean).join(' · ') || 'Attendance';
     document.getElementById('event-meta').textContent = [
@@ -43,53 +46,91 @@ async function init() {
     document.getElementById('p-details').textContent = [participant.position_title, participant.org, participant.prog].filter(Boolean).join(' · ');
     document.getElementById('p-code').textContent = participant.code || '';
 
-    // Fetch existing attendance for this participant
-    const { data: existing } = await db.from('attendance')
-      .select('day')
-      .eq('participant_id', participantId)
-      .eq('event_id', eventId);
-
-    const signedDays = (existing || []).map(a => a.day);
+    const signedDays = Object.keys(existingAttendance);
     if (signedDays.length) {
-      document.getElementById('already-signed').textContent = 'Already signed: ' + signedDays.join(', ');
+      document.getElementById('already-signed').textContent = 'Signed: ' + signedDays.join(', ');
       document.getElementById('already-signed').style.display = 'block';
     }
 
-    // Day buttons
+    // Build day buttons
     const days = eventData.days || 1;
     if (days > 1) {
       const container = document.getElementById('day-buttons');
       container.innerHTML = '';
       for (let i = 1; i <= days; i++) {
+        const label = 'Day ' + i;
         const btn = document.createElement('button');
         btn.className = 'toggle-btn';
-        btn.textContent = 'Day ' + i;
-        if (signedDays.includes('Day ' + i)) {
-          btn.style.opacity = '0.5';
+        btn.textContent = label;
+        btn.onclick = () => selectDay(label);
+        if (existingAttendance[label]) {
+          btn.style.borderColor = 'var(--orange)';
           btn.title = 'Already signed';
         }
-        btn.onclick = () => setDay('Day ' + i);
         container.appendChild(btn);
       }
       document.getElementById('day-group').style.display = 'block';
     } else {
-      document.getElementById('f-day').value = 'Day 1';
+      selectDay('Day 1');
     }
 
+    document.getElementById('sign-ui').style.display = 'block';
     initSignature();
 
-  } catch(e) {
-    showError('Unexpected error: ' + e.message);
-  }
+  } catch(e) { showError('Unexpected error: ' + e.message); }
 }
 
 function showError(msg) {
-  document.getElementById('no-participant').style.display = 'block';
-  document.getElementById('no-participant').querySelector('.empty-sub').textContent = msg;
+  const el = document.getElementById('no-participant');
+  el.style.display = 'block';
+  el.querySelector('.empty-sub').textContent = msg;
 }
 
-function goBack() {
-  window.location.href = BASE_URL + 'event.html?event=' + eventId;
+function goBack() { window.location.href = BASE_URL + 'event.html?event=' + eventId; }
+
+function selectDay(day) {
+  currentDay = day;
+  resignMode = false;
+  document.getElementById('f-day').value = day;
+  document.querySelectorAll('#day-buttons .toggle-btn').forEach(b => b.classList.toggle('active', b.textContent === day));
+
+  const existing = existingAttendance[day];
+  const sigSection = document.getElementById('sig-section');
+  const resignSection = document.getElementById('resign-section');
+  const existingSigPreview = document.getElementById('existing-sig-preview');
+  const submitBtn = document.getElementById('submit-btn');
+
+  if (existing && existing.signature_url) {
+    // Show existing signature as read-only preview
+    existingSigPreview.src = existing.signature_url;
+    existingSigPreview.style.display = 'block';
+    document.getElementById('existing-sig-label').style.display = 'block';
+    sigSection.style.display = 'none';
+    resignSection.style.display = 'block';
+    submitBtn.style.display = 'none';
+  } else {
+    // No existing signature — show canvas
+    existingSigPreview.style.display = 'none';
+    document.getElementById('existing-sig-label').style.display = 'none';
+    sigSection.style.display = 'block';
+    resignSection.style.display = 'none';
+    submitBtn.style.display = 'block';
+    clearSig();
+  }
+}
+
+function enableResign() {
+  resignMode = true;
+  document.getElementById('sig-section').style.display = 'block';
+  document.getElementById('resign-section').style.display = 'none';
+  document.getElementById('submit-btn').style.display = 'block';
+  document.getElementById('submit-btn').textContent = 'Update Signature';
+  clearSig();
+}
+
+function cancelResign() {
+  resignMode = false;
+  selectDay(currentDay);
 }
 
 function initSignature() {
@@ -119,105 +160,75 @@ function initSignature() {
   sigCanvas.addEventListener('touchend', stop);
 }
 
-function hideSigHint() {
-  const hint = document.querySelector('.sig-hint');
-  if (hint) hint.style.display = 'none';
-}
-
+function hideSigHint() { const h = document.querySelector('.sig-hint'); if (h) h.style.display = 'none'; }
 function clearSig() {
   if (!sigCtx) return;
   sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
-  const hint = document.querySelector('.sig-hint');
-  if (hint) hint.style.display = 'block';
+  const h = document.querySelector('.sig-hint'); if (h) h.style.display = 'block';
 }
-
 function isSigEmpty() {
   if (!sigCtx) return true;
   return !sigCtx.getImageData(0, 0, sigCanvas.width, sigCanvas.height).data.some(v => v !== 0);
 }
-
-function setDay(v) {
-  document.getElementById('f-day').value = v;
-  document.querySelectorAll('#day-buttons .toggle-btn').forEach(b => b.classList.toggle('active', b.textContent === v));
-}
-
-function canvasToBlob(canvas) {
-  return new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
-}
+function canvasToBlob(canvas) { return new Promise(resolve => canvas.toBlob(resolve, 'image/png')); }
 
 async function submitAttendance() {
   const errEl = document.getElementById('err-msg');
   errEl.style.display = 'none';
 
-  const day = document.getElementById('f-day').value;
-  if (!day) { errEl.textContent = 'Please select a day.'; errEl.style.display = 'block'; return; }
-  if (isSigEmpty()) { errEl.textContent = 'Please provide your signature.'; errEl.style.display = 'block'; return; }
+  if (!currentDay) { errEl.textContent = 'Please select a day.'; errEl.style.display = 'block'; return; }
+  if (isSigEmpty()) { errEl.textContent = 'Please draw your signature.'; errEl.style.display = 'block'; return; }
 
   const btn = document.getElementById('submit-btn');
-  btn.textContent = 'Uploading signature...'; btn.disabled = true;
+  btn.textContent = 'Uploading...'; btn.disabled = true;
 
   try {
-    // Upload signature to Supabase Storage
     const blob = await canvasToBlob(sigCanvas);
-    const path = `${eventId}/${participantId}/${day.replace(' ', '_')}_${Date.now()}.png`;
+    const path = `${eventId}/${participantId}/${currentDay.replace(' ','_')}_${Date.now()}.png`;
 
-    const { error: uploadError } = await db.storage.from('signatures').upload(path, blob, {
-      contentType: 'image/png',
-      upsert: false
-    });
-
-    if (uploadError) {
-      errEl.textContent = 'Signature upload failed: ' + uploadError.message;
-      errEl.style.display = 'block';
-      btn.textContent = 'Sign Attendance'; btn.disabled = false;
-      return;
-    }
+    const { error: upErr } = await db.storage.from('signatures').upload(path, blob, { contentType: 'image/png' });
+    if (upErr) { errEl.textContent = 'Upload failed: ' + upErr.message; errEl.style.display = 'block'; btn.textContent = resignMode ? 'Update Signature' : 'Sign Attendance'; btn.disabled = false; return; }
 
     const { data: { publicUrl } } = db.storage.from('signatures').getPublicUrl(path);
 
-    btn.textContent = 'Saving attendance...';
-
-    // Insert into attendance table (never overwrites — one row per day)
-    const { error: attError } = await db.from('attendance').insert([{
-      participant_id: participantId,
-      event_id: eventId,
-      day,
-      signature_url: publicUrl
-    }]);
-
-    if (attError) {
-      errEl.textContent = 'Attendance save failed: ' + attError.message;
-      errEl.style.display = 'block';
-      btn.textContent = 'Sign Attendance'; btn.disabled = false;
-      return;
+    const existing = existingAttendance[currentDay];
+    if (existing) {
+      // Update existing row — no duplicate
+      await db.from('attendance').update({ signature_url: publicUrl, signed_at: new Date().toISOString() }).eq('id', existing.id);
+      existingAttendance[currentDay] = { ...existing, signature_url: publicUrl };
+    } else {
+      // New day — insert new row
+      const { data: newRow } = await db.from('attendance').insert([{
+        participant_id: participantId,
+        event_id: eventId,
+        day: currentDay,
+        signature_url: publicUrl
+      }]).select().single();
+      if (newRow) existingAttendance[currentDay] = newRow;
     }
 
-    // Show success — scope resets to sign form only, not registration form
+    // Show success — scoped only to sign form
     document.getElementById('confirm-name').textContent = participant.name;
     document.getElementById('confirm-code').textContent = participant.code || '';
-    document.getElementById('confirm-day').textContent = day;
-    document.getElementById('sign-success').style.display = 'block';
-    document.getElementById('sign-success').scrollIntoView({ behavior: 'smooth' });
+    document.getElementById('confirm-day').textContent = currentDay;
+    const s = document.getElementById('sign-success');
+    s.style.display = 'block';
+    s.scrollIntoView({ behavior: 'smooth' });
 
-    // Reset ONLY signature and day — participant card stays visible
-    clearSig();
-    document.getElementById('f-day').value = '';
-    document.querySelectorAll('#day-buttons .toggle-btn').forEach(b => b.classList.remove('active'));
-    btn.textContent = 'Sign Attendance'; btn.disabled = false;
+    // Update signed indicator
+    const signedDays = Object.keys(existingAttendance);
+    document.getElementById('already-signed').textContent = 'Signed: ' + signedDays.join(', ');
+    document.getElementById('already-signed').style.display = 'block';
 
-    // Update already-signed indicator
-    const signedText = document.getElementById('already-signed');
-    const current = signedText.textContent.replace('Already signed: ', '').split(', ').filter(Boolean);
-    current.push(day);
-    signedText.textContent = 'Already signed: ' + [...new Set(current)].join(', ');
-    signedText.style.display = 'block';
-
-    setTimeout(() => document.getElementById('sign-success').style.display = 'none', 5000);
+    // Reset canvas and re-select day to show preview
+    btn.textContent = resignMode ? 'Update Signature' : 'Sign Attendance';
+    btn.disabled = false;
+    selectDay(currentDay);
+    setTimeout(() => s.style.display = 'none', 5000);
 
   } catch(e) {
-    errEl.textContent = 'Unexpected error: ' + e.message;
-    errEl.style.display = 'block';
-    btn.textContent = 'Sign Attendance'; btn.disabled = false;
+    errEl.textContent = 'Error: ' + e.message; errEl.style.display = 'block';
+    btn.textContent = resignMode ? 'Update Signature' : 'Sign Attendance'; btn.disabled = false;
   }
 }
 

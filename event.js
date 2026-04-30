@@ -60,19 +60,24 @@ function filterParticipants() {
   }
   let html = `<div style="overflow-x:auto"><table id="participants-table">
     <thead><tr>
-      <th style="width:13%">Code</th>
-      <th style="width:28%">Name</th>
-      <th style="width:9%">Sex</th>
-      <th style="width:28%">Organization</th>
-      <th style="width:22%">Position</th>
+      <th style="width:11%">Code</th>
+      <th style="width:24%">Name</th>
+      <th style="width:7%">Sex</th>
+      <th style="width:24%">Organization</th>
+      <th style="width:18%">Position</th>
+      <th style="width:16%">Type</th>
     </tr></thead><tbody>`;
   filtered.forEach(p => {
+    const regTypeBadge = p.reg_type === 'Walk-in'
+      ? '<span style="background:#fff3e8;color:var(--orange);font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px">Walk-in</span>'
+      : '<span style="background:#f0f9f4;color:#005c2a;font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px">Pre-reg</span>';
     html += `<tr data-pid="${p.id}" style="cursor:pointer">
       <td style="font-weight:700;font-family:monospace;color:var(--orange)">${esc(p.code) || '&mdash;'}</td>
       <td style="font-weight:500">${esc(p.name)}</td>
       <td>${esc(p.sex) || '&mdash;'}</td>
       <td title="${esc(p.org)}">${esc(p.org)}</td>
       <td>${esc(p.position_title) || '&mdash;'}</td>
+      <td>${regTypeBadge}</td>
     </tr>`;
   });
   html += `</tbody></table></div>`;
