@@ -4,7 +4,6 @@ const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const BASE_URL = window.location.origin + window.location.pathname.replace('admin.html', '');
 
-let allEvents = [];
 let currentEventId = null;
 let currentParticipants = [];
 
@@ -18,7 +17,6 @@ function showPane(name) {
 function val(id) { return document.getElementById(id).value.trim(); }
 
 async function submitEvent() {
-  
   const errEl = document.getElementById('e-err');
   try {
     const name = val('e-name');
@@ -28,28 +26,28 @@ async function submitEvent() {
     const btn = document.querySelector('#pane-create .btn-primary');
     btn.textContent = 'Creating...'; btn.disabled = true;
 
-    const payload = {
+    const { data, error } = await db.from('events').insert([{
       name,
       organizer: val('e-organizer') || null,
       program: document.getElementById('e-prog').value || null,
-      event_date: document.getElementById('e-date').value || null
-    };
-
-    const { data, error } = await db.from('events').insert([payload]).select();
+      event_date: document.getElementById('e-date').value || null,
+      days: parseInt(document.getElementById('e-days').value) || 1,
+      mel_question: val('e-mel') || null
+    }]).select();
 
     btn.textContent = 'Create event'; btn.disabled = false;
 
     if (error) { errEl.textContent = 'Error: ' + error.message; errEl.style.display = 'inline'; return; }
-    if (!data || !data.length) { errEl.textContent = 'No data returned from insert.'; errEl.style.display = 'inline'; return; }
+    if (!data || !data.length) { errEl.textContent = 'No data returned.'; errEl.style.display = 'inline'; return; }
 
-    ['e-name','e-organizer','e-date'].forEach(id => document.getElementById(id).value = '');
+    ['e-name','e-organizer','e-date','e-mel'].forEach(id => document.getElementById(id).value = '');
     document.getElementById('e-prog').selectedIndex = 0;
+    document.getElementById('e-days').selectedIndex = 0;
 
     document.getElementById('share-link').textContent = BASE_URL + 'index.html?event=' + data[0].id;
     showPane('link');
   } catch(e) {
-    errEl.textContent = 'Unexpected error: ' + e.message;
-    errEl.style.display = 'inline';
+    errEl.textContent = 'Unexpected error: ' + e.message; errEl.style.display = 'inline';
   }
 }
 
@@ -69,27 +67,28 @@ async function loadEvents() {
   const { data: events } = await db.from('events').select('*').order('created_at', { ascending: false });
   const { data: counts } = await db.from('participants').select('event_id');
 
-  allEvents = events || [];
   const countMap = {};
   (counts || []).forEach(p => { countMap[p.event_id] = (countMap[p.event_id] || 0) + 1; });
 
   document.getElementById('events-loading').style.display = 'none';
+  document.getElementById('events-list').style.display = 'block';
 
-  if (!allEvents.length) {
-    document.getElementById('events-list').style.display = 'block';
+  if (!events || !events.length) {
     document.getElementById('events-list').innerHTML = '<div class="empty">No events yet. Create your first event.</div>';
     return;
   }
 
   let html = '';
-  allEvents.forEach(e => {
+  events.forEach(e => {
     const count = countMap[e.id] || 0;
     const dateStr = e.event_date ? new Date(e.event_date).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' }) : '';
+    const meta = [e.program, e.organizer, dateStr, e.days > 1 ? e.days + ' days' : null].filter(Boolean).join(' · ');
     html += `<div class="event-card">
       <div class="event-card-main">
         <div>
           <p class="event-card-name">${esc(e.name)}</p>
-          <p class="event-card-meta">${[e.program, e.organizer, dateStr].filter(Boolean).join(' · ')}</p>
+          <p class="event-card-meta">${esc(meta)}</p>
+          ${e.mel_question ? `<p class="event-card-meta" style="margin-top:3px;font-style:italic">${esc(e.mel_question)}</p>` : ''}
         </div>
         <div class="event-card-count">
           <span class="count-num">${count}</span>
@@ -97,20 +96,17 @@ async function loadEvents() {
         </div>
       </div>
       <div class="event-card-actions">
-        <button class="btn-sm" onclick="viewParticipants('${e.id}', '${esc(e.name)}')">View participants</button>
+        <button class="btn-sm" onclick="viewParticipants('${e.id}','${esc(e.name)}')">View participants</button>
         <button class="btn-sm" onclick="copyEventLink('${e.id}', this)">Copy link</button>
         <button class="btn-sm danger" onclick="deleteEvent('${e.id}')">Delete</button>
       </div>
     </div>`;
   });
-
   document.getElementById('events-list').innerHTML = html;
-  document.getElementById('events-list').style.display = 'block';
 }
 
 function copyEventLink(id, btn) {
-  const link = BASE_URL + 'index.html?event=' + id;
-  navigator.clipboard.writeText(link).then(() => {
+  navigator.clipboard.writeText(BASE_URL + 'index.html?event=' + id).then(() => {
     btn.textContent = 'Copied!';
     setTimeout(() => btn.textContent = 'Copy link', 2000);
   });
@@ -127,7 +123,6 @@ async function viewParticipants(eventId, eventName) {
   currentEventId = eventId;
   document.getElementById('view-event-name').textContent = eventName;
   showPane('participants');
-
   const { data } = await db.from('participants').select('*').eq('event_id', eventId).order('created_at', { ascending: false });
   currentParticipants = data || [];
   renderStats();
@@ -135,15 +130,18 @@ async function viewParticipants(eventId, eventName) {
 }
 
 function renderStats() {
-  const progs = ['AYAW','FIRST+II','BIA','FILMA','MCF','Other'];
-  const counts = {};
-  currentParticipants.forEach(p => { counts[p.prog] = (counts[p.prog] || 0) + 1; });
-  let html = `<div class="stat-card"><div class="stat-num">${currentParticipants.length}</div><div class="stat-label">Total</div></div>`;
-  progs.forEach(p => {
-    if (counts[p]) html += `<div class="stat-card"><div class="stat-num">${counts[p]}</div><div class="stat-label">${p}</div></div>`;
+  const total = currentParticipants.length;
+  const female = currentParticipants.filter(p => p.sex === 'Female').length;
+  const male = currentParticipants.filter(p => p.sex === 'Male').length;
+  const days = {};
+  currentParticipants.forEach(p => { if (p.day_attended) days[p.day_attended] = (days[p.day_attended] || 0) + 1; });
+
+  let html = `<div class="stat-card"><div class="stat-num">${total}</div><div class="stat-label">Total</div></div>`;
+  if (female) html += `<div class="stat-card"><div class="stat-num">${female}</div><div class="stat-label">Female</div></div>`;
+  if (male) html += `<div class="stat-card"><div class="stat-num">${male}</div><div class="stat-label">Male</div></div>`;
+  Object.entries(days).forEach(([d, c]) => {
+    html += `<div class="stat-card"><div class="stat-num">${c}</div><div class="stat-label">${d}</div></div>`;
   });
-  const gF = currentParticipants.filter(p => p.gender === 'Female').length;
-  if (gF) html += `<div class="stat-card"><div class="stat-num">${gF}</div><div class="stat-label">Female</div></div>`;
   document.getElementById('view-stats').innerHTML = html;
 }
 
@@ -152,8 +150,8 @@ function filterParticipants() {
   const filtered = currentParticipants.filter(p =>
     p.name.toLowerCase().includes(q) ||
     p.org.toLowerCase().includes(q) ||
-    (p.role || '').toLowerCase().includes(q) ||
-    p.prog.toLowerCase().includes(q)
+    (p.position_title || '').toLowerCase().includes(q) ||
+    (p.prog || '').toLowerCase().includes(q)
   );
   const container = document.getElementById('participants-list');
   if (!filtered.length) {
@@ -162,40 +160,36 @@ function filterParticipants() {
   }
   let html = `<div style="overflow-x:auto"><table>
     <thead><tr>
-      <th class="col-name">Name</th><th class="col-org">Organization</th>
-      <th class="col-role">Role</th><th class="col-prog">Program</th>
-      <th class="col-phone">Phone</th><th class="col-act"></th>
+      <th class="col-name">Name</th>
+      <th class="col-role">Sex</th>
+      <th class="col-org">Organization</th>
+      <th class="col-role">Position</th>
+      <th class="col-prog">Program</th>
+      <th class="col-phone">Day</th>
+      <th class="col-act">Sig</th>
     </tr></thead><tbody>`;
   filtered.forEach(p => {
+    const sigCell = p.signature
+      ? `<img src="${p.signature}" style="height:32px;max-width:80px;object-fit:contain" />`
+      : '&mdash;';
     html += `<tr>
       <td title="${esc(p.name)}">${esc(p.name)}</td>
+      <td>${esc(p.sex) || '&mdash;'}</td>
       <td title="${esc(p.org)}">${esc(p.org)}</td>
-      <td>${esc(p.role) || '&mdash;'}</td>
-      <td><span class="badge badge-${badgeClass(p.prog)}">${esc(p.prog)}</span></td>
-      <td>${esc(p.phone) || '&mdash;'}</td>
-      <td style="text-align:right"><button class="btn-sm danger" onclick="deleteP('${p.id}')">Remove</button></td>
+      <td>${esc(p.position_title) || '&mdash;'}</td>
+      <td>${esc(p.prog) || '&mdash;'}</td>
+      <td>${esc(p.day_attended) || '&mdash;'}</td>
+      <td>${sigCell}</td>
     </tr>`;
   });
   html += `</tbody></table></div>`;
   container.innerHTML = html;
 }
 
-function badgeClass(prog) {
-  const map = { AYAW:'ayaw', 'FIRST+II':'first', BIA:'bia', FILMA:'filma', MCF:'mcf' };
-  return map[prog] || 'other';
-}
-
-async function deleteP(id) {
-  if (!confirm('Remove this participant?')) return;
-  await db.from('participants').delete().eq('id', id);
-  currentParticipants = currentParticipants.filter(p => p.id !== id);
-  renderStats(); filterParticipants();
-}
-
 function exportCSV() {
-  const headers = ['Name','Organization','Role','Program','Phone','Email','Region','Gender','Notes','Registered'];
+  const headers = ['Name','Sex','Organization','Program','Position','Email','Phone','Day','MEL Response','Registered'];
   const rows = currentParticipants.map(p =>
-    [p.name,p.org,p.role,p.prog,p.phone,p.email,p.region,p.gender,p.notes,p.created_at]
+    [p.name, p.sex, p.org, p.prog, p.position_title, p.email, p.phone, p.day_attended, p.notes, p.created_at]
       .map(v => `"${(v||'').replace(/"/g,'""')}"`)
       .join(',')
   );

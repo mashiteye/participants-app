@@ -32,6 +32,20 @@
             </select>
           </div>
           <div class="form-group"><label>Event date</label><input type="date" id="e-date" /></div>
+          <div class="form-group">
+            <label>Number of days</label>
+            <select id="e-days">
+              <option value="1">1 day</option>
+              <option value="2">2 days</option>
+              <option value="3">3 days</option>
+              <option value="4">4 days</option>
+              <option value="5">5 days</option>
+            </select>
+          </div>
+          <div class="form-group full">
+            <label>Pre-program MEL question (optional)</label>
+            <input type="text" id="e-mel" placeholder="e.g. What is your biggest M&E challenge?" />
+          </div>
         </div>
         <div class="form-actions">
           <button class="btn-primary" onclick="submitEvent()">Create event</button>
@@ -41,11 +55,11 @@
       </div>
     </div>
 
-    <!-- Event created — share link -->
+    <!-- Share link -->
     <div id="pane-link" style="display:none">
       <div class="section-card">
         <p class="section-title">Event created</p>
-        <p style="font-size:14px;color:var(--text-muted);margin-bottom:1rem">Share this link with participants:</p>
+        <p style="font-size:14px;color:var(--text-muted);margin-bottom:1rem">Share this registration link:</p>
         <div class="link-box">
           <span id="share-link"></span>
           <button class="btn-sm" onclick="copyLink()">Copy</button>
@@ -63,7 +77,7 @@
       <div id="events-list" style="display:none"></div>
     </div>
 
-    <!-- Participants for one event -->
+    <!-- Participants view -->
     <div id="pane-participants" style="display:none">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem">
         <div>
@@ -73,7 +87,7 @@
         <button class="btn-secondary" onclick="exportCSV()">Export CSV</button>
       </div>
       <div class="stats" id="view-stats"></div>
-      <input type="text" id="p-search" placeholder="Search name, org, role..." oninput="filterParticipants()" class="search-input" style="margin-bottom:1rem;width:100%" />
+      <input type="text" id="p-search" placeholder="Search name, org, position..." oninput="filterParticipants()" class="search-input" style="margin-bottom:1rem;width:100%" />
       <div id="participants-list"></div>
     </div>
   </div>
