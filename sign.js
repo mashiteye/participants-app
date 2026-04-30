@@ -9,47 +9,83 @@ const BASE_URL = window.location.origin + window.location.pathname.replace('sign
 
 let sigCanvas, sigCtx, drawing = false;
 let participant = null;
+let eventData = null;
 
 async function init() {
-  if (!participantId || !eventId) { document.getElementById('no-participant').style.display = 'block'; return; }
-
-  const [{ data: p }, { data: ev }] = await Promise.all([
-    db.from('participants').select('*').eq('id', participantId).single(),
-    db.from('events').select('*').eq('id', eventId).single()
-  ]);
-
-  if (!p || !ev) { document.getElementById('no-participant').style.display = 'block'; return; }
-
-  participant = p;
-  document.getElementById('sign-ui').style.display = 'block';
-  document.getElementById('event-name').textContent = ev.name;
-  document.getElementById('event-code-prog').textContent = [ev.event_code, ev.program].filter(Boolean).join(' · ') || 'Attendance';
-  document.getElementById('event-meta').textContent = [
-    ev.organizer,
-    ev.event_date ? new Date(ev.event_date).toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' }) : null
-  ].filter(Boolean).join(' · ');
-  document.title = 'Sign In — ' + p.name;
-
-  document.getElementById('p-name').textContent = p.name;
-  document.getElementById('p-details').textContent = [p.position_title, p.org].filter(Boolean).join(' · ');
-  document.getElementById('p-code').textContent = p.code || '';
-
-  const days = ev.days || 1;
-  if (days > 1) {
-    const container = document.getElementById('day-buttons');
-    for (let i = 1; i <= days; i++) {
-      const btn = document.createElement('button');
-      btn.className = 'toggle-btn';
-      btn.textContent = 'Day ' + i;
-      btn.onclick = () => setDay('Day ' + i);
-      container.appendChild(btn);
-    }
-    document.getElementById('day-group').style.display = 'block';
-  } else {
-    document.getElementById('f-day').value = 'Day 1';
+  if (!participantId || !eventId) {
+    showError('Missing participant or event ID in link.');
+    return;
   }
 
-  initSignature();
+  try {
+    const [pRes, evRes] = await Promise.all([
+      db.from('participants').select('*').eq('id', participantId).single(),
+      db.from('events').select('*').eq('id', eventId).single()
+    ]);
+
+    if (pRes.error || !pRes.data) { showError('Participant not found: ' + (pRes.error?.message || 'unknown')); return; }
+    if (evRes.error || !evRes.data) { showError('Event not found: ' + (evRes.error?.message || 'unknown')); return; }
+
+    participant = pRes.data;
+    eventData = evRes.data;
+
+    document.getElementById('sign-ui').style.display = 'block';
+    document.getElementById('event-name').textContent = eventData.name;
+    document.getElementById('event-code-prog').textContent = [eventData.event_code, eventData.program].filter(Boolean).join(' · ') || 'Attendance';
+    document.getElementById('event-meta').textContent = [
+      eventData.organizer,
+      eventData.event_date ? new Date(eventData.event_date).toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' }) : null
+    ].filter(Boolean).join(' · ');
+    document.title = 'Sign In — ' + participant.name;
+
+    // Populate participant card
+    document.getElementById('p-name').textContent = participant.name;
+    document.getElementById('p-details').textContent = [participant.position_title, participant.org, participant.prog].filter(Boolean).join(' · ');
+    document.getElementById('p-code').textContent = participant.code || '';
+
+    // Fetch existing attendance for this participant
+    const { data: existing } = await db.from('attendance')
+      .select('day')
+      .eq('participant_id', participantId)
+      .eq('event_id', eventId);
+
+    const signedDays = (existing || []).map(a => a.day);
+    if (signedDays.length) {
+      document.getElementById('already-signed').textContent = 'Already signed: ' + signedDays.join(', ');
+      document.getElementById('already-signed').style.display = 'block';
+    }
+
+    // Day buttons
+    const days = eventData.days || 1;
+    if (days > 1) {
+      const container = document.getElementById('day-buttons');
+      container.innerHTML = '';
+      for (let i = 1; i <= days; i++) {
+        const btn = document.createElement('button');
+        btn.className = 'toggle-btn';
+        btn.textContent = 'Day ' + i;
+        if (signedDays.includes('Day ' + i)) {
+          btn.style.opacity = '0.5';
+          btn.title = 'Already signed';
+        }
+        btn.onclick = () => setDay('Day ' + i);
+        container.appendChild(btn);
+      }
+      document.getElementById('day-group').style.display = 'block';
+    } else {
+      document.getElementById('f-day').value = 'Day 1';
+    }
+
+    initSignature();
+
+  } catch(e) {
+    showError('Unexpected error: ' + e.message);
+  }
+}
+
+function showError(msg) {
+  document.getElementById('no-participant').style.display = 'block';
+  document.getElementById('no-participant').querySelector('.empty-sub').textContent = msg;
 }
 
 function goBack() {
@@ -70,55 +106,119 @@ function initSignature() {
     const src = e.touches ? e.touches[0] : e;
     return { x: src.clientX - r.left, y: src.clientY - r.top };
   };
-  sigCanvas.addEventListener('mousedown', e => { drawing = true; const p = getPos(e); sigCtx.beginPath(); sigCtx.moveTo(p.x, p.y); hideSigHint(); });
-  sigCanvas.addEventListener('mousemove', e => { if (!drawing) return; const p = getPos(e); sigCtx.lineTo(p.x, p.y); sigCtx.stroke(); });
-  sigCanvas.addEventListener('mouseup', () => drawing = false);
-  sigCanvas.addEventListener('mouseleave', () => drawing = false);
-  sigCanvas.addEventListener('touchstart', e => { e.preventDefault(); drawing = true; const p = getPos(e); sigCtx.beginPath(); sigCtx.moveTo(p.x, p.y); hideSigHint(); }, { passive: false });
-  sigCanvas.addEventListener('touchmove', e => { e.preventDefault(); if (!drawing) return; const p = getPos(e); sigCtx.lineTo(p.x, p.y); sigCtx.stroke(); }, { passive: false });
-  sigCanvas.addEventListener('touchend', () => drawing = false);
+  const start = e => { drawing = true; const p = getPos(e); sigCtx.beginPath(); sigCtx.moveTo(p.x, p.y); hideSigHint(); };
+  const move  = e => { if (!drawing) return; const p = getPos(e); sigCtx.lineTo(p.x, p.y); sigCtx.stroke(); };
+  const stop  = () => drawing = false;
+
+  sigCanvas.addEventListener('mousedown', start);
+  sigCanvas.addEventListener('mousemove', move);
+  sigCanvas.addEventListener('mouseup', stop);
+  sigCanvas.addEventListener('mouseleave', stop);
+  sigCanvas.addEventListener('touchstart', e => { e.preventDefault(); start(e); }, { passive: false });
+  sigCanvas.addEventListener('touchmove',  e => { e.preventDefault(); move(e); },  { passive: false });
+  sigCanvas.addEventListener('touchend', stop);
 }
 
-function hideSigHint() { document.querySelector('.sig-hint').style.display = 'none'; }
-function clearSig() { sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height); document.querySelector('.sig-hint').style.display = 'block'; }
-function isSigEmpty() { return !sigCtx.getImageData(0, 0, sigCanvas.width, sigCanvas.height).data.some(v => v !== 0); }
+function hideSigHint() {
+  const hint = document.querySelector('.sig-hint');
+  if (hint) hint.style.display = 'none';
+}
+
+function clearSig() {
+  if (!sigCtx) return;
+  sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
+  const hint = document.querySelector('.sig-hint');
+  if (hint) hint.style.display = 'block';
+}
+
+function isSigEmpty() {
+  if (!sigCtx) return true;
+  return !sigCtx.getImageData(0, 0, sigCanvas.width, sigCanvas.height).data.some(v => v !== 0);
+}
 
 function setDay(v) {
   document.getElementById('f-day').value = v;
   document.querySelectorAll('#day-buttons .toggle-btn').forEach(b => b.classList.toggle('active', b.textContent === v));
 }
 
+function canvasToBlob(canvas) {
+  return new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+}
+
 async function submitAttendance() {
   const errEl = document.getElementById('err-msg');
+  errEl.style.display = 'none';
+
   const day = document.getElementById('f-day').value;
   if (!day) { errEl.textContent = 'Please select a day.'; errEl.style.display = 'block'; return; }
   if (isSigEmpty()) { errEl.textContent = 'Please provide your signature.'; errEl.style.display = 'block'; return; }
-  errEl.style.display = 'none';
 
   const btn = document.getElementById('submit-btn');
-  btn.textContent = 'Saving...'; btn.disabled = true;
+  btn.textContent = 'Uploading signature...'; btn.disabled = true;
 
-  const { error } = await db.from('participants').update({
-    day_attended: day,
-    signature: sigCanvas.toDataURL('image/png')
-  }).eq('id', participantId);
+  try {
+    // Upload signature to Supabase Storage
+    const blob = await canvasToBlob(sigCanvas);
+    const path = `${eventId}/${participantId}/${day.replace(' ', '_')}_${Date.now()}.png`;
 
-  btn.textContent = 'Sign Attendance'; btn.disabled = false;
+    const { error: uploadError } = await db.storage.from('signatures').upload(path, blob, {
+      contentType: 'image/png',
+      upsert: false
+    });
 
-  if (error) { errEl.textContent = 'Error: ' + error.message; errEl.style.display = 'block'; return; }
+    if (uploadError) {
+      errEl.textContent = 'Signature upload failed: ' + uploadError.message;
+      errEl.style.display = 'block';
+      btn.textContent = 'Sign Attendance'; btn.disabled = false;
+      return;
+    }
 
-  document.getElementById('confirm-name').textContent = participant.name;
-  document.getElementById('confirm-code').textContent = participant.code || '';
-  document.getElementById('confirm-day').textContent = day;
-  const s = document.getElementById('success');
-  s.style.display = 'block';
-  s.scrollIntoView({ behavior: 'smooth' });
-  // Reset signature for another possible signing
-  clearSig();
-  document.querySelectorAll('#day-buttons .toggle-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('f-day').value = '';
-  btn.textContent = 'Sign Attendance'; btn.disabled = false;
-  setTimeout(() => s.style.display = 'none', 5000);
+    const { data: { publicUrl } } = db.storage.from('signatures').getPublicUrl(path);
+
+    btn.textContent = 'Saving attendance...';
+
+    // Insert into attendance table (never overwrites — one row per day)
+    const { error: attError } = await db.from('attendance').insert([{
+      participant_id: participantId,
+      event_id: eventId,
+      day,
+      signature_url: publicUrl
+    }]);
+
+    if (attError) {
+      errEl.textContent = 'Attendance save failed: ' + attError.message;
+      errEl.style.display = 'block';
+      btn.textContent = 'Sign Attendance'; btn.disabled = false;
+      return;
+    }
+
+    // Show success — scope resets to sign form only, not registration form
+    document.getElementById('confirm-name').textContent = participant.name;
+    document.getElementById('confirm-code').textContent = participant.code || '';
+    document.getElementById('confirm-day').textContent = day;
+    document.getElementById('sign-success').style.display = 'block';
+    document.getElementById('sign-success').scrollIntoView({ behavior: 'smooth' });
+
+    // Reset ONLY signature and day — participant card stays visible
+    clearSig();
+    document.getElementById('f-day').value = '';
+    document.querySelectorAll('#day-buttons .toggle-btn').forEach(b => b.classList.remove('active'));
+    btn.textContent = 'Sign Attendance'; btn.disabled = false;
+
+    // Update already-signed indicator
+    const signedText = document.getElementById('already-signed');
+    const current = signedText.textContent.replace('Already signed: ', '').split(', ').filter(Boolean);
+    current.push(day);
+    signedText.textContent = 'Already signed: ' + [...new Set(current)].join(', ');
+    signedText.style.display = 'block';
+
+    setTimeout(() => document.getElementById('sign-success').style.display = 'none', 5000);
+
+  } catch(e) {
+    errEl.textContent = 'Unexpected error: ' + e.message;
+    errEl.style.display = 'block';
+    btn.textContent = 'Sign Attendance'; btn.disabled = false;
+  }
 }
 
 init();

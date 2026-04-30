@@ -27,31 +27,33 @@
         <button class="reg-back-btn" onclick="goBack()">← Participant Search</button>
       </div>
 
-      <div class="success-msg" id="success" style="display:none">
+      <!-- Success — scoped to sign form only -->
+      <div id="sign-success" style="display:none;background:var(--success-bg);color:var(--success-text);padding:16px;border-radius:8px;margin-bottom:1.25rem;text-align:center">
         <p style="font-size:15px;font-weight:700;margin-bottom:4px">Attendance recorded!</p>
-        <p style="font-size:13px;margin-bottom:4px"><span id="confirm-name"></span> — <span id="confirm-code" style="font-weight:700;font-family:monospace;color:var(--orange)"></span></p>
-        <p style="font-size:13px;color:var(--orange)">Signed in for <span id="confirm-day" style="font-weight:600"></span>.</p>
+        <p style="font-size:13px;margin-bottom:2px"><span id="confirm-name"></span> · <span id="confirm-code" style="font-family:monospace;font-weight:700;color:var(--orange)"></span></p>
+        <p style="font-size:13px">Signed for <strong id="confirm-day"></strong>.</p>
       </div>
 
-      <!-- Participant info card -->
-      <div class="section-card" id="participant-card" style="margin-bottom:1.25rem;padding:1rem 1.25rem">
+      <!-- Participant card — always visible, never hidden -->
+      <div style="background:white;border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:1rem 1.25rem;margin-bottom:1.25rem">
         <div style="display:flex;justify-content:space-between;align-items:center">
           <div>
             <p style="font-size:16px;font-weight:700" id="p-name"></p>
-            <p style="font-size:12px;color:var(--text-muted);margin-top:2px" id="p-details"></p>
+            <p style="font-size:12px;color:var(--text-muted);margin-top:3px" id="p-details"></p>
           </div>
-          <div style="text-align:right">
-            <p style="font-size:20px;font-weight:800;font-family:monospace;color:var(--orange)" id="p-code"></p>
-          </div>
+          <p style="font-size:22px;font-weight:800;font-family:monospace;color:var(--orange)" id="p-code"></p>
         </div>
+        <p id="already-signed" style="display:none;font-size:12px;color:var(--green);font-weight:600;margin-top:8px;padding-top:8px;border-top:0.5px solid var(--border)"></p>
       </div>
 
+      <!-- Day selection — scoped -->
       <div class="field-group" id="day-group" style="display:none">
         <label>Select Day *</label>
         <div class="toggle-group" id="day-buttons"></div>
         <input type="hidden" id="f-day" />
       </div>
 
+      <!-- Signature — scoped -->
       <div class="field-group">
         <label>Signature *</label>
         <div class="sig-container">

@@ -1,9 +1,8 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --orange: #F37021;
-  --red: #EB001B;
-  --yellow: #F79E1B;
+  --orange: #F7941D;
+  --green: #009444;
   --primary: #1a1a1a;
   --bg: #ffffff;
   --bg-secondary: #f5f5f3;
@@ -12,8 +11,8 @@
   --text: #1a1a1a;
   --text-muted: #666660;
   --text-hint: #aaa;
-  --success-bg: #fff3e8;
-  --success-text: #7a3500;
+  --success-bg: #f0f9f4;
+  --success-text: #005c2a;
   --danger: #a32d2d;
   --danger-bg: #fcebeb;
   --radius-sm: 6px;
@@ -32,7 +31,7 @@ body {
 
 /* ── Header ── */
 .reg-header {
-  background: linear-gradient(135deg, var(--red) 0%, var(--orange) 60%, var(--yellow) 100%);
+  background: linear-gradient(135deg, var(--green) 0%, var(--orange) 100%);
   color: white;
   padding: 1.5rem;
   position: relative;
@@ -186,7 +185,7 @@ textarea { resize: vertical; }
 /* ── Submit button ── */
 .btn-submit {
   width: 100%;
-  background: linear-gradient(90deg, var(--red), var(--orange));
+  background: linear-gradient(90deg, var(--green), var(--orange));
   color: white;
   border: none;
   padding: 14px;
@@ -266,7 +265,7 @@ tr:last-child td { border-bottom: none; }
 tr:hover td { background: #fff8f4; }
 
 .td-link { color: var(--orange); cursor: pointer; font-weight: 500; text-decoration: underline; text-underline-offset: 2px; }
-.td-link:hover { color: var(--red); }
+.td-link:hover { color: #c0392b; }
 
 .search-input {
   font-family: inherit;
@@ -334,7 +333,7 @@ tr:hover td { background: #fff8f4; }
 .form-actions { display: flex; gap: 10px; align-items: center; margin-top: 1.25rem; flex-wrap: wrap; }
 
 .btn-primary {
-  background: linear-gradient(90deg, var(--red), var(--orange));
+  background: linear-gradient(90deg, var(--green), var(--orange));
   color: white; border: none; padding: 10px 22px;
   border-radius: var(--radius-md); font-size: 14px; font-weight: 600;
   cursor: pointer; font-family: inherit; transition: opacity 0.15s;

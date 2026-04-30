@@ -129,12 +129,23 @@ async function deleteEvent(id) {
   loadEvents();
 }
 
+let currentAttendance = {};
+
 async function viewParticipants(eventId, eventName) {
   currentEventId = eventId;
   document.getElementById('view-event-name').textContent = eventName;
   showPane('participants');
-  const { data } = await db.from('participants').select('*').eq('event_id', eventId).order('created_at', { ascending: false });
-  currentParticipants = data || [];
+
+  const [{ data: parts }, { data: att }] = await Promise.all([
+    db.from('participants').select('*').eq('event_id', eventId).order('created_at', { ascending: false }),
+    db.from('attendance').select('*').eq('event_id', eventId)
+  ]);
+  currentParticipants = parts || [];
+  currentAttendance = {};
+  (att || []).forEach(a => {
+    if (!currentAttendance[a.participant_id]) currentAttendance[a.participant_id] = [];
+    currentAttendance[a.participant_id].push(a);
+  });
   renderStats();
   filterParticipants();
 }
@@ -143,13 +154,19 @@ function renderStats() {
   const total = currentParticipants.length;
   const female = currentParticipants.filter(p => p.sex === 'Female').length;
   const male = currentParticipants.filter(p => p.sex === 'Male').length;
-  const days = {};
-  currentParticipants.forEach(p => { if (p.day_attended) days[p.day_attended] = (days[p.day_attended] || 0) + 1; });
 
-  let html = `<div class="stat-card"><div class="stat-num">${total}</div><div class="stat-label">Total</div></div>`;
+  // Count attendance per day from attendance table
+  const dayCounts = {};
+  Object.values(currentAttendance).forEach(records => {
+    records.forEach(a => { dayCounts[a.day] = (dayCounts[a.day] || 0) + 1; });
+  });
+  const totalSigned = Object.values(currentAttendance).filter(r => r.length > 0).length;
+
+  let html = `<div class="stat-card"><div class="stat-num">${total}</div><div class="stat-label">Registered</div></div>`;
+  if (totalSigned) html += `<div class="stat-card"><div class="stat-num">${totalSigned}</div><div class="stat-label">Signed</div></div>`;
   if (female) html += `<div class="stat-card"><div class="stat-num">${female}</div><div class="stat-label">Female</div></div>`;
   if (male) html += `<div class="stat-card"><div class="stat-num">${male}</div><div class="stat-label">Male</div></div>`;
-  Object.entries(days).forEach(([d, c]) => {
+  Object.entries(dayCounts).sort().forEach(([d, c]) => {
     html += `<div class="stat-card"><div class="stat-num">${c}</div><div class="stat-label">${d}</div></div>`;
   });
   document.getElementById('view-stats').innerHTML = html;
@@ -171,27 +188,29 @@ function filterParticipants() {
   }
   let html = `<div style="overflow-x:auto"><table>
     <thead><tr>
-      <th class="col-role">Code</th>
-      <th class="col-name">Name</th>
-      <th class="col-role">Sex</th>
-      <th class="col-org">Organization</th>
-      <th class="col-role">Position</th>
-      <th class="col-prog">Program</th>
-      <th class="col-phone">Day</th>
-      <th class="col-act">Sig</th>
+      <th style="width:10%">Code</th>
+      <th style="width:20%">Name</th>
+      <th style="width:7%">Sex</th>
+      <th style="width:20%">Organization</th>
+      <th style="width:16%">Position</th>
+      <th style="width:12%">Program</th>
+      <th style="width:10%">Days Signed</th>
+      <th style="width:5%">Sig</th>
     </tr></thead><tbody>`;
   filtered.forEach(p => {
-    const sigCell = p.signature
-      ? `<img src="${p.signature}" style="height:32px;max-width:80px;object-fit:contain" />`
-      : '&mdash;';
+    const att = currentAttendance[p.id] || [];
+    const daysSigned = att.map(a => a.day).join(', ') || '&mdash;';
+    const sigCell = att.length > 0
+      ? att.map(a => a.signature_url ? `<a href="${a.signature_url}" target="_blank" style="color:var(--orange);font-size:11px">${a.day}</a>` : '').filter(Boolean).join(' ')
+      : (p.signature ? `<img src="${p.signature}" style="height:28px;max-width:60px;object-fit:contain" title="Legacy signature" />` : '&mdash;');
     html += `<tr>
-      <td style="font-weight:600;font-family:monospace">${esc(p.code) || '&mdash;'}</td>
+      <td style="font-weight:700;font-family:monospace;color:var(--orange)">${esc(p.code) || '&mdash;'}</td>
       <td title="${esc(p.name)}">${esc(p.name)}</td>
       <td>${esc(p.sex) || '&mdash;'}</td>
       <td title="${esc(p.org)}">${esc(p.org)}</td>
       <td>${esc(p.position_title) || '&mdash;'}</td>
       <td>${esc(p.prog) || '&mdash;'}</td>
-      <td>${esc(p.day_attended) || '&mdash;'}</td>
+      <td style="font-size:12px">${daysSigned}</td>
       <td>${sigCell}</td>
     </tr>`;
   });
@@ -199,17 +218,37 @@ function filterParticipants() {
   container.innerHTML = html;
 }
 
-function exportCSV() {
-  const headers = ['Code','Name','Sex','Organization','Program','Position','Email','Phone','Day','Signed','MEL Response','Registered'];
-  const rows = currentParticipants.map(p =>
-    [p.code, p.name, p.sex, p.org, p.prog, p.position_title, p.email, p.phone, p.day_attended, p.signature ? 'Yes' : 'No', p.notes, p.created_at]
-      .map(v => `"${(v||'').replace(/"/g,'""')}"`)
-      .join(',')
-  );
+async function exportCSV() {
+  const { data: attendance } = await db.from('attendance')
+    .select('*').eq('event_id', currentEventId).order('signed_at', { ascending: true });
+
+  const attMap = {};
+  (attendance || []).forEach(a => {
+    if (!attMap[a.participant_id]) attMap[a.participant_id] = [];
+    attMap[a.participant_id].push(a);
+  });
+
+  const headers = ['Code','Name','Sex','Organization','Program','Position','Email','Phone','Signed','Days Signed','Signed At','Signature URLs','MEL Response','Registered'];
+  const rows = currentParticipants.map(p => {
+    const att = attMap[p.id] || [];
+    const daysSigned = att.map(a => a.day).join('; ');
+    const signedAt = att.map(a => a.signed_at ? new Date(a.signed_at).toLocaleString() : '').join('; ');
+    const sigUrls = att.map(a => a.signature_url || '').join('; ');
+    return [
+      p.code, p.name, p.sex, p.org, p.prog, p.position_title,
+      p.email, p.phone,
+      att.length > 0 ? 'Yes' : 'No',
+      daysSigned || '',
+      signedAt || '',
+      sigUrls || '',
+      p.notes, p.created_at
+    ].map(v => '"' + (v||'').replace(/"/g, '""') + '"').join(',');
+  });
+
   const csv = [headers.join(','), ...rows].join('\n');
   const a = document.createElement('a');
   a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
-  a.download = `participants-${document.getElementById('view-event-name').textContent.replace(/\s+/g,'-')}-${new Date().toISOString().slice(0,10)}.csv`;
+  a.download = 'participants-' + document.getElementById('view-event-name').textContent.replace(/\s+/g,'-') + '-' + new Date().toISOString().slice(0,10) + '.csv';
   a.click();
 }
 
