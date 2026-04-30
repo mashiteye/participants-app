@@ -19,6 +19,7 @@
     <!-- Create Event -->
     <div id="pane-create" style="display:none">
       <div class="section-card">
+        <div class="pane-title">Event Form</div>
         <button class="btn-sm" onclick="showPane('events')" style="margin-bottom:1rem">← Back to events</button>
         <p class="section-title">Create new event</p>
         <div class="form-grid">
@@ -76,6 +77,7 @@
     <!-- Edit Event -->
     <div id="pane-edit" style="display:none">
       <div class="section-card">
+        <div class="pane-title">Event Form</div>
         <p class="section-title">Edit event</p>
         <input type="hidden" id="edit-id" />
         <div class="form-grid">
@@ -111,6 +113,16 @@
     </div>
     <!-- Events list -->
     <div id="pane-events">
+      <div class="pane-title">Events</div>
+      <div class="guide-box">
+        <p class="guide-title">How to use Participants App</p>
+        <ol class="guide-steps">
+          <li><strong>Create an event</strong> — click "+ New event", fill in the event details including number of days and an optional MEL question.</li>
+          <li><strong>Share the registration link</strong> — copy the link from the event card and share it with participants before the event. They register, sign, and receive a unique code.</li>
+          <li><strong>On event day</strong> — open the registration form from the participant view to allow walk-ins to register on the spot.</li>
+          <li><strong>View &amp; export</strong> — click "View participants" on any event to see who registered, search by name or code, and export to CSV.</li>
+        </ol>
+      </div>
       <div style="display:flex;justify-content:flex-end;margin-bottom:1rem">
         <button class="btn-secondary" onclick="showPane('create')">+ New event</button>
       </div>
@@ -120,6 +132,7 @@
 
     <!-- Participants view -->
     <div id="pane-participants" style="display:none">
+      <div class="pane-title">Participant Search</div>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem">
         <div>
           <button class="btn-sm" onclick="showPane('events')" style="margin-bottom:6px">← Back to events</button>

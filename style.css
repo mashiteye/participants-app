@@ -212,3 +212,68 @@ tr:hover td { background: var(--bg-secondary); }
   .form-grid { grid-template-columns: 1fr; }
   .form-group.full { grid-column: 1; }
 }
+
+/* Pane titles */
+.pane-title {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 0.5px solid var(--border);
+}
+
+/* Guide box */
+.guide-box {
+  background: var(--bg);
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.25rem;
+}
+.guide-title {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  color: var(--text);
+}
+.guide-steps {
+  padding-left: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.guide-steps li {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+.guide-steps li strong { color: var(--text); }
+
+/* Registration form nav */
+.reg-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 0.5px solid var(--border);
+}
+.reg-form-title {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+.reg-back-btn {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-decoration: none;
+  padding: 4px 10px;
+  border: 0.5px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+}
+.reg-back-btn:hover { background: var(--bg-secondary); }
