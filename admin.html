@@ -27,11 +27,15 @@
           <div class="form-group"><label>Organizer</label><input type="text" id="e-organizer" placeholder="e.g. METSS LBG" /></div>
           <div class="form-group">
             <label>Program</label>
-            <select id="e-prog">
+            <select id="e-prog" onchange="toggleOther('e-prog','e-prog-other-group')">
               <option value="">-- Select --</option>
               <option>AYAW</option><option>FIRST+II</option><option>BIA</option>
               <option>FILMA</option><option>MCF</option><option>Other</option>
             </select>
+          </div>
+          <div class="form-group" id="e-prog-other-group" style="display:none">
+            <label>Specify program name</label>
+            <input type="text" id="e-prog-other" placeholder="Enter program name" />
           </div>
           <div class="form-group"><label>Event date</label><input type="date" id="e-date" /></div>
           <div class="form-group">
@@ -43,6 +47,10 @@
               <option value="4">4 days</option>
               <option value="5">5 days</option>
             </select>
+          </div>
+          <div class="form-group">
+            <label>Event code (optional — auto-generated if blank)</label>
+            <input type="text" id="e-code" placeholder="e.g. MEL2026" style="text-transform:uppercase" />
           </div>
           <div class="form-group full">
             <label>Pre-program MEL question (optional)</label>
@@ -85,11 +93,15 @@
           <div class="form-group"><label>Organizer</label><input type="text" id="edit-organizer" /></div>
           <div class="form-group">
             <label>Program</label>
-            <select id="edit-prog">
+            <select id="edit-prog" onchange="toggleOther('edit-prog','edit-prog-other-group')">
               <option value="">-- Select --</option>
               <option>AYAW</option><option>FIRST+II</option><option>BIA</option>
               <option>FILMA</option><option>MCF</option><option>Other</option>
             </select>
+          </div>
+          <div class="form-group" id="edit-prog-other-group" style="display:none">
+            <label>Specify program name</label>
+            <input type="text" id="edit-prog-other" placeholder="Enter program name" />
           </div>
           <div class="form-group"><label>Event date</label><input type="date" id="edit-date" /></div>
           <div class="form-group">
@@ -98,6 +110,10 @@
               <option value="1">1 day</option><option value="2">2 days</option>
               <option value="3">3 days</option><option value="4">4 days</option><option value="5">5 days</option>
             </select>
+          </div>
+          <div class="form-group">
+            <label>Event code</label>
+            <input type="text" id="edit-code" style="text-transform:uppercase" />
           </div>
           <div class="form-group full">
             <label>Pre-program MEL question (optional)</label>
@@ -114,7 +130,11 @@
     <!-- Events list -->
     <div id="pane-events">
       <div class="pane-title">Events</div>
-      <div class="guide-box">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+        <button class="btn-sm" onclick="toggleGuide()">? How to use</button>
+        <button class="btn-secondary" onclick="showPane('create')">+ New event</button>
+      </div>
+      <div class="guide-box" id="guide-box" style="display:none">
         <p class="guide-title">How to use Participants App</p>
         <ol class="guide-steps">
           <li><strong>Create an event</strong> — click "+ New event", fill in the event details including number of days and an optional MEL question.</li>
@@ -122,9 +142,6 @@
           <li><strong>On event day</strong> — open the registration form from the participant view to allow walk-ins to register on the spot.</li>
           <li><strong>View &amp; export</strong> — click "View participants" on any event to see who registered, search by name or code, and export to CSV.</li>
         </ol>
-      </div>
-      <div style="display:flex;justify-content:flex-end;margin-bottom:1rem">
-        <button class="btn-secondary" onclick="showPane('create')">+ New event</button>
       </div>
       <div id="events-loading" class="empty">Loading events...</div>
       <div id="events-list" style="display:none"></div>

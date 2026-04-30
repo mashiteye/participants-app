@@ -19,6 +19,10 @@ async function init() {
   }
 
   document.getElementById('event-ui').style.display = 'block';
+  document.getElementById('f-prog').addEventListener('change', () => {
+    const v = document.getElementById('f-prog').value;
+    document.getElementById('prog-other-group').style.display = v === 'Other' ? 'block' : 'none';
+  });
   document.getElementById('event-name').textContent = data.name;
   document.getElementById('event-program').textContent = data.program || 'Participant Registration';
   document.title = data.name;
@@ -140,7 +144,8 @@ async function registerParticipant() {
   if (error) { errEl.textContent = 'Error: ' + error.message; errEl.style.display = 'block'; return; }
 
   // Reset
-  ['f-name','f-org','f-prog','f-position','f-email','f-phone','f-mel'].forEach(id => document.getElementById(id).value = '');
+  ['f-name','f-org','f-prog','f-position','f-email','f-phone','f-mel','f-prog-other'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('prog-other-group').style.display = 'none';
   document.getElementById('f-sex').value = '';
   document.getElementById('f-day').value = document.getElementById('day-group').style.display === 'none' ? 'Day 1' : '';
   document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));

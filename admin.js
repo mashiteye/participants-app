@@ -40,9 +40,10 @@ async function submitEvent() {
     if (error) { errEl.textContent = 'Error: ' + error.message; errEl.style.display = 'inline'; return; }
     if (!data || !data.length) { errEl.textContent = 'No data returned.'; errEl.style.display = 'inline'; return; }
 
-    ['e-name','e-organizer','e-date','e-mel'].forEach(id => document.getElementById(id).value = '');
+    ['e-name','e-organizer','e-date','e-mel','e-code','e-prog-other'].forEach(id => document.getElementById(id).value = '');
     document.getElementById('e-prog').selectedIndex = 0;
     document.getElementById('e-days').selectedIndex = 0;
+    document.getElementById('e-prog-other-group').style.display = 'none';
 
     document.getElementById('share-link').textContent = BASE_URL + 'index.html?event=' + data[0].id;
     showPane('link');
@@ -82,7 +83,7 @@ async function loadEvents() {
   events.forEach(e => {
     const count = countMap[e.id] || 0;
     const dateStr = e.event_date ? new Date(e.event_date).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' }) : '';
-    const meta = [e.program, e.organizer, dateStr, e.days > 1 ? e.days + ' days' : null].filter(Boolean).join(' · ');
+    const meta = [e.event_code ? '[' + e.event_code + ']' : null, e.program, e.organizer, dateStr, e.days > 1 ? e.days + ' days' : null].filter(Boolean).join(' · ');
     html += `<div class="event-card">
       <div class="event-card-main">
         <div>
@@ -217,6 +218,11 @@ function openEdit(e) {
   document.getElementById('edit-organizer').value = e.organizer || '';
   document.getElementById('edit-date').value = e.event_date || '';
   document.getElementById('edit-mel').value = e.mel_question || '';
+  document.getElementById('edit-code').value = e.event_code || '';
+  const ep = document.getElementById('edit-prog');
+  ep.value = e.program || '';
+  document.getElementById('edit-prog-other-group').style.display = (e.program && !['AYAW','FIRST+II','BIA','FILMA','MCF'].includes(e.program)) ? 'block' : 'none';
+  document.getElementById('edit-prog-other').value = (e.program && !['AYAW','FIRST+II','BIA','FILMA','MCF'].includes(e.program)) ? e.program : '';
 
   const progSel = document.getElementById('edit-prog');
   progSel.value = e.program || '';
@@ -241,10 +247,11 @@ async function saveEdit() {
   const { error } = await db.from('events').update({
     name,
     organizer: document.getElementById('edit-organizer').value.trim() || null,
-    program: document.getElementById('edit-prog').value || null,
+    program: getProgram('edit-prog', 'edit-prog-other'),
     event_date: document.getElementById('edit-date').value || null,
     days: parseInt(document.getElementById('edit-days').value) || 1,
-    mel_question: document.getElementById('edit-mel').value.trim() || null
+    mel_question: document.getElementById('edit-mel').value.trim() || null,
+    event_code: document.getElementById('edit-code').value.trim().toUpperCase() || null
   }).eq('id', document.getElementById('edit-id').value);
 
   btn.textContent = 'Save changes'; btn.disabled = false;
@@ -261,4 +268,36 @@ async function fetchAndEdit(id) {
 
 function openRegLink() {
   window.open(BASE_URL + 'index.html?event=' + currentEventId, '_blank');
+}
+
+function toggleGuide() {
+  const box = document.getElementById('guide-box');
+  box.style.display = box.style.display === 'none' ? 'block' : 'none';
+}
+
+function toggleOther(selectId, groupId) {
+  const val = document.getElementById(selectId).value;
+  document.getElementById(groupId).style.display = val === 'Other' ? 'block' : 'none';
+}
+
+function getProgram(selectId, otherId) {
+  const val = document.getElementById(selectId).value;
+  if (val === 'Other') {
+    const other = document.getElementById(otherId).value.trim();
+    return other || 'Other';
+  }
+  return val || null;
+}
+
+async function generateEventCode(inputId) {
+  const manual = document.getElementById(inputId).value.trim().toUpperCase();
+  if (manual) return manual;
+  // Auto-generate: EVT + 3-digit sequence
+  const { data } = await db.from('events').select('event_code').not('event_code', 'is', null);
+  const nums = (data || []).map(e => {
+    const m = (e.event_code || '').match(/(\d+)$/);
+    return m ? parseInt(m[1]) : 0;
+  });
+  const next = nums.length ? Math.max(...nums) + 1 : 1;
+  return 'EVT-' + String(next).padStart(3, '0');
 }
