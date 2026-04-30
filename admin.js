@@ -8,7 +8,7 @@ let currentEventId = null;
 let currentParticipants = [];
 
 function showPane(name) {
-  ['create','link','events','participants'].forEach(p => {
+  ['create','link','events','participants','edit'].forEach(p => {
     document.getElementById('pane-' + p).style.display = p === name ? 'block' : 'none';
   });
   if (name === 'events') loadEvents();
@@ -97,6 +97,7 @@ async function loadEvents() {
       </div>
       <div class="event-card-actions">
         <button class="btn-sm" onclick="viewParticipants('${e.id}','${esc(e.name)}')">View participants</button>
+        <button class="btn-sm" id="edit-btn-${e.id}" onclick="fetchAndEdit('${e.id}')">Edit</button>
         <button class="btn-sm" onclick="copyEventLink('${e.id}', this)">Copy link</button>
         <button class="btn-sm danger" onclick="deleteEvent('${e.id}')">Delete</button>
       </div>
@@ -206,3 +207,51 @@ function esc(str) {
 }
 
 showPane('events');
+
+function openEdit(e) {
+  document.getElementById('edit-id').value = e.id;
+  document.getElementById('edit-name').value = e.name || '';
+  document.getElementById('edit-organizer').value = e.organizer || '';
+  document.getElementById('edit-date').value = e.event_date || '';
+  document.getElementById('edit-mel').value = e.mel_question || '';
+
+  const progSel = document.getElementById('edit-prog');
+  progSel.value = e.program || '';
+
+  const daysSel = document.getElementById('edit-days');
+  daysSel.value = String(e.days || 1);
+
+  document.getElementById('edit-err').style.display = 'none';
+  ['create','link','events','participants','edit'].forEach(p => {
+    document.getElementById('pane-' + p).style.display = p === 'edit' ? 'block' : 'none';
+  });
+}
+
+async function saveEdit() {
+  const errEl = document.getElementById('edit-err');
+  const name = document.getElementById('edit-name').value.trim();
+  if (!name) { errEl.textContent = 'Event name is required.'; errEl.style.display = 'inline'; return; }
+
+  const btn = document.querySelector('#pane-edit .btn-primary');
+  btn.textContent = 'Saving...'; btn.disabled = true;
+
+  const { error } = await db.from('events').update({
+    name,
+    organizer: document.getElementById('edit-organizer').value.trim() || null,
+    program: document.getElementById('edit-prog').value || null,
+    event_date: document.getElementById('edit-date').value || null,
+    days: parseInt(document.getElementById('edit-days').value) || 1,
+    mel_question: document.getElementById('edit-mel').value.trim() || null
+  }).eq('id', document.getElementById('edit-id').value);
+
+  btn.textContent = 'Save changes'; btn.disabled = false;
+
+  if (error) { errEl.textContent = 'Error: ' + error.message; errEl.style.display = 'inline'; return; }
+  showPane('events');
+}
+
+async function fetchAndEdit(id) {
+  const { data, error } = await db.from('events').select('*').eq('id', id).single();
+  if (error || !data) { alert('Could not load event.'); return; }
+  openEdit(data);
+}

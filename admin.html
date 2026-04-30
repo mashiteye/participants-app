@@ -13,7 +13,7 @@
         <p class="app-subtitle">Admin Panel</p>
         <h1 class="app-title">Participants App</h1>
       </div>
-      <button class="btn-secondary" onclick="showPane('create')">+ New event</button>
+      <div style="display:flex;gap:8px"><button class="btn-secondary" onclick="loadEvents()">↻ Refresh</button><button class="btn-secondary" onclick="showPane('create')">+ New event</button></div>
     </header>
 
     <!-- Create Event -->
@@ -71,6 +71,43 @@
       </div>
     </div>
 
+
+    <!-- Edit Event -->
+    <div id="pane-edit" style="display:none">
+      <div class="section-card">
+        <p class="section-title">Edit event</p>
+        <input type="hidden" id="edit-id" />
+        <div class="form-grid">
+          <div class="form-group"><label>Event name *</label><input type="text" id="edit-name" /></div>
+          <div class="form-group"><label>Organizer</label><input type="text" id="edit-organizer" /></div>
+          <div class="form-group">
+            <label>Program</label>
+            <select id="edit-prog">
+              <option value="">-- Select --</option>
+              <option>AYAW</option><option>FIRST+II</option><option>BIA</option>
+              <option>FILMA</option><option>MCF</option><option>Other</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Event date</label><input type="date" id="edit-date" /></div>
+          <div class="form-group">
+            <label>Number of days</label>
+            <select id="edit-days">
+              <option value="1">1 day</option><option value="2">2 days</option>
+              <option value="3">3 days</option><option value="4">4 days</option><option value="5">5 days</option>
+            </select>
+          </div>
+          <div class="form-group full">
+            <label>Pre-program MEL question (optional)</label>
+            <input type="text" id="edit-mel" />
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn-primary" onclick="saveEdit()">Save changes</button>
+          <button class="btn-secondary" onclick="showPane('events')">Cancel</button>
+          <span id="edit-err" class="err-msg"></span>
+        </div>
+      </div>
+    </div>
     <!-- Events list -->
     <div id="pane-events">
       <div id="events-loading" class="empty">Loading events...</div>
