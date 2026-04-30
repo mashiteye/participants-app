@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Participants</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="no-event" style="display:none">
+    <div class="empty-state">
+      <p class="empty-title">Event not found</p>
+      <p class="empty-sub">Check your link and try again.</p>
+    </div>
+  </div>
+
+  <div id="event-ui" style="display:none">
+    <div class="reg-header">
+      <p class="reg-header-sub" id="event-program"></p>
+      <p class="reg-header-title" id="event-name"></p>
+      <p class="reg-header-sub" id="event-meta" style="margin-top:4px;opacity:0.8"></p>
+    </div>
+
+    <div class="reg-body">
+      <div class="reg-nav">
+        <span class="reg-form-title">Participant View</span>
+        <button class="reg-back-btn" onclick="openRegForm()">+ Register participant</button>
+      </div>
+
+      <div class="stats" id="view-stats" style="margin-bottom:1.25rem"></div>
+
+      <input type="text" id="p-search" placeholder="Search name, org, position, code..."
+        oninput="filterParticipants()" class="search-input" style="width:100%;margin-bottom:1rem" />
+
+      <div id="participants-list"></div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="event.js"></script>
+</body>
+</html>

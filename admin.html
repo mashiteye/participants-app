@@ -128,21 +128,23 @@
       </div>
     </div>
     <!-- Events list -->
+    <div class="guide-box" id="guide-box" style="display:none;margin-bottom:1.25rem">
+      <p class="guide-title">How to use Participants App</p>
+      <ol class="guide-steps">
+        <li><strong>Create an event</strong> — click "+ New event", fill in details including days and optional MEL question. An event code is auto-generated or you can set your own.</li>
+        <li><strong>Share the registration link</strong> — copy or open the registration link from the event card. Share it with participants before the event so they can register and get a code.</li>
+        <li><strong>Share the participant view link</strong> — share this with program staff. They see the participant list and can open the registration form but cannot access the event admin.</li>
+        <li><strong>On event day</strong> — walk-ins register via the registration form. Everyone gets a unique code to sign attendance.</li>
+        <li><strong>View &amp; export</strong> — use "View participants" to see registrations, search by name or code, and export CSV.</li>
+      </ol>
+    </div>
     <div id="pane-events">
       <div class="pane-title">Events</div>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
         <button class="btn-sm" onclick="toggleGuide()">? How to use</button>
         <button class="btn-secondary" onclick="showPane('create')">+ New event</button>
       </div>
-      <div class="guide-box" id="guide-box" style="display:none">
-        <p class="guide-title">How to use Participants App</p>
-        <ol class="guide-steps">
-          <li><strong>Create an event</strong> — click "+ New event", fill in the event details including number of days and an optional MEL question.</li>
-          <li><strong>Share the registration link</strong> — copy the link from the event card and share it with participants before the event. They register, sign, and receive a unique code.</li>
-          <li><strong>On event day</strong> — open the registration form from the participant view to allow walk-ins to register on the spot.</li>
-          <li><strong>View &amp; export</strong> — click "View participants" on any event to see who registered, search by name or code, and export to CSV.</li>
-        </ol>
-      </div>
+
       <div id="events-loading" class="empty">Loading events...</div>
       <div id="events-list" style="display:none"></div>
     </div>

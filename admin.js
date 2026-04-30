@@ -98,8 +98,10 @@ async function loadEvents() {
       </div>
       <div class="event-card-actions">
         <button class="btn-sm" onclick="viewParticipants('${e.id}','${esc(e.name)}')">View participants</button>
-        <button class="btn-sm" id="edit-btn-${e.id}" onclick="fetchAndEdit('${e.id}')">Edit</button>
-        <button class="btn-sm" onclick="copyEventLink('${e.id}', this)">Copy link</button>
+        <button class="btn-sm" onclick="fetchAndEdit('${e.id}')">Edit</button>
+        <button class="btn-sm" onclick="window.open(BASE_URL+'index.html?event=${e.id}','_blank')">Open reg form</button>
+        <button class="btn-sm" onclick="copyEventLink('${e.id}','reg',this)">Copy reg link</button>
+        <button class="btn-sm" onclick="copyEventLink('${e.id}','view',this)">Copy participant view link</button>
         <button class="btn-sm danger" onclick="deleteEvent('${e.id}')">Delete</button>
       </div>
     </div>`;
@@ -107,10 +109,14 @@ async function loadEvents() {
   document.getElementById('events-list').innerHTML = html;
 }
 
-function copyEventLink(id, btn) {
-  navigator.clipboard.writeText(BASE_URL + 'index.html?event=' + id).then(() => {
+function copyEventLink(id, type, btn) {
+  const url = type === 'view'
+    ? BASE_URL + 'event.html?event=' + id
+    : BASE_URL + 'index.html?event=' + id;
+  navigator.clipboard.writeText(url).then(() => {
+    const orig = btn.textContent;
     btn.textContent = 'Copied!';
-    setTimeout(() => btn.textContent = 'Copy link', 2000);
+    setTimeout(() => btn.textContent = orig, 2000);
   });
 }
 
@@ -268,6 +274,10 @@ async function fetchAndEdit(id) {
 
 function openRegLink() {
   window.open(BASE_URL + 'index.html?event=' + currentEventId, '_blank');
+}
+
+function openViewLink() {
+  window.open(BASE_URL + 'event.html?event=' + currentEventId, '_blank');
 }
 
 function toggleGuide() {
