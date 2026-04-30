@@ -19,6 +19,16 @@ async function init() {
   if (data.program) eventPrefix = data.program.replace(/[^A-Z]/g, '').slice(0, 3) || 'P';
 
   document.getElementById('event-ui').style.display = 'block';
+  // Live email validation on blur
+  document.getElementById('f-email').addEventListener('blur', () => {
+    const v = validateEmail(document.getElementById('f-email').value.trim());
+    const errEl = document.getElementById('err-msg');
+    if (!v.valid && document.getElementById('f-email').value.trim()) {
+      errEl.textContent = v.msg; errEl.style.display = 'block';
+    } else {
+      errEl.style.display = 'none';
+    }
+  });
   document.getElementById('event-name').textContent = data.name;
   document.getElementById('event-program').textContent = [data.event_code, data.program].filter(Boolean).join(' · ') || 'Registration';
   document.getElementById('event-meta').textContent = [
@@ -102,6 +112,19 @@ function setDay(v) {
 
 function fval(id) { return document.getElementById(id).value.trim(); }
 
+function validateEmail(email) {
+  if (!email) return { valid: false, msg: 'Email is required.' };
+  const re = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+  if (!re.test(email)) return { valid: false, msg: 'Enter a valid email address (e.g. name@org.com).' };
+  // Common typo domains
+  const typos = { 'gmial.com':'gmail.com', 'gmai.com':'gmail.com', 'gmail.co':'gmail.com',
+    'yahoocom':'yahoo.com', 'yaho.com':'yahoo.com', 'hotmai.com':'hotmail.com',
+    'outlok.com':'outlook.com', 'outloook.com':'outlook.com' };
+  const domain = email.split('@')[1].toLowerCase();
+  if (typos[domain]) return { valid: false, msg: `Did you mean @${typos[domain]}?` };
+  return { valid: true };
+}
+
 async function getNextCode() {
   const { data } = await db.from('participants').select('code').eq('event_id', eventId).not('code', 'is', null);
   if (!data || !data.length) return eventPrefix + '-001';
@@ -118,6 +141,8 @@ async function registerParticipant() {
   if (!name || !sex || !org || !prog || !position || !email || !phone) {
     errEl.textContent = 'Please fill in all required fields.'; errEl.style.display = 'block'; return;
   }
+  const emailCheck = validateEmail(email);
+  if (!emailCheck.valid) { errEl.textContent = emailCheck.msg; errEl.style.display = 'block'; return; }
   if (isWalkin) {
     const day = fval('f-day');
     if (!day) { errEl.textContent = 'Please select a day.'; errEl.style.display = 'block'; return; }

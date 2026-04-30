@@ -115,6 +115,8 @@ function selectDay(day) {
     sigSection.style.display = 'block';
     resignSection.style.display = 'none';
     submitBtn.style.display = 'block';
+    // Resize canvas now that it is visible (offsetWidth was 0 when hidden)
+    resizeCanvas();
     clearSig();
   }
 }
@@ -125,6 +127,7 @@ function enableResign() {
   document.getElementById('resign-section').style.display = 'none';
   document.getElementById('submit-btn').style.display = 'block';
   document.getElementById('submit-btn').textContent = 'Update Signature';
+  resizeCanvas();
   clearSig();
 }
 
@@ -133,11 +136,26 @@ function cancelResign() {
   selectDay(currentDay);
 }
 
+function resizeCanvas() {
+  if (!sigCanvas) return;
+  // Preserve existing drawing if any
+  const w = sigCanvas.parentElement.offsetWidth || 300;
+  const h = 130;
+  sigCanvas.width = w;
+  sigCanvas.height = h;
+  if (sigCtx) {
+    sigCtx.strokeStyle = '#1a1a1a';
+    sigCtx.lineWidth = 2;
+    sigCtx.lineCap = 'round';
+  }
+}
+
 function initSignature() {
   sigCanvas = document.getElementById('sig-canvas');
   sigCtx = sigCanvas.getContext('2d');
-  sigCanvas.width = sigCanvas.offsetWidth;
-  sigCanvas.height = sigCanvas.offsetHeight;
+  // Don't size from offsetWidth here — canvas may be hidden
+  sigCanvas.width = sigCanvas.parentElement.offsetWidth || 300;
+  sigCanvas.height = 130;
   sigCtx.strokeStyle = '#1a1a1a';
   sigCtx.lineWidth = 2;
   sigCtx.lineCap = 'round';
