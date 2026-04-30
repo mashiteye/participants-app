@@ -244,24 +244,37 @@ async function exportCSV() {
     attMap[a.participant_id].push(a);
   });
 
-  const headers = ['Code','Name','Sex','Organization','Program','Position','Email','Phone','Signed','Days Signed','Signed At','Signature URLs','MEL Response','Registered'];
+  // Wrap plain text values in quotes, escaping internal quotes
+  function q(v) { return '"' + (v || '').toString().replace(/"/g, '""') + '"'; }
+
+  const headers = ['Code','Name','Sex','Organization','Program','Position','Registration Type',
+    'Email','Phone','Signed','Days Signed','Signed At',
+    'Signature Image (Sheets)','Signature URL','MEL Response','Registered'];
+
   const rows = currentParticipants.map(p => {
     const att = attMap[p.id] || [];
     const daysSigned = att.map(a => a.day).join('; ');
     const signedAt = att.map(a => a.signed_at ? new Date(a.signed_at).toLocaleString() : '').join('; ');
-    const sigUrls = att.map(a => a.signature_url || '').join('; ');
+    const lastSigUrl = (att.filter(a => a.signature_url).slice(-1)[0] || {}).signature_url || '';
+    const allUrls = att.filter(a => a.signature_url).map(a => a.signature_url).join('; ');
+
+    // =IMAGE() is a Sheets formula — must NOT be wrapped in quotes or the quotes inside escape incorrectly
+    // Output as bare formula cell; CSV parsers treat unquoted cells starting with = as formulas in Sheets
+    const imageCell = lastSigUrl ? '=IMAGE("' + lastSigUrl + '")' : '';
+
     return [
-      p.code, p.name, p.sex, p.org, p.prog, p.position_title,
-      p.email, p.phone,
-      att.length > 0 ? 'Yes' : 'No',
-      daysSigned || '',
-      signedAt || '',
-      sigUrls || '',
-      p.notes, p.created_at
-    ].map(v => '"' + (v||'').replace(/"/g, '""') + '"').join(',');
+      q(p.code), q(p.name), q(p.sex), q(p.org), q(p.prog), q(p.position_title),
+      q(p.reg_type || 'Pre-registration'),
+      q(p.email), q(p.phone),
+      q(att.length > 0 ? 'Yes' : 'No'),
+      q(daysSigned), q(signedAt),
+      imageCell,
+      q(allUrls),
+      q(p.notes), q(p.created_at)
+    ].join(',');
   });
 
-  const csv = [headers.join(','), ...rows].join('\n');
+  const csv = [headers.map(h => '"' + h + '"').join(','), ...rows].join('\n');
   const a = document.createElement('a');
   a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
   a.download = 'participants-' + document.getElementById('view-event-name').textContent.replace(/\s+/g,'-') + '-' + new Date().toISOString().slice(0,10) + '.csv';
