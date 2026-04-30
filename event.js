@@ -58,7 +58,7 @@ function filterParticipants() {
     container.innerHTML = `<div class="empty">${allParticipants.length ? 'No results.' : 'No participants registered yet.'}</div>`;
     return;
   }
-  let html = `<div style="overflow-x:auto"><table>
+  let html = `<div style="overflow-x:auto"><table id="participants-table">
     <thead><tr>
       <th style="width:13%">Code</th>
       <th style="width:28%">Name</th>
@@ -67,7 +67,7 @@ function filterParticipants() {
       <th style="width:22%">Position</th>
     </tr></thead><tbody>`;
   filtered.forEach(p => {
-    html += `<tr style="cursor:pointer" onclick="openSignForm('${p.id}')">
+    html += `<tr data-pid="${p.id}" style="cursor:pointer">
       <td style="font-weight:700;font-family:monospace;color:var(--orange)">${esc(p.code) || '&mdash;'}</td>
       <td style="font-weight:500">${esc(p.name)}</td>
       <td>${esc(p.sex) || '&mdash;'}</td>
@@ -77,6 +77,15 @@ function filterParticipants() {
   });
   html += `</tbody></table></div>`;
   container.innerHTML = html;
+
+  // Event delegation — attach once to table body
+  const tbody = container.querySelector('tbody');
+  if (tbody) {
+    tbody.addEventListener('click', e => {
+      const row = e.target.closest('tr[data-pid]');
+      if (row) openSignForm(row.dataset.pid);
+    });
+  }
 }
 
 function openPreReg() {
