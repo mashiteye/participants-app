@@ -561,33 +561,23 @@ async function exportPDF() {
     const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
     const pageW = doc.internal.pageSize.getWidth();
     const pageH = doc.internal.pageSize.getHeight();
+    const MARGIN = 8;
     const eventName = document.getElementById('view-event-name').textContent;
 
-    // Fetch attendance for this event
+    // Fetch event to get number of days
+    const { data: ev } = await db.from('events').select('*').eq('id', currentEventId).single();
+    const numDays = ev ? (ev.days || 1) : 1;
+
+    // Fetch all attendance for this event
     const { data: attendance } = await db.from('attendance')
       .select('*').eq('event_id', currentEventId).order('signed_at', { ascending: true });
     const attMap = {};
     (attendance || []).forEach(a => {
-      if (!attMap[a.participant_id]) attMap[a.participant_id] = [];
-      attMap[a.participant_id].push(a);
+      if (!attMap[a.participant_id]) attMap[a.participant_id] = {};
+      attMap[a.participant_id][a.day] = a;
     });
 
-    // ── Header ──
-    doc.setFillColor(235, 0, 27);
-    doc.rect(0, 0, pageW * 0.45, 22, 'F');
-    doc.setFillColor(243, 112, 33);
-    doc.rect(pageW * 0.45, 0, pageW * 0.35, 22, 'F');
-    doc.setFillColor(247, 158, 27);
-    doc.rect(pageW * 0.8, 0, pageW * 0.2, 22, 'F');
-
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(14); doc.setFont('helvetica', 'bold');
-    doc.text(eventName, 10, 10);
-    doc.setFontSize(8); doc.setFont('helvetica', 'normal');
-    doc.text('Attendance Register  ·  Generated: ' + new Date().toLocaleString(), 10, 16);
-    doc.text('Total registered: ' + currentParticipants.length + '  ·  Signed: ' + Object.keys(attMap).length, 10, 21);
-
-    // ── Pre-fetch all signature images ──
+    // Pre-fetch all signature images
     async function urlToBase64(url) {
       try {
         const res = await fetch(url);
@@ -599,114 +589,138 @@ async function exportPDF() {
         });
       } catch { return null; }
     }
-
-    // Collect all unique signature URLs
     const sigCache = {};
     const urlsToFetch = [];
     currentParticipants.forEach(p => {
-      (attMap[p.id] || []).forEach(a => {
+      const days = attMap[p.id] || {};
+      Object.values(days).forEach(a => {
         if (a.signature_url && !sigCache[a.signature_url]) urlsToFetch.push(a.signature_url);
       });
     });
-    await Promise.all(urlsToFetch.map(async url => {
-      sigCache[url] = await urlToBase64(url);
-    }));
+    await Promise.all(urlsToFetch.map(async url => { sigCache[url] = await urlToBase64(url); }));
 
-    // ── Table ──
-    const SIG_H = 18; // mm height for signature rows
-    const COL_WIDTHS = [18, 42, 12, 42, 36, 22, 30, 35];
-    const COL_HEADERS = ['Code', 'Name', 'Sex', 'Organization', 'Position', 'Type', 'Days Signed', 'Signature'];
-    const MARGIN = 8;
-    const TABLE_TOP = 26;
-    const COL_X = COL_WIDTHS.reduce((acc, w, i) => { acc.push(i === 0 ? MARGIN : acc[i-1] + COL_WIDTHS[i-1]); return acc; }, []);
+    // ── Column layout ──
+    // Fixed cols: Code, Name, Sex, Organization, Position, Type
+    // Dynamic cols: Day 1, Day 2, ... Day N (each equal width, split remaining space)
+    const FIXED_COLS = [
+      { label: 'Code',         w: 16 },
+      { label: 'Name',         w: 40 },
+      { label: 'Sex',          w: 10 },
+      { label: 'Organization', w: 38 },
+      { label: 'Position',     w: 32 },
+      { label: 'Type',         w: 18 }
+    ];
+    const usableW = pageW - MARGIN * 2;
+    const fixedW = FIXED_COLS.reduce((s, c) => s + c.w, 0);
+    const dayColW = Math.floor((usableW - fixedW) / numDays);
+    const DAY_COLS = Array.from({ length: numDays }, (_, i) => ({ label: 'Day ' + (i + 1), w: dayColW }));
+    const ALL_COLS = [...FIXED_COLS, ...DAY_COLS];
 
-    // Header row
-    doc.setFillColor(26, 26, 26);
-    doc.rect(MARGIN, TABLE_TOP, pageW - MARGIN * 2, 7, 'F');
+    // Compute x positions
+    let cx = MARGIN;
+    ALL_COLS.forEach(c => { c.x = cx; cx += c.w; });
+
+    const SIG_H = numDays > 0 ? Math.max(18, Math.min(25, dayColW * 0.6)) : 18;
+    const TEXT_ROW_H = 8;
+
+    // ── Header ──
+    doc.setFillColor(235, 0, 27);
+    doc.rect(0, 0, pageW * 0.4, 22, 'F');
+    doc.setFillColor(243, 112, 33);
+    doc.rect(pageW * 0.4, 0, pageW * 0.4, 22, 'F');
+    doc.setFillColor(247, 158, 27);
+    doc.rect(pageW * 0.8, 0, pageW * 0.2, 22, 'F');
     doc.setTextColor(255, 255, 255);
-    doc.setFontSize(7); doc.setFont('helvetica', 'bold');
-    COL_HEADERS.forEach((h, i) => doc.text(h, COL_X[i] + 1.5, TABLE_TOP + 4.5));
+    doc.setFontSize(13); doc.setFont('helvetica', 'bold');
+    doc.text(eventName, MARGIN, 10);
+    doc.setFontSize(8); doc.setFont('helvetica', 'normal');
+    doc.text('Attendance Register  ·  Generated: ' + new Date().toLocaleString(), MARGIN, 16);
+    doc.text('Registered: ' + currentParticipants.length +
+      '  ·  Signed (any day): ' + Object.keys(attMap).length, MARGIN, 21);
 
+    const TABLE_TOP = 26;
+
+    function drawHeaderRow(y) {
+      doc.setFillColor(26, 26, 26);
+      doc.rect(MARGIN, y, usableW, 7, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(6.5); doc.setFont('helvetica', 'bold');
+      ALL_COLS.forEach(c => doc.text(c.label, c.x + 1.5, y + 4.5));
+    }
+
+    function truncate(s, maxLen) {
+      s = s || '';
+      return s.length > maxLen ? s.slice(0, maxLen - 1) + '…' : s;
+    }
+
+    drawHeaderRow(TABLE_TOP);
     let y = TABLE_TOP + 7;
-    doc.setFont('helvetica', 'normal');
 
     for (let idx = 0; idx < currentParticipants.length; idx++) {
       const p = currentParticipants[idx];
-      const att = attMap[p.id] || [];
-      const rowH = att.some(a => a.signature_url) ? SIG_H : 8;
+      const pAtt = attMap[p.id] || {};
+      const hasSig = Object.values(pAtt).some(a => a.signature_url);
+      const rowH = hasSig ? SIG_H : TEXT_ROW_H;
 
-      // Page break
-      if (y + rowH > pageH - 10) {
+      if (y + rowH > pageH - 12) {
         doc.addPage();
         y = 10;
-        doc.setFillColor(26, 26, 26);
-        doc.rect(MARGIN, y, pageW - MARGIN * 2, 7, 'F');
-        doc.setTextColor(255, 255, 255);
-        doc.setFontSize(7); doc.setFont('helvetica', 'bold');
-        COL_HEADERS.forEach((h, i) => doc.text(h, COL_X[i] + 1.5, y + 4.5));
-        doc.setFont('helvetica', 'normal');
+        drawHeaderRow(y);
         y += 7;
       }
 
-      // Row background
-      doc.setFillColor(idx % 2 === 0 ? 250 : 245, idx % 2 === 0 ? 250 : 245, idx % 2 === 0 ? 248 : 243);
-      doc.rect(MARGIN, y, pageW - MARGIN * 2, rowH, 'F');
+      // Row bg + border
+      doc.setFillColor(idx % 2 === 0 ? 252 : 246, idx % 2 === 0 ? 252 : 246, idx % 2 === 0 ? 250 : 244);
+      doc.rect(MARGIN, y, usableW, rowH, 'F');
+      doc.setDrawColor(215, 215, 215);
+      doc.rect(MARGIN, y, usableW, rowH, 'S');
 
-      // Row border
-      doc.setDrawColor(220, 220, 220);
-      doc.rect(MARGIN, y, pageW - MARGIN * 2, rowH, 'S');
+      const textY = y + (rowH > TEXT_ROW_H ? 5 : 5);
+      doc.setFontSize(7); doc.setFont('helvetica', 'normal');
 
-      // Text cells
-      doc.setTextColor(26, 26, 26);
-      doc.setFontSize(7.5);
+      // Code
+      doc.setTextColor(243, 112, 33); doc.setFont('helvetica', 'bold');
+      doc.text(truncate(p.code || '—', 10), FIXED_COLS[0].x + 1.5, textY);
 
-      const truncate = (s, maxLen) => s && s.length > maxLen ? s.slice(0, maxLen - 1) + '…' : (s || '');
-      const textY = y + (rowH > 8 ? 5 : 5);
+      // Name, Sex, Org, Position
+      doc.setTextColor(26, 26, 26); doc.setFont('helvetica', 'normal');
+      doc.text(truncate(p.name || '', 26), FIXED_COLS[1].x + 1.5, textY);
+      doc.text(truncate(p.sex || '—', 6), FIXED_COLS[2].x + 1.5, textY);
+      doc.text(truncate(p.org || '', 24), FIXED_COLS[3].x + 1.5, textY);
+      doc.text(truncate(p.position_title || '', 20), FIXED_COLS[4].x + 1.5, textY);
 
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(243, 112, 33);
-      doc.text(truncate(p.code || '—', 12), COL_X[0] + 1.5, textY);
-
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(26, 26, 26);
-      doc.text(truncate(p.name || '', 28), COL_X[1] + 1.5, textY);
-      doc.text(truncate(p.sex || '—', 8), COL_X[2] + 1.5, textY);
-      doc.text(truncate(p.org || '', 28), COL_X[3] + 1.5, textY);
-      doc.text(truncate(p.position_title || '', 22), COL_X[4] + 1.5, textY);
-
-      // Reg type badge text
+      // Type badge
       const rt = p.reg_type || 'Pre-registration';
       doc.setTextColor(rt === 'Walk-in' ? 243 : 0, rt === 'Walk-in' ? 112 : 92, rt === 'Walk-in' ? 33 : 42);
-      doc.text(rt === 'Walk-in' ? 'Walk-in' : 'Pre-reg', COL_X[5] + 1.5, textY);
+      doc.text(rt === 'Walk-in' ? 'Walk-in' : 'Pre-reg', FIXED_COLS[5].x + 1.5, textY);
 
-      doc.setTextColor(26, 26, 26);
-      const days = att.map(a => a.day).join(', ');
-      doc.text(truncate(days || '—', 20), COL_X[6] + 1.5, textY);
-
-      // Signature image — use most recent
-      const sigRecord = att.filter(a => a.signature_url).slice(-1)[0];
-      if (sigRecord && sigCache[sigRecord.signature_url]) {
-        try {
-          doc.addImage(sigCache[sigRecord.signature_url], 'PNG',
-            COL_X[7] + 1, y + 1, COL_WIDTHS[7] - 2, rowH - 2);
-        } catch(e) {
-          doc.setFontSize(6); doc.setTextColor(150,150,150);
-          doc.text('[sig error]', COL_X[7] + 1.5, textY);
+      // Day columns — signature image or blank
+      DAY_COLS.forEach(dc => {
+        const dayAtt = pAtt[dc.label];
+        if (dayAtt && dayAtt.signature_url && sigCache[dayAtt.signature_url]) {
+          try {
+            doc.addImage(sigCache[dayAtt.signature_url], 'PNG',
+              dc.x + 1, y + 1, dc.w - 2, rowH - 2);
+          } catch {
+            doc.setFontSize(5.5); doc.setTextColor(180, 180, 180);
+            doc.text('[img err]', dc.x + 1.5, textY);
+          }
+        } else {
+          // Draw subtle empty cell indicator
+          doc.setDrawColor(230, 230, 230);
+          doc.rect(dc.x + 1.5, y + 1.5, dc.w - 3, rowH - 3);
         }
-      } else if (!att.length || !sigRecord) {
-        doc.setFontSize(6); doc.setTextColor(180,180,180);
-        doc.text('Not signed', COL_X[7] + 1.5, textY);
-      }
+      });
 
       y += rowH;
     }
 
-    // Footer
+    // Footer on each page
     const pages = doc.internal.getNumberOfPages();
     for (let i = 1; i <= pages; i++) {
       doc.setPage(i);
-      doc.setFontSize(6.5); doc.setTextColor(150,150,150);
-      doc.text('Page ' + i + ' of ' + pages + '  ·  ' + eventName + '  ·  Participants App — METSS LBG',
+      doc.setFontSize(6); doc.setTextColor(160, 160, 160); doc.setFont('helvetica', 'normal');
+      doc.text('Page ' + i + ' of ' + pages + '  ·  ' + eventName + '  ·  METSS LBG Participants App',
         MARGIN, pageH - 4);
     }
 
@@ -714,6 +728,7 @@ async function exportPDF() {
 
   } catch(e) {
     alert('PDF export failed: ' + e.message);
+    console.error(e);
   } finally {
     if (btn) { btn.textContent = 'Export PDF'; btn.disabled = false; }
   }

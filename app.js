@@ -25,9 +25,14 @@ async function init() {
     const errEl = document.getElementById('err-msg');
     if (!v.valid && document.getElementById('f-email').value.trim()) {
       errEl.textContent = v.msg; errEl.style.display = 'block';
-    } else {
-      errEl.style.display = 'none';
-    }
+    } else { errEl.style.display = 'none'; }
+  });
+  document.getElementById('f-phone').addEventListener('blur', () => {
+    const v = validatePhone(document.getElementById('f-phone').value.trim());
+    const errEl = document.getElementById('err-msg');
+    if (!v.valid && document.getElementById('f-phone').value.trim()) {
+      errEl.textContent = v.msg; errEl.style.display = 'block';
+    } else { errEl.style.display = 'none'; }
   });
   document.getElementById('event-name').textContent = data.name;
   document.getElementById('event-program').textContent = [data.event_code, data.program].filter(Boolean).join(' · ') || 'Registration';
@@ -125,6 +130,18 @@ function validateEmail(email) {
   return { valid: true };
 }
 
+function validatePhone(phone) {
+  if (!phone) return { valid: false, msg: 'Phone number is required.' };
+  const cleaned = phone.replace(/[\s\-().]/g, '');
+  // Accept: 0XXXXXXXXX (10 digits), +233XXXXXXXXX, 233XXXXXXXXX
+  const local = /^0\d{9}$/.test(cleaned);
+  const intl  = /^(\+233|233)\d{9}$/.test(cleaned);
+  if (!local && !intl) {
+    return { valid: false, msg: 'Enter a valid phone number (e.g. 0244 000 000 or +233244000000).' };
+  }
+  return { valid: true };
+}
+
 async function getNextCode() {
   const { data } = await db.from('participants').select('code').eq('event_id', eventId).not('code', 'is', null);
   if (!data || !data.length) return eventPrefix + '-001';
@@ -143,6 +160,8 @@ async function registerParticipant() {
   }
   const emailCheck = validateEmail(email);
   if (!emailCheck.valid) { errEl.textContent = emailCheck.msg; errEl.style.display = 'block'; return; }
+  const phoneCheck = validatePhone(phone);
+  if (!phoneCheck.valid) { errEl.textContent = phoneCheck.msg; errEl.style.display = 'block'; return; }
   if (isWalkin) {
     const day = fval('f-day');
     if (!day) { errEl.textContent = 'Please select a day.'; errEl.style.display = 'block'; return; }
