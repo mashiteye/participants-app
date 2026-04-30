@@ -6,6 +6,7 @@ const params = new URLSearchParams(window.location.search);
 const eventId = params.get('event');
 const BASE_URL = window.location.origin + window.location.pathname.replace('event.html', '');
 let allParticipants = [];
+let eventDays = 1;
 
 async function init() {
   if (!eventId) { document.getElementById('no-event').style.display = 'block'; return; }
@@ -13,15 +14,16 @@ async function init() {
   const { data: ev, error } = await db.from('events').select('*').eq('id', eventId).single();
   if (error || !ev) { document.getElementById('no-event').style.display = 'block'; return; }
 
+  eventDays = ev.days || 1;
   document.getElementById('event-ui').style.display = 'block';
   document.getElementById('event-name').textContent = ev.name;
-  document.getElementById('event-program').textContent = ev.event_code ? ev.event_code + ' · ' + (ev.program || '') : (ev.program || 'Participant View');
+  document.getElementById('event-code-prog').textContent = [ev.event_code, ev.program].filter(Boolean).join(' · ') || 'Participant View';
   document.getElementById('event-meta').textContent = [
     ev.organizer,
     ev.event_date ? new Date(ev.event_date).toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' }) : null,
     ev.days > 1 ? ev.days + ' days' : null
   ].filter(Boolean).join(' · ');
-  document.title = ev.name;
+  document.title = ev.name + ' — Participants';
 
   await loadParticipants();
 }
@@ -58,18 +60,18 @@ function filterParticipants() {
   }
   let html = `<div style="overflow-x:auto"><table>
     <thead><tr>
-      <th style="width:12%">Code</th>
-      <th style="width:25%">Name</th>
-      <th style="width:10%">Sex</th>
+      <th style="width:13%">Code</th>
+      <th style="width:28%">Name</th>
+      <th style="width:9%">Sex</th>
       <th style="width:28%">Organization</th>
-      <th style="width:25%">Position</th>
+      <th style="width:22%">Position</th>
     </tr></thead><tbody>`;
   filtered.forEach(p => {
     html += `<tr>
-      <td style="font-weight:600;font-family:monospace">${esc(p.code) || '&mdash;'}</td>
-      <td>${esc(p.name)}</td>
+      <td style="font-weight:700;font-family:monospace;color:var(--orange)">${esc(p.code) || '&mdash;'}</td>
+      <td><span class="td-link" onclick="openSignForm('${p.id}')">${esc(p.name)}</span></td>
       <td>${esc(p.sex) || '&mdash;'}</td>
-      <td>${esc(p.org)}</td>
+      <td title="${esc(p.org)}">${esc(p.org)}</td>
       <td>${esc(p.position_title) || '&mdash;'}</td>
     </tr>`;
   });
@@ -77,8 +79,16 @@ function filterParticipants() {
   container.innerHTML = html;
 }
 
-function openRegForm() {
+function openPreReg() {
   window.open(BASE_URL + 'index.html?event=' + eventId, '_blank');
+}
+
+function openWalkin() {
+  window.open(BASE_URL + 'index.html?event=' + eventId + '&walkin=1', '_blank');
+}
+
+function openSignForm(participantId) {
+  window.open(BASE_URL + 'sign.html?participant=' + participantId + '&event=' + eventId, '_blank');
 }
 
 function esc(str) {

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign Attendance</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="no-participant" style="display:none">
+    <div class="empty-state">
+      <p class="empty-title">Participant not found</p>
+      <p class="empty-sub">Check your link and try again.</p>
+    </div>
+  </div>
+
+  <div id="sign-ui" style="display:none">
+    <div class="reg-header">
+      <p class="reg-header-sub" id="event-code-prog"></p>
+      <p class="reg-header-title" id="event-name"></p>
+      <p class="reg-header-meta" id="event-meta"></p>
+    </div>
+
+    <div class="reg-body">
+      <div class="reg-nav">
+        <span class="reg-form-title">Attendance Sign-in</span>
+        <button class="reg-back-btn" onclick="goBack()">← Participant Search</button>
+      </div>
+
+      <div class="success-msg" id="success" style="display:none">
+        <p style="font-size:15px;font-weight:700;margin-bottom:4px">Attendance recorded!</p>
+        <p style="font-size:13px;margin-bottom:4px"><span id="confirm-name"></span> — <span id="confirm-code" style="font-weight:700;font-family:monospace;color:var(--orange)"></span></p>
+        <p style="font-size:13px;color:var(--success-text)">Signed in for <span id="confirm-day" style="font-weight:600"></span>.</p>
+      </div>
+
+      <!-- Participant info card -->
+      <div class="section-card" id="participant-card" style="margin-bottom:1.25rem;padding:1rem 1.25rem">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <p style="font-size:16px;font-weight:700" id="p-name"></p>
+            <p style="font-size:12px;color:var(--text-muted);margin-top:2px" id="p-details"></p>
+          </div>
+          <div style="text-align:right">
+            <p style="font-size:20px;font-weight:800;font-family:monospace;color:var(--orange)" id="p-code"></p>
+          </div>
+        </div>
+      </div>
+
+      <div class="field-group" id="day-group" style="display:none">
+        <label>Select Day *</label>
+        <div class="toggle-group" id="day-buttons"></div>
+        <input type="hidden" id="f-day" />
+      </div>
+
+      <div class="field-group">
+        <label>Signature *</label>
+        <div class="sig-container">
+          <canvas id="sig-canvas"></canvas>
+          <p class="sig-hint">Sign here</p>
+        </div>
+        <button class="btn-clear-sig" onclick="clearSig()">Clear</button>
+      </div>
+
+      <span id="err-msg" class="err-msg" style="display:none"></span>
+      <button class="btn-submit" id="submit-btn" onclick="submitAttendance()">Sign Attendance</button>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="sign.js"></script>
+</body>
+</html>

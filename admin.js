@@ -83,11 +83,12 @@ async function loadEvents() {
   events.forEach(e => {
     const count = countMap[e.id] || 0;
     const dateStr = e.event_date ? new Date(e.event_date).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' }) : '';
-    const meta = [e.event_code ? '[' + e.event_code + ']' : null, e.program, e.organizer, dateStr, e.days > 1 ? e.days + ' days' : null].filter(Boolean).join(' · ');
+    const meta = [e.program, e.organizer, dateStr, e.days > 1 ? e.days + ' days' : null].filter(Boolean).join(' · ');
     html += `<div class="event-card">
       <div class="event-card-main">
         <div>
           <p class="event-card-name">${esc(e.name)}</p>
+          ${e.event_code ? `<p class="event-card-code">${esc(e.event_code)}</p>` : ''}
           <p class="event-card-meta">${esc(meta)}</p>
           ${e.mel_question ? `<p class="event-card-meta" style="margin-top:3px;font-style:italic">${esc(e.mel_question)}</p>` : ''}
         </div>
@@ -99,9 +100,9 @@ async function loadEvents() {
       <div class="event-card-actions">
         <button class="btn-sm" onclick="viewParticipants('${e.id}','${esc(e.name)}')">View participants</button>
         <button class="btn-sm" onclick="fetchAndEdit('${e.id}')">Edit</button>
-        <button class="btn-sm" onclick="window.open(BASE_URL+'index.html?event=${e.id}','_blank')">Open reg form</button>
-        <button class="btn-sm" onclick="copyEventLink('${e.id}','reg',this)">Copy reg link</button>
-        <button class="btn-sm" onclick="copyEventLink('${e.id}','view',this)">Copy participant view link</button>
+        <button class="btn-sm accent" onclick="copyEventLink('${e.id}','prereg',this)">Copy pre-reg link</button>
+        <button class="btn-sm accent" onclick="copyEventLink('${e.id}','walkin',this)">Copy walk-in link</button>
+        <button class="btn-sm accent" onclick="copyEventLink('${e.id}','view',this)">Copy participant view</button>
         <button class="btn-sm danger" onclick="deleteEvent('${e.id}')">Delete</button>
       </div>
     </div>`;
@@ -110,9 +111,10 @@ async function loadEvents() {
 }
 
 function copyEventLink(id, type, btn) {
-  const url = type === 'view'
-    ? BASE_URL + 'event.html?event=' + id
-    : BASE_URL + 'index.html?event=' + id;
+  let url;
+  if (type === 'view') url = BASE_URL + 'event.html?event=' + id;
+  else if (type === 'walkin') url = BASE_URL + 'index.html?event=' + id + '&walkin=1';
+  else url = BASE_URL + 'index.html?event=' + id;
   navigator.clipboard.writeText(url).then(() => {
     const orig = btn.textContent;
     btn.textContent = 'Copied!';
@@ -274,6 +276,10 @@ async function fetchAndEdit(id) {
 
 function openRegLink() {
   window.open(BASE_URL + 'index.html?event=' + currentEventId, '_blank');
+}
+
+function openWalkinLink() {
+  window.open(BASE_URL + 'index.html?event=' + currentEventId + '&walkin=1', '_blank');
 }
 
 function openViewLink() {

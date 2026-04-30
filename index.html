@@ -18,23 +18,25 @@
     <div class="reg-header">
       <p class="reg-header-sub" id="event-program"></p>
       <p class="reg-header-title" id="event-name"></p>
+      <p class="reg-header-meta" id="event-meta"></p>
     </div>
 
     <div class="reg-body">
       <div class="reg-nav">
-        <span class="reg-form-title">Registration Form</span>
-        <a href="admin.html" class="reg-back-btn">← Back to events</a>
+        <span class="reg-form-title" id="form-type-label">Registration Form</span>
+        <button class="reg-back-btn" id="back-btn" onclick="goBack()">← Participant Search</button>
       </div>
+
       <div class="success-msg" id="success" style="display:none">
-        <p style="font-size:15px;font-weight:600;margin-bottom:4px">You are registered, <span id="confirm-name"></span>!</p>
-        <p style="font-size:13px;margin-bottom:2px">Your participant code is:</p>
-        <p style="font-size:28px;font-weight:700;letter-spacing:0.08em;margin:6px 0" id="confirm-code"></p>
-        <p style="font-size:12px;opacity:0.8">Keep this code — you will need it to sign attendance on the event day.</p>
+        <p style="font-size:15px;font-weight:700;margin-bottom:4px">Registered, <span id="confirm-name"></span>!</p>
+        <p style="font-size:13px;margin-bottom:4px">Your participant code is:</p>
+        <p style="font-size:30px;font-weight:800;letter-spacing:0.1em;margin:6px 0;color:#27500a" id="confirm-code"></p>
+        <p style="font-size:12px;opacity:0.75">Keep this code — you will need it on the event day.</p>
       </div>
 
       <div class="field-group">
         <label>Full Name *</label>
-        <input type="text" id="f-name" placeholder="" />
+        <input type="text" id="f-name" />
       </div>
 
       <div class="field-group">
@@ -48,27 +50,27 @@
 
       <div class="field-group">
         <label>Organization *</label>
-        <input type="text" id="f-org" placeholder="" />
+        <input type="text" id="f-org" />
       </div>
 
       <div class="field-group">
         <label>Program Name *</label>
-        <input type="text" id="f-prog" placeholder="" />
+        <input type="text" id="f-prog" />
       </div>
 
       <div class="field-group">
         <label>Position *</label>
-        <input type="text" id="f-position" placeholder="" />
+        <input type="text" id="f-position" />
       </div>
 
       <div class="field-group">
         <label>Email *</label>
-        <input type="email" id="f-email" placeholder="" />
+        <input type="email" id="f-email" />
       </div>
 
       <div class="field-group">
         <label>Phone Number *</label>
-        <input type="tel" id="f-phone" placeholder="" />
+        <input type="tel" id="f-phone" />
       </div>
 
       <div class="field-group" id="mel-question-group" style="display:none">
@@ -76,23 +78,26 @@
         <textarea id="f-mel" rows="3"></textarea>
       </div>
 
-      <div class="field-group" id="day-group" style="display:none">
-        <label>Day *</label>
-        <div class="toggle-group" id="day-buttons"></div>
-        <input type="hidden" id="f-day" />
-      </div>
-
-      <div class="field-group">
-        <label>Signature *</label>
-        <div class="sig-container">
-          <canvas id="sig-canvas"></canvas>
-          <p class="sig-hint">Sign here</p>
+      <!-- Walk-in only: day + signature -->
+      <div id="walkin-fields" style="display:none">
+        <div class="field-group" id="day-group" style="display:none">
+          <label>Day *</label>
+          <div class="toggle-group" id="day-buttons"></div>
+          <input type="hidden" id="f-day" />
         </div>
-        <button class="btn-clear-sig" onclick="clearSig()">Clear</button>
+
+        <div class="field-group">
+          <label>Signature *</label>
+          <div class="sig-container">
+            <canvas id="sig-canvas"></canvas>
+            <p class="sig-hint">Sign here</p>
+          </div>
+          <button class="btn-clear-sig" onclick="clearSig()">Clear</button>
+        </div>
       </div>
 
-      <span id="err-msg" class="err-msg"></span>
-      <button class="btn-submit" id="submit-btn" onclick="registerParticipant()">Submit &amp; Sign</button>
+      <span id="err-msg" class="err-msg" style="display:none"></span>
+      <button class="btn-submit" id="submit-btn" onclick="registerParticipant()">Submit &amp; Register</button>
     </div>
   </div>
 
