@@ -436,3 +436,10 @@ tr[data-pid]:hover td:first-child {
 
 /* Stat cards in event view */
 .stat-card .stat-num { color: var(--orange); }
+
+/* event.html uses wider body for participant table */
+.event-body {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
