@@ -385,3 +385,168 @@ async function generateEventCode(inputId) {
   const next = nums.length ? Math.max(...nums) + 1 : 1;
   return 'EVT-' + String(next).padStart(3, '0');
 }
+
+async function exportPDF() {
+  const btn = document.querySelector('[onclick="exportPDF()"]');
+  const origText = btn.textContent;
+  btn.textContent = 'Building PDF...';
+  btn.disabled = true;
+
+  try {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+
+    const eventName = document.getElementById('view-event-name').textContent;
+    const today = new Date().toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' });
+
+    // Fetch attendance for this event
+    const { data: attendance } = await db.from('attendance')
+      .select('*').eq('event_id', currentEventId).order('signed_at', { ascending: true });
+    const attMap = {};
+    (attendance || []).forEach(a => {
+      if (!attMap[a.participant_id]) attMap[a.participant_id] = [];
+      attMap[a.participant_id].push(a);
+    });
+
+    // Fetch signature images as base64
+    async function urlToBase64(url) {
+      try {
+        const res = await fetch(url);
+        const blob = await res.blob();
+        return await new Promise(resolve => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result);
+          reader.readAsDataURL(blob);
+        });
+      } catch { return null; }
+    }
+
+    // Header
+    doc.setFillColor(235, 0, 27); // MCF red
+    doc.rect(0, 0, 297, 18, 'F');
+    doc.setFillColor(243, 112, 33); // MCF orange
+    doc.rect(100, 0, 197, 18, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(13);
+    doc.setFont('helvetica', 'bold');
+    doc.text(eventName, 14, 11);
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Attendance Register · Exported ' + today, 14, 16);
+    doc.setTextColor(0, 0, 0);
+
+    // Stats row
+    const total = currentParticipants.length;
+    const signed = Object.keys(attMap).length;
+    const female = currentParticipants.filter(p => p.sex === 'Female').length;
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Total registered: ${total}   Signed: ${signed}   Female: ${female}   Male: ${total - female}`, 14, 24);
+
+    // Table — one row per participant, signature embedded
+    const tableRows = [];
+    for (const p of currentParticipants) {
+      const att = attMap[p.id] || [];
+      const daysSigned = att.map(a => a.day).join(', ') || '—';
+      const sigUrl = (att.filter(a => a.signature_url).slice(-1)[0] || {}).signature_url || null;
+      tableRows.push({
+        code: p.code || '—',
+        name: p.name,
+        sex: p.sex || '—',
+        org: p.org || '—',
+        position: p.position_title || '—',
+        type: p.reg_type || 'Pre-registration',
+        days: daysSigned,
+        sigUrl
+      });
+    }
+
+    // Build autotable without signature column first to get row positions
+    doc.autoTable({
+      startY: 28,
+      head: [['Code','Name','Sex','Organization','Position','Type','Days Signed','Signature']],
+      body: tableRows.map(r => [r.code, r.name, r.sex, r.org, r.position, r.type, r.days, '']),
+      styles: { fontSize: 8, cellPadding: 2, overflow: 'linebreak' },
+      headStyles: { fillColor: [243, 112, 33], textColor: 255, fontStyle: 'bold', fontSize: 8 },
+      alternateRowStyles: { fillColor: [255, 248, 244] },
+      columnStyles: {
+        0: { cellWidth: 18 },
+        1: { cellWidth: 40 },
+        2: { cellWidth: 12 },
+        3: { cellWidth: 45 },
+        4: { cellWidth: 35 },
+        5: { cellWidth: 22 },
+        6: { cellWidth: 22 },
+        7: { cellWidth: 38 }
+      },
+      rowPageBreak: 'avoid',
+      didDrawCell: async (data) => {
+        // Signatures are added after table draw (see below)
+      }
+    });
+
+    // Embed signature images into signature column cells
+    // Re-draw with images using didDrawPage callback approach
+    // Collect cell positions from a second pass
+    const sigColIndex = 7;
+    const cellPositions = [];
+
+    doc.autoTable({
+      startY: 28,
+      head: [['Code','Name','Sex','Organization','Position','Type','Days Signed','Signature']],
+      body: tableRows.map(r => [r.code, r.name, r.sex, r.org, r.position, r.type, r.days, '']),
+      styles: { fontSize: 8, cellPadding: 2, overflow: 'linebreak' },
+      headStyles: { fillColor: [243, 112, 33], textColor: 255, fontStyle: 'bold', fontSize: 8 },
+      alternateRowStyles: { fillColor: [255, 248, 244] },
+      columnStyles: {
+        0: { cellWidth: 18 }, 1: { cellWidth: 40 }, 2: { cellWidth: 12 },
+        3: { cellWidth: 45 }, 4: { cellWidth: 35 }, 5: { cellWidth: 22 },
+        6: { cellWidth: 22 }, 7: { cellWidth: 38 }
+      },
+      rowPageBreak: 'avoid',
+      didDrawCell: (data) => {
+        if (data.column.index === sigColIndex && data.section === 'body') {
+          cellPositions.push({
+            rowIndex: data.row.index,
+            x: data.cell.x, y: data.cell.y,
+            w: data.cell.width, h: data.cell.height,
+            pageNumber: data.pageNumber || 1
+          });
+        }
+      }
+    });
+
+    // Fetch and embed signatures
+    btn.textContent = 'Embedding signatures...';
+    for (const pos of cellPositions) {
+      const row = tableRows[pos.rowIndex];
+      if (!row || !row.sigUrl) continue;
+      const b64 = await urlToBase64(row.sigUrl);
+      if (!b64) continue;
+      doc.setPage(pos.pageNumber);
+      const padding = 1;
+      doc.addImage(b64, 'PNG',
+        pos.x + padding, pos.y + padding,
+        pos.w - padding * 2, pos.h - padding * 2
+      );
+    }
+
+    // Footer on each page
+    const pageCount = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(7);
+      doc.setTextColor(150);
+      doc.text('Page ' + i + ' of ' + pageCount + '  ·  Participants App · METSS LBG', 14, doc.internal.pageSize.height - 5);
+    }
+
+    doc.save('attendance-register-' + eventName.replace(/\s+/g, '-') + '-' + new Date().toISOString().slice(0,10) + '.pdf');
+
+  } catch(e) {
+    alert('PDF export failed: ' + e.message);
+    console.error(e);
+  } finally {
+    btn.textContent = origText;
+    btn.disabled = false;
+  }
+}

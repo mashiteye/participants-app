@@ -207,6 +207,14 @@ async function submitAttendance() {
       if (newRow) existingAttendance[currentDay] = newRow;
     }
 
+    // Re-fetch attendance from Supabase to guarantee latest data
+    const { data: freshAtt } = await db.from('attendance')
+      .select('*')
+      .eq('participant_id', participantId)
+      .eq('event_id', eventId);
+    existingAttendance = {};
+    (freshAtt || []).forEach(a => { existingAttendance[a.day] = a; });
+
     // Show success — scoped only to sign form
     document.getElementById('confirm-name').textContent = participant.name;
     document.getElementById('confirm-code').textContent = participant.code || '';
@@ -215,14 +223,14 @@ async function submitAttendance() {
     s.style.display = 'block';
     s.scrollIntoView({ behavior: 'smooth' });
 
-    // Update signed indicator
+    // Update signed indicator with fresh data
     const signedDays = Object.keys(existingAttendance);
     document.getElementById('already-signed').textContent = 'Signed: ' + signedDays.join(', ');
     document.getElementById('already-signed').style.display = 'block';
 
-    // Reset canvas and re-select day to show preview
     btn.textContent = resignMode ? 'Update Signature' : 'Sign Attendance';
     btn.disabled = false;
+    resignMode = false;
     selectDay(currentDay);
     setTimeout(() => s.style.display = 'none', 5000);
 
