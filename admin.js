@@ -188,22 +188,16 @@ function filterParticipants() {
   }
   let html = `<div style="overflow-x:auto"><table>
     <thead><tr>
-      <th style="width:9%">Code</th>
-      <th style="width:16%">Name</th>
-      <th style="width:6%">Sex</th>
-      <th style="width:16%">Organization</th>
-      <th style="width:13%">Position</th>
-      <th style="width:10%">Program</th>
-      <th style="width:11%">Type</th>
-      <th style="width:10%">Days Signed</th>
-      <th style="width:9%">Sig</th>
+      <th style="width:11%">Code</th>
+      <th style="width:22%">Name</th>
+      <th style="width:7%">Sex</th>
+      <th style="width:20%">Organization</th>
+      <th style="width:17%">Position</th>
+      <th style="width:13%">Program</th>
+      <th style="width:10%">Type</th>
     </tr></thead><tbody>`;
   filtered.forEach(p => {
     const att = currentAttendance[p.id] || [];
-    const daysSigned = att.map(a => a.day).join(', ') || '&mdash;';
-    const sigCell = att.length > 0
-      ? att.map(a => a.signature_url ? `<a href="${a.signature_url}" target="_blank" style="color:var(--orange);font-size:11px">${a.day}</a>` : '').filter(Boolean).join(' ')
-      : (p.signature ? `<img src="${p.signature}" style="height:28px;max-width:60px;object-fit:contain" title="Legacy signature" />` : '&mdash;');
     const regTypeBadge = p.reg_type === 'Walk-in'
       ? '<span style="background:#fff3e8;color:var(--orange);font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px">Walk-in</span>'
       : '<span style="background:#f0f9f4;color:#005c2a;font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px">Pre-reg</span>';
@@ -215,8 +209,6 @@ function filterParticipants() {
       <td>${esc(p.position_title) || '&mdash;'}</td>
       <td>${esc(p.prog) || '&mdash;'}</td>
       <td>${regTypeBadge}</td>
-      <td style="font-size:12px">${daysSigned}</td>
-      <td>${sigCell}</td>
     </tr>`;
   });
   html += `</tbody></table></div>`;
@@ -316,6 +308,18 @@ async function saveEdit() {
   const errEl = document.getElementById('edit-err');
   const name = document.getElementById('edit-name').value.trim();
   if (!name) { errEl.textContent = 'Event name is required.'; errEl.style.display = 'inline'; return; }
+
+  // Warn if days are being reduced
+  const editId = document.getElementById('edit-id').value;
+  const { data: currentEv } = await db.from('events').select('days').eq('id', editId).single();
+  const newDays = parseInt(document.getElementById('edit-days').value) || 1;
+  if (currentEv && newDays < (currentEv.days || 1)) {
+    const ok = confirm(
+      'Reducing days from ' + (currentEv.days || 1) + ' to ' + newDays + '.\n\n' +
+      'Attendance records for Day ' + (newDays + 1) + ' and above will no longer appear in exports or sign-in, but data is not deleted.\n\nProceed?'
+    );
+    if (!ok) return;
+  }
 
   const btn = document.querySelector('#pane-edit .btn-primary');
   btn.textContent = 'Saving...'; btn.disabled = true;
@@ -551,24 +555,17 @@ async function exportPDF() {
   }
 }
 
-// ── PDF Export ──
+// ── PDF Export (admin) ──
 async function exportPDF() {
   const btn = [...document.querySelectorAll('.btn-secondary')].find(b => b.textContent === 'Export PDF');
   if (btn) { btn.textContent = 'Building PDF...'; btn.disabled = true; }
-
   try {
     const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
-    const pageW = doc.internal.pageSize.getWidth();
-    const pageH = doc.internal.pageSize.getHeight();
-    const MARGIN = 8;
     const eventName = document.getElementById('view-event-name').textContent;
 
-    // Fetch event to get number of days
     const { data: ev } = await db.from('events').select('*').eq('id', currentEventId).single();
     const numDays = ev ? (ev.days || 1) : 1;
 
-    // Fetch all attendance for this event
     const { data: attendance } = await db.from('attendance')
       .select('*').eq('event_id', currentEventId).order('signed_at', { ascending: true });
     const attMap = {};
@@ -577,7 +574,7 @@ async function exportPDF() {
       attMap[a.participant_id][a.day] = a;
     });
 
-    // Pre-fetch all signature images
+    // Pre-fetch signatures
     async function urlToBase64(url) {
       try {
         const res = await fetch(url);
@@ -599,133 +596,120 @@ async function exportPDF() {
     });
     await Promise.all(urlsToFetch.map(async url => { sigCache[url] = await urlToBase64(url); }));
 
-    // ── Column layout ──
-    // Fixed cols: Code, Name, Sex, Organization, Position, Type
-    // Dynamic cols: Day 1, Day 2, ... Day N (each equal width, split remaining space)
-    const FIXED_COLS = [
-      { label: 'Code',         w: 16 },
-      { label: 'Name',         w: 40 },
-      { label: 'Sex',          w: 10 },
-      { label: 'Organization', w: 38 },
-      { label: 'Position',     w: 32 },
-      { label: 'Type',         w: 18 }
-    ];
-    const usableW = pageW - MARGIN * 2;
-    const fixedW = FIXED_COLS.reduce((s, c) => s + c.w, 0);
-    const dayColW = Math.floor((usableW - fixedW) / numDays);
-    const DAY_COLS = Array.from({ length: numDays }, (_, i) => ({ label: 'Day ' + (i + 1), w: dayColW }));
-    const ALL_COLS = [...FIXED_COLS, ...DAY_COLS];
+    const SIG_H = 22; // row height in points for rows with signatures
+    const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
+    const pageW = doc.internal.pageSize.getWidth();
+    const pageH = doc.internal.pageSize.getHeight();
+    const MARGIN = 30;
 
-    // Compute x positions
-    let cx = MARGIN;
-    ALL_COLS.forEach(c => { c.x = cx; cx += c.w; });
-
-    const SIG_H = numDays > 0 ? Math.max(18, Math.min(25, dayColW * 0.6)) : 18;
-    const TEXT_ROW_H = 8;
-
-    // ── Header ──
+    // Header band
     doc.setFillColor(235, 0, 27);
-    doc.rect(0, 0, pageW * 0.4, 22, 'F');
+    doc.rect(0, 0, pageW * 0.4, 50, 'F');
     doc.setFillColor(243, 112, 33);
-    doc.rect(pageW * 0.4, 0, pageW * 0.4, 22, 'F');
+    doc.rect(pageW * 0.4, 0, pageW * 0.4, 50, 'F');
     doc.setFillColor(247, 158, 27);
-    doc.rect(pageW * 0.8, 0, pageW * 0.2, 22, 'F');
+    doc.rect(pageW * 0.8, 0, pageW * 0.2, 50, 'F');
     doc.setTextColor(255, 255, 255);
-    doc.setFontSize(13); doc.setFont('helvetica', 'bold');
-    doc.text(eventName, MARGIN, 10);
-    doc.setFontSize(8); doc.setFont('helvetica', 'normal');
-    doc.text('Attendance Register  ·  Generated: ' + new Date().toLocaleString(), MARGIN, 16);
-    doc.text('Registered: ' + currentParticipants.length +
-      '  ·  Signed (any day): ' + Object.keys(attMap).length, MARGIN, 21);
+    doc.setFontSize(16); doc.setFont('helvetica', 'bold');
+    doc.text(eventName, MARGIN, 22);
+    doc.setFontSize(9); doc.setFont('helvetica', 'normal');
+    doc.text('Attendance Register  ·  ' + new Date().toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' }), MARGIN, 36);
+    doc.text('Registered: ' + currentParticipants.length + '   Signed: ' + Object.keys(attMap).length, MARGIN, 47);
 
-    const TABLE_TOP = 26;
+    // Day labels for columns
+    const dayLabels = Array.from({ length: numDays }, (_, i) => 'Day ' + (i + 1));
 
-    function drawHeaderRow(y) {
-      doc.setFillColor(26, 26, 26);
-      doc.rect(MARGIN, y, usableW, 7, 'F');
-      doc.setTextColor(255, 255, 255);
-      doc.setFontSize(6.5); doc.setFont('helvetica', 'bold');
-      ALL_COLS.forEach(c => doc.text(c.label, c.x + 1.5, y + 4.5));
-    }
+    // Build head row
+    const fixedHead = ['#','Code','Name','Sex','Organization','Position','Program','Type'];
+    const head = [...fixedHead, ...dayLabels];
 
-    function truncate(s, maxLen) {
-      s = s || '';
-      return s.length > maxLen ? s.slice(0, maxLen - 1) + '…' : s;
-    }
+    // Fixed column widths in pts
+    const fixedWidths = [20, 40, 90, 28, 90, 80, 70, 42];
+    const usable = pageW - MARGIN * 2 - fixedWidths.reduce((a,b) => a+b, 0);
+    const dayW = Math.max(55, Math.floor(usable / numDays));
 
-    drawHeaderRow(TABLE_TOP);
-    let y = TABLE_TOP + 7;
+    const colWidths = [...fixedWidths, ...dayLabels.map(() => dayW)];
 
-    for (let idx = 0; idx < currentParticipants.length; idx++) {
-      const p = currentParticipants[idx];
+    // Build body — text cells only; we draw signature images after
+    const body = currentParticipants.map((p, idx) => {
       const pAtt = attMap[p.id] || {};
-      const hasSig = Object.values(pAtt).some(a => a.signature_url);
-      const rowH = hasSig ? SIG_H : TEXT_ROW_H;
+      const rt = p.reg_type === 'Walk-in' ? 'Walk-in' : 'Pre-reg';
+      const row = [
+        String(idx + 1),
+        p.code || '—',
+        p.name || '',
+        p.sex || '—',
+        p.org || '',
+        p.position_title || '',
+        p.prog || '',
+        rt,
+        ...dayLabels.map(d => pAtt[d]?.signature_url ? '' : '—')
+      ];
+      return row;
+    });
 
-      if (y + rowH > pageH - 12) {
-        doc.addPage();
-        y = 10;
-        drawHeaderRow(y);
-        y += 7;
-      }
-
-      // Row bg + border
-      doc.setFillColor(idx % 2 === 0 ? 252 : 246, idx % 2 === 0 ? 252 : 246, idx % 2 === 0 ? 250 : 244);
-      doc.rect(MARGIN, y, usableW, rowH, 'F');
-      doc.setDrawColor(215, 215, 215);
-      doc.rect(MARGIN, y, usableW, rowH, 'S');
-
-      const textY = y + (rowH > TEXT_ROW_H ? 5 : 5);
-      doc.setFontSize(7); doc.setFont('helvetica', 'normal');
-
-      // Code
-      doc.setTextColor(243, 112, 33); doc.setFont('helvetica', 'bold');
-      doc.text(truncate(p.code || '—', 10), FIXED_COLS[0].x + 1.5, textY);
-
-      // Name, Sex, Org, Position
-      doc.setTextColor(26, 26, 26); doc.setFont('helvetica', 'normal');
-      doc.text(truncate(p.name || '', 26), FIXED_COLS[1].x + 1.5, textY);
-      doc.text(truncate(p.sex || '—', 6), FIXED_COLS[2].x + 1.5, textY);
-      doc.text(truncate(p.org || '', 24), FIXED_COLS[3].x + 1.5, textY);
-      doc.text(truncate(p.position_title || '', 20), FIXED_COLS[4].x + 1.5, textY);
-
-      // Type badge
-      const rt = p.reg_type || 'Pre-registration';
-      doc.setTextColor(rt === 'Walk-in' ? 243 : 0, rt === 'Walk-in' ? 112 : 92, rt === 'Walk-in' ? 33 : 42);
-      doc.text(rt === 'Walk-in' ? 'Walk-in' : 'Pre-reg', FIXED_COLS[5].x + 1.5, textY);
-
-      // Day columns — signature image or blank
-      DAY_COLS.forEach(dc => {
-        const dayAtt = pAtt[dc.label];
-        if (dayAtt && dayAtt.signature_url && sigCache[dayAtt.signature_url]) {
-          try {
-            doc.addImage(sigCache[dayAtt.signature_url], 'PNG',
-              dc.x + 1, y + 1, dc.w - 2, rowH - 2);
-          } catch {
-            doc.setFontSize(5.5); doc.setTextColor(180, 180, 180);
-            doc.text('[img err]', dc.x + 1.5, textY);
+    doc.autoTable({
+      head: [head],
+      body,
+      startY: 58,
+      margin: { left: MARGIN, right: MARGIN },
+      styles: { fontSize: 7.5, cellPadding: 3, overflow: 'ellipsize', minCellHeight: 10 },
+      headStyles: { fillColor: [26, 26, 26], textColor: 255, fontStyle: 'bold', fontSize: 7 },
+      alternateRowStyles: { fillColor: [250, 250, 248] },
+      columnStyles: Object.fromEntries(colWidths.map((w, i) => [i, { cellWidth: w }])),
+      didParseCell: (data) => {
+        // Make day columns taller when they have a signature
+        if (data.section === 'body' && data.column.index >= fixedHead.length) {
+          const p = currentParticipants[data.row.index];
+          if (!p) return;
+          const pAtt = attMap[p.id] || {};
+          const dayLabel = dayLabels[data.column.index - fixedHead.length];
+          if (pAtt[dayLabel]?.signature_url) {
+            data.row.height = SIG_H * 2.8; // pts
           }
-        } else {
-          // Draw subtle empty cell indicator
-          doc.setDrawColor(230, 230, 230);
-          doc.rect(dc.x + 1.5, y + 1.5, dc.w - 3, rowH - 3);
         }
-      });
+        // Code cell orange
+        if (data.section === 'body' && data.column.index === 1) {
+          data.cell.styles.textColor = [243, 112, 33];
+          data.cell.styles.fontStyle = 'bold';
+        }
+        // Type cell colour
+        if (data.section === 'body' && data.column.index === fixedHead.length - 1) {
+          const p = currentParticipants[data.row.index];
+          if (p?.reg_type === 'Walk-in') data.cell.styles.textColor = [243, 112, 33];
+          else data.cell.styles.textColor = [0, 92, 42];
+        }
+      },
+      didDrawCell: (data) => {
+        if (data.section !== 'body') return;
+        if (data.column.index < fixedHead.length) return;
+        const p = currentParticipants[data.row.index];
+        if (!p) return;
+        const pAtt = attMap[p.id] || {};
+        const dayLabel = dayLabels[data.column.index - fixedHead.length];
+        const att = pAtt[dayLabel];
+        if (att?.signature_url && sigCache[att.signature_url]) {
+          try {
+            const pad = 3;
+            doc.addImage(
+              sigCache[att.signature_url], 'PNG',
+              data.cell.x + pad, data.cell.y + pad,
+              data.cell.width - pad * 2, data.cell.height - pad * 2
+            );
+          } catch(e) { /* skip broken image */ }
+        }
+      }
+    });
 
-      y += rowH;
-    }
-
-    // Footer on each page
+    // Page footer
     const pages = doc.internal.getNumberOfPages();
     for (let i = 1; i <= pages; i++) {
       doc.setPage(i);
-      doc.setFontSize(6); doc.setTextColor(160, 160, 160); doc.setFont('helvetica', 'normal');
-      doc.text('Page ' + i + ' of ' + pages + '  ·  ' + eventName + '  ·  METSS LBG Participants App',
-        MARGIN, pageH - 4);
+      doc.setFontSize(7); doc.setTextColor(160, 160, 160); doc.setFont('helvetica', 'normal');
+      doc.text('Page ' + i + ' of ' + pages + '  ·  ' + eventName + '  ·  METSS LBG Participants App', MARGIN, pageH - 14);
     }
 
     doc.save('attendance-' + eventName.replace(/\s+/g, '-') + '-' + new Date().toISOString().slice(0,10) + '.pdf');
-
   } catch(e) {
     alert('PDF export failed: ' + e.message);
     console.error(e);
@@ -733,3 +717,4 @@ async function exportPDF() {
     if (btn) { btn.textContent = 'Export PDF'; btn.disabled = false; }
   }
 }
+

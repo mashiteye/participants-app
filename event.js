@@ -177,3 +177,79 @@ async function saveEventEdit() {
   // Refresh header
   init();
 }
+
+async function exportEventPDF() {
+  const btn = [...document.querySelectorAll('.reg-back-btn')].find(b => b.textContent === 'Export PDF');
+  if (btn) { btn.textContent = 'Building...'; btn.disabled = true; }
+  try {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
+    const pageW = doc.internal.pageSize.getWidth();
+    const pageH = doc.internal.pageSize.getHeight();
+    const MARGIN = 30;
+
+    const evName = document.getElementById('event-name').textContent;
+    const evMeta = document.getElementById('event-meta').textContent;
+
+    // Header
+    doc.setFillColor(235, 0, 27);   doc.rect(0, 0, pageW * 0.4, 50, 'F');
+    doc.setFillColor(243, 112, 33); doc.rect(pageW * 0.4, 0, pageW * 0.4, 50, 'F');
+    doc.setFillColor(247, 158, 27); doc.rect(pageW * 0.8, 0, pageW * 0.2, 50, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(16); doc.setFont('helvetica', 'bold');
+    doc.text(evName, MARGIN, 22);
+    doc.setFontSize(9); doc.setFont('helvetica', 'normal');
+    doc.text(evMeta + '  ·  ' + new Date().toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' }), MARGIN, 36);
+    doc.text('Total registered: ' + allParticipants.length, MARGIN, 47);
+
+    const head = [['#','Code','Name','Sex','Organization','Position','Program','Type']];
+    const body = allParticipants.map((p, i) => [
+      String(i + 1),
+      p.code || '—',
+      p.name || '',
+      p.sex || '—',
+      p.org || '',
+      p.position_title || '',
+      p.prog || '',
+      p.reg_type === 'Walk-in' ? 'Walk-in' : 'Pre-reg'
+    ]);
+
+    doc.autoTable({
+      head,
+      body,
+      startY: 58,
+      margin: { left: MARGIN, right: MARGIN },
+      styles: { fontSize: 8, cellPadding: 4, overflow: 'ellipsize' },
+      headStyles: { fillColor: [26, 26, 26], textColor: 255, fontStyle: 'bold', fontSize: 7.5 },
+      alternateRowStyles: { fillColor: [250, 250, 248] },
+      columnStyles: {
+        0: { cellWidth: 20 }, 1: { cellWidth: 45 }, 2: { cellWidth: 110 },
+        3: { cellWidth: 30 }, 4: { cellWidth: 110 }, 5: { cellWidth: 90 },
+        6: { cellWidth: 90 }, 7: { cellWidth: 45 }
+      },
+      didParseCell: (data) => {
+        if (data.section === 'body' && data.column.index === 1) {
+          data.cell.styles.textColor = [243, 112, 33];
+          data.cell.styles.fontStyle = 'bold';
+        }
+        if (data.section === 'body' && data.column.index === 7) {
+          const p = allParticipants[data.row.index];
+          data.cell.styles.textColor = p?.reg_type === 'Walk-in' ? [243, 112, 33] : [0, 92, 42];
+        }
+      }
+    });
+
+    const pages = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= pages; i++) {
+      doc.setPage(i);
+      doc.setFontSize(7); doc.setTextColor(160, 160, 160);
+      doc.text('Page ' + i + ' of ' + pages + '  ·  ' + evName + '  ·  METSS LBG Participants App', MARGIN, pageH - 14);
+    }
+
+    doc.save('participants-' + evName.replace(/\s+/g, '-') + '-' + new Date().toISOString().slice(0,10) + '.pdf');
+  } catch(e) {
+    alert('PDF export failed: ' + e.message);
+  } finally {
+    if (btn) { btn.textContent = 'Export PDF'; btn.disabled = false; }
+  }
+}
