@@ -1,7 +1,9 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --orange: #F7941D;
+  --orange: #F37021;
+  --red: #EB001B;
+  --yellow: #F79E1B;
   --green: #009444;
   --primary: #1a1a1a;
   --bg: #ffffff;
@@ -45,16 +47,17 @@ body {
   opacity: 0.85;
 }
 .reg-header-content {
-  background: linear-gradient(135deg, var(--green) 0%, var(--orange) 100%);
+  background: linear-gradient(135deg, var(--red) 0%, var(--orange) 60%, var(--yellow) 100%);
   padding: 1rem 1.5rem 1.25rem;
   position: relative;
+  text-align: center;
 }
 .reg-header-content::before {
   content: '';
   position: absolute;
   top: -12px; left: 0; right: 0;
   height: 14px;
-  background: linear-gradient(135deg, var(--green) 0%, var(--orange) 100%);
+  background: linear-gradient(135deg, var(--red) 0%, var(--orange) 60%, var(--yellow) 100%);
   clip-path: ellipse(55% 100% at 50% 100%);
 }
 .reg-header-sub {
@@ -198,7 +201,7 @@ textarea { resize: vertical; }
 /* ── Submit button ── */
 .btn-submit {
   width: 100%;
-  background: linear-gradient(90deg, var(--green), var(--orange));
+  background: linear-gradient(90deg, var(--red), var(--orange));
   color: white;
   border: none;
   padding: 14px;
@@ -346,7 +349,7 @@ tr:hover td { background: #fff8f4; }
 .form-actions { display: flex; gap: 10px; align-items: center; margin-top: 1.25rem; flex-wrap: wrap; }
 
 .btn-primary {
-  background: linear-gradient(90deg, var(--green), var(--orange));
+  background: linear-gradient(90deg, var(--red), var(--orange));
   color: white; border: none; padding: 10px 22px;
   border-radius: var(--radius-md); font-size: 14px; font-weight: 600;
   cursor: pointer; font-family: inherit; transition: opacity 0.15s;
@@ -398,10 +401,10 @@ tr:hover td { background: #fff8f4; }
 /* Clickable table rows */
 tr[data-pid]:hover td {
   background: #f0f9f4;
-  color: var(--green);
+  color: var(--orange);
 }
 tr[data-pid]:hover td:first-child {
-  color: var(--green);
+  color: var(--orange);
 }
 
 /* ── Registration page polish ── */
