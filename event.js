@@ -31,6 +31,11 @@ async function init() {
   document.title = ev.name + ' — Participants';
 
   await loadParticipants();
+
+  // Refresh when user returns to this tab after signing in another tab
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') loadParticipants();
+  });
 }
 
 async function loadParticipants() {
