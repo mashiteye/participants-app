@@ -1384,10 +1384,10 @@ function renderEventCard(e, count) {
       <div style="margin-bottom:10px">
         <p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:6px">Share links</p>
         <div style="display:flex;gap:6px;flex-wrap:wrap">
-          <button class="btn-sm" style="background:var(--orange);color:white;border-color:var(--orange);font-weight:600" onclick="copyEventLink('${e.id}','prereg',this)">Copy & Share Pre-reg</button>
-          <button class="btn-sm" style="background:var(--orange);color:white;border-color:var(--orange);font-weight:600" onclick="copyEventLink('${e.id}','walkin',this)">Copy & Share Walk-in</button>
-          <button class="btn-sm" style="background:var(--orange);color:white;border-color:var(--orange);font-weight:600" onclick="copyEventLink('${e.id}','view',this)">Copy & Share Participant View</button>
-          <button class="btn-sm" style="background:var(--orange);color:white;border-color:var(--orange);font-weight:600" onclick="copyCheckinLink('${e.id}',this)">Copy & Share Check-in</button>
+          <button class="btn-sm" style="background:var(--orange);color:white;border-color:var(--orange);font-weight:600" onclick="copyEventLink('${e.id}','prereg',this)">Pre-reg Link</button>
+          <button class="btn-sm" style="background:var(--orange);color:white;border-color:var(--orange);font-weight:600" onclick="copyEventLink('${e.id}','walkin',this)">Walk-in Link</button>
+          <button class="btn-sm" style="background:var(--orange);color:white;border-color:var(--orange);font-weight:600" onclick="copyEventLink('${e.id}','view',this)">Participant Link</button>
+          <button class="btn-sm" style="background:var(--orange);color:white;border-color:var(--orange);font-weight:600" onclick="copyCheckinLink('${e.id}',this)">Check-in Link</button>
           <button class="btn-sm" style="background:var(--black);color:white;border-color:var(--black);font-weight:600" onclick="showCheckinQR('${e.id}','${esc(e.name)}')">QR Code</button>
         </div>
       </div>

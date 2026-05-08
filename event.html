@@ -25,29 +25,75 @@
     </div>
 
     <div class="event-body">
-      <div class="reg-nav" style="flex-wrap:wrap;gap:8px">
-        <span class="reg-form-title">Participants</span>
-        <button class="reg-back-btn" id="back-to-events-btn" style="display:none" onclick="goBackToEvents()">← Back to Events</button>
-        <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-left:auto">
-          <span style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--text-muted)">Before:</span>
-          <button class="reg-back-btn" onclick="openPreReg()">Pre-reg form</button>
-          <span style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--text-muted)">During:</span>
-          <button class="btn-action-red" onclick="openUnsigned()">Not yet signed</button>
-          <button class="btn-action-orange" onclick="openWalkin()">Walk-in form</button>
-          <span style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--text-muted)">After:</span>
-          <button class="reg-back-btn" id="export-pdf-btn" onclick="exportEventPDF()">Export PDF</button>
-          <button class="btn-sm" style="background:var(--black);color:white;border-color:var(--black)" onclick="exportEventQRSheet()">QR Sheet</button>
-          <button class="btn-sm" id="cert-btn" style="display:none;background:var(--yellow);border-color:var(--yellow);color:var(--black);font-weight:700" onclick="generateEventCertificates()">🎓 Certificates</button>
+      <!-- Header row -->
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap;gap:8px">
+        <div>
+          <span class="reg-form-title">Participants</span>
+          <span id="event-status-badge" style="margin-left:10px;font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:0.05em"></span>
         </div>
+        <button class="reg-back-btn" id="back-to-events-btn" style="display:none" onclick="goBackToEvents()">← Back to Events</button>
       </div>
 
+      <!-- Stats zone -->
+      <div style="margin-bottom:1.5rem">
+        <!-- Primary KPI -->
+        <div style="display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:8px">
+          <div class="stat-card" id="stat-registered" style="border-left:4px solid var(--red)">
+            <div class="stat-num" id="stat-registered-num" style="color:var(--red)">—</div>
+            <div class="stat-label">Registered</div>
+          </div>
+        </div>
+        <!-- Gender group -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+          <div class="stat-card"><div class="stat-num" id="stat-female" style="color:var(--black)">—</div><div class="stat-label">Female</div></div>
+          <div class="stat-card"><div class="stat-num" id="stat-male" style="color:var(--black)">—</div><div class="stat-label">Male</div></div>
+        </div>
+        <!-- Days group -->
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(80px,1fr));gap:8px" id="stat-days"></div>
+      </div>
 
-      <div class="stats" id="view-stats"></div>
+      <!-- Action toolbar — three contained zones -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:1.5rem">
 
-      <input type="text" id="p-search" placeholder="Search name, org, position, code..."
-        oninput="filterParticipants()" class="search-input" style="margin-bottom:1rem" />
+        <!-- Zone 1: Registration -->
+        <div style="background:white;border:1px solid var(--border);border-radius:var(--radius-lg);padding:1rem">
+          <p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:10px;border-bottom:2px solid var(--yellow);padding-bottom:5px">Registration</p>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <button onclick="openPreReg()" style="padding:12px;background:white;border:1.5px solid var(--black);border-radius:var(--radius-md);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;text-align:left;transition:all 0.15s" onmouseover="this.style.background='var(--black)';this.style.color='white'" onmouseout="this.style.background='white';this.style.color='inherit'">📋 Pre-registration Form</button>
+            <button onclick="openWalkin()" style="padding:12px;background:var(--orange);border:none;border-radius:var(--radius-md);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;color:white;text-align:left">➕ Walk-in Form</button>
+          </div>
+        </div>
 
-      <div id="participants-list"></div>
+        <!-- Zone 2: Attendance -->
+        <div style="background:white;border:1px solid var(--border);border-radius:var(--radius-lg);padding:1rem">
+          <p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:10px;border-bottom:2px solid var(--orange);padding-bottom:5px">Attendance</p>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <button onclick="openUnsigned()" style="padding:12px;background:var(--red);border:none;border-radius:var(--radius-md);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;color:white;text-align:left">⚠ Not Yet Signed</button>
+            <button onclick="loadParticipants()" style="padding:12px;background:white;border:1.5px solid var(--black);border-radius:var(--radius-md);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;text-align:left;transition:all 0.15s" onmouseover="this.style.background='var(--black)';this.style.color='white'" onmouseout="this.style.background='white';this.style.color='inherit'">↻ Refresh Data</button>
+          </div>
+        </div>
+
+        <!-- Zone 3: Exports -->
+        <div style="background:white;border:1px solid var(--border);border-radius:var(--radius-lg);padding:1rem">
+          <p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:10px;border-bottom:2px solid var(--red);padding-bottom:5px">Exports</p>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <button id="export-pdf-btn" onclick="exportEventPDF()" style="padding:12px;background:var(--red);border:none;border-radius:var(--radius-md);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;color:white;text-align:left">📄 Export PDF</button>
+            <button onclick="exportEventQRSheet()" style="padding:12px;background:white;border:1.5px solid var(--black);border-radius:var(--radius-md);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;text-align:left;transition:all 0.15s" onmouseover="this.style.background='var(--black)';this.style.color='white'" onmouseout="this.style.background='white';this.style.color='inherit'">📱 QR Sheet</button>
+            <button id="cert-btn" onclick="generateEventCertificates()" style="display:none;padding:12px;background:var(--yellow);border:none;border-radius:var(--radius-md);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--black);text-align:left">🎓 Certificates</button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Participants table zone -->
+      <div style="background:white;border:1px solid var(--border);border-radius:var(--radius-lg);padding:1rem">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+          <p style="font-size:13px;font-weight:700;color:var(--black)">Participants List <span id="list-count-label" style="font-weight:400;color:var(--text-muted);font-size:12px"></span></p>
+        </div>
+        <input type="text" id="p-search" placeholder="Search name, org, position, code..."
+          oninput="filterParticipants()" class="search-input" style="margin-bottom:1rem" />
+        <div id="participants-list"></div>
+      </div>
     </div>
   </div>
 
