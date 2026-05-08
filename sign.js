@@ -278,3 +278,31 @@ async function submitAttendance() {
 }
 
 init();
+
+async function findByCode() {
+  const code = document.getElementById('code-search-input').value.trim().toUpperCase();
+  const errEl = document.getElementById('code-search-err');
+  errEl.style.display = 'none';
+  if (!code) { errEl.textContent = 'Enter a participant code.'; errEl.style.display = 'block'; return; }
+
+  const { data, error } = await db.from('participants')
+    .select('id')
+    .eq('event_id', eventId)
+    .ilike('code', code)
+    .single();
+
+  if (error || !data) {
+    errEl.textContent = 'No participant found with code ' + code + '.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  // Navigate to that participant's sign page
+  window.location.href = BASE_URL + 'sign.html?participant=' + data.id + '&event=' + eventId;
+}
+
+// Allow Enter key in code search
+document.addEventListener('DOMContentLoaded', () => {
+  const input = document.getElementById('code-search-input');
+  if (input) input.addEventListener('keydown', e => { if (e.key === 'Enter') findByCode(); });
+});

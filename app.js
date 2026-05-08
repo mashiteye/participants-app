@@ -203,7 +203,7 @@ async function registerParticipant() {
   document.getElementById('confirm-code').textContent = code;
   const s = document.getElementById('success');
   s.style.display = 'block';
-  s.scrollIntoView({ behavior: 'smooth' });
+  setTimeout(() => s.scrollIntoView({ behavior: 'smooth', block: 'center' }), 50);
   setTimeout(() => s.style.display = 'none', 8000);
 }
 
