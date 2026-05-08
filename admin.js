@@ -1,4 +1,13 @@
 const SUPABASE_URL = 'https://cpqhljqwxjgscdoepant.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNwcWhsanF3eGpnc2Nkb2VwYW50Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyMTM1NTcsImV4cCI6MjA5Mzc4OTU1N30.XATDTbvL7iDrsn-Si0crJWZebw5FSx0weWRmmcL2Z7c';
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const BASE_URL = window.location.origin + window.location.pathname.replace('admin.html', '');
+
+let currentEventId = null;
+let currentParticipants = [];
+let currentEventDays = 1;
+let currentAttendance = {};
+
 function showPane(name) {
   ['create','link','events','participants','edit'].forEach(p => {
     document.getElementById('pane-' + p).style.display = p === name ? 'block' : 'none';
