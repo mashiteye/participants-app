@@ -30,11 +30,17 @@
         <button class="reg-back-btn" onclick="goBack()">← Participant Search</button>
       </div>
 
-      <!-- Success message — scoped, never hides form fields -->
-      <div id="sign-success" style="display:none;background:var(--success-bg);color:var(--success-text);padding:16px;border-radius:8px;margin-bottom:1.25rem;text-align:center">
+      <!-- Success message -->
+      <div id="sign-success" style="display:none;background:var(--success-bg);color:var(--success-text);padding:16px;border-radius:8px;margin-bottom:1rem;text-align:center">
         <p style="font-size:15px;font-weight:700;margin-bottom:4px">Attendance recorded!</p>
         <p style="font-size:13px"><span id="confirm-name"></span> · <span id="confirm-code" style="font-family:monospace;font-weight:700;color:var(--orange)"></span></p>
         <p style="font-size:13px;margin-top:2px">Signed for <strong id="confirm-day"></strong>.</p>
+      </div>
+
+      <!-- Back choice after signing -->
+      <div id="back-choice" style="display:none;gap:10px;margin-bottom:1.25rem;flex-wrap:wrap">
+        <button class="btn-secondary" onclick="goBack()">← Participant Search</button>
+        <button class="btn-action-red" id="btn-back-unsigned" style="display:none" onclick="goBackUnsigned()">← Not Yet Signed</button>
       </div>
 
       <!-- Participant card — always visible -->

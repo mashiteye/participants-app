@@ -5,6 +5,8 @@ const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const params = new URLSearchParams(window.location.search);
 const participantId = params.get('participant');
 const eventId = params.get('event');
+const lockedDay = params.get('day') || null;  // pre-selected day from unsigned page
+const fromUnsigned = params.get('from') === 'unsigned';
 const BASE_URL = window.location.origin + window.location.pathname.replace('sign.html', '');
 
 let sigCanvas, sigCtx, drawing = false;
@@ -278,3 +280,7 @@ async function submitAttendance() {
 }
 
 init();
+
+function goBackUnsigned() {
+  window.location.href = BASE_URL + 'unsigned.html?event=' + eventId;
+}

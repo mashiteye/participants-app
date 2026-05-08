@@ -69,9 +69,9 @@ function selectDay(day, dayNum) {
   const noteEl = document.getElementById('day-note');
   noteEl.style.display = 'block';
   if (dayNum === 1) {
-    noteEl.textContent = 'Day 1 — showing pre-registered participants who have not yet signed in.';
+    noteEl.textContent = 'Day 1 · Pre-registered, not yet checked in';
   } else {
-    noteEl.textContent = 'Day ' + dayNum + ' — showing all participants (pre-registered and walk-ins) who have not signed for this day.';
+    noteEl.textContent = 'Day ' + dayNum + ' · All participants not yet signed for this day';
   }
 
   renderList();
@@ -141,7 +141,7 @@ function renderList() {
   if (tbody) {
     tbody.addEventListener('click', e => {
       const row = e.target.closest('tr[data-pid]');
-      if (row) window.open(BASE_URL + 'sign.html?participant=' + row.dataset.pid + '&event=' + eventId, '_blank');
+      if (row) window.open(BASE_URL + 'sign.html?participant=' + row.dataset.pid + '&event=' + eventId + '&day=' + encodeURIComponent(selectedDay) + '&from=unsigned', '_blank');
     });
   }
 }
