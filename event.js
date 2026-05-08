@@ -102,6 +102,11 @@ function applyDayFilter() {
 
 function filterParticipants() {
   const q = (document.getElementById('p-search').value || '').toLowerCase();
+  if (!q) {
+    document.getElementById('participants-list').innerHTML =
+      '<div style="padding:2.5rem 1rem;text-align:center;color:var(--text-muted);font-size:13px">Type a name, code, or organisation to search.</div>';
+    return;
+  }
   const filtered = allParticipants.filter(p =>
     (p.name || '').toLowerCase().includes(q) ||
     (p.org || '').toLowerCase().includes(q) ||
