@@ -53,7 +53,13 @@ function renderStats() {
   const total = allParticipants.length;
   const female = allParticipants.filter(p => p.sex === 'Female').length;
   const male = allParticipants.filter(p => p.sex === 'Male').length;
+  // Count signed (any day)
+  const signedCount = allParticipants.filter(p =>
+    Object.values(attendanceByDay).some(set => set.has(p.id))
+  ).length;
+
   let html = `<div class="stat-card"><div class="stat-num">${total}</div><div class="stat-label">Registered</div></div>`;
+  if (signedCount) html += `<div class="stat-card"><div class="stat-num">${signedCount}</div><div class="stat-label">Signed</div></div>`;
   if (female) html += `<div class="stat-card"><div class="stat-num">${female}</div><div class="stat-label">Female</div></div>`;
   if (male) html += `<div class="stat-card"><div class="stat-num">${male}</div><div class="stat-label">Male</div></div>`;
 
@@ -109,14 +115,20 @@ function filterParticipants() {
   }
   let html = `<div style="overflow-x:auto"><table id="participants-table">
     <thead><tr>
-      <th style="width:11%">Code</th>
-      <th style="width:24%">Name</th>
-      <th style="width:7%">Sex</th>
-      <th style="width:24%">Organization</th>
-      <th style="width:18%">Position</th>
-      <th style="width:16%">Type</th>
+      <th style="width:9%">Code</th>
+      <th style="width:18%">Name</th>
+      <th style="width:6%">Sex</th>
+      <th style="width:18%">Organization</th>
+      <th style="width:14%">Position</th>
+      <th style="width:13%">Program</th>
+      <th style="width:9%">Type</th>
+      <th style="width:13%">Days Signed</th>
     </tr></thead><tbody>`;
   filtered.forEach(p => {
+    const att = attendanceByDay;
+    const daysSigned = Object.entries(att)
+      .filter(([, set]) => set.has(p.id))
+      .map(([d]) => d).sort().join(', ') || '&mdash;';
     const regTypeBadge = p.reg_type === 'Walk-in'
       ? '<span style="background:#fff3e8;color:var(--orange);font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px">Walk-in</span>'
       : '<span style="background:#f0f9f4;color:#005c2a;font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px">Pre-reg</span>';
@@ -126,7 +138,9 @@ function filterParticipants() {
       <td>${esc(p.sex) || '&mdash;'}</td>
       <td title="${esc(p.org)}">${esc(p.org)}</td>
       <td>${esc(p.position_title) || '&mdash;'}</td>
+      <td>${esc(p.prog) || '&mdash;'}</td>
       <td>${regTypeBadge}</td>
+      <td style="font-size:12px">${daysSigned}</td>
     </tr>`;
   });
   html += `</tbody></table></div>`;

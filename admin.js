@@ -741,12 +741,19 @@ let importRows = [];
 let importValidRows = [];
 
 function openImportForEvent(eventId, eventName) {
-  // Pre-select the event — no dropdown needed
+  // Set hidden select and display name
   const sel = document.getElementById('import-event-sel');
   sel.innerHTML = '';
   const opt = document.createElement('option');
   opt.value = eventId; opt.textContent = eventName; opt.selected = true;
   sel.appendChild(opt);
+  document.getElementById('import-event-name').textContent = eventName;
+  // Reset form state
+  document.getElementById('import-file').value = '';
+  document.getElementById('import-preview').style.display = 'none';
+  document.getElementById('import-confirm-btn').style.display = 'none';
+  document.getElementById('import-err').style.display = 'none';
+  importRows = []; importValidRows = [];
   showImportStep('upload');
   document.getElementById('import-modal').style.display = 'flex';
 }
