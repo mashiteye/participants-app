@@ -158,6 +158,7 @@
       <div class="pane-title">Events</div>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
         <button class="btn-sm" onclick="toggleGuide()">? How to use</button>
+        <button class="btn-sm" style="background:var(--yellow);border-color:var(--yellow);color:var(--black);font-weight:600" onclick="promptImport()">↑ Import CSV</button>
         <button class="btn-action-orange" onclick="showPane('create')">+ New event</button>
       </div>
 
@@ -188,18 +189,6 @@
   <!-- Import CSV Modal -->
   <div id="import-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:200;align-items:center;justify-content:center;padding:1rem">
     <div style="background:white;border-radius:16px;padding:2rem;max-width:600px;width:100%;max-height:90vh;overflow-y:auto">
-
-      <!-- Step 1: Password -->
-      <div id="import-step-pwd">
-        <p style="font-size:16px;font-weight:700;margin-bottom:1rem">Import Participants from CSV</p>
-        <p style="font-size:13px;color:var(--text-muted);margin-bottom:1rem">Enter admin password to continue.</p>
-        <input type="password" id="import-pwd" placeholder="Password" style="margin-bottom:0.75rem" onkeydown="if(event.key==='Enter')checkImportPwd()" />
-        <p id="import-pwd-err" style="font-size:12px;color:var(--red);display:none;margin-bottom:0.5rem">Incorrect password.</p>
-        <div style="display:flex;gap:8px;margin-top:0.75rem">
-          <button class="btn-primary" onclick="checkImportPwd()">Continue</button>
-          <button class="btn-secondary" onclick="closeImport()">Cancel</button>
-        </div>
-      </div>
 
       <!-- Step 2: Upload -->
       <div id="import-step-upload" style="display:none">
