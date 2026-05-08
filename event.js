@@ -27,8 +27,84 @@ async function viewSig(participantId, day, e) {
 }
 
 async function generateEventCertificates() {
-  // Redirect to admin with this event pre-selected
-  window.location.href = BASE_URL + 'admin.html?certEvent=' + eventId;
+  const btn = document.getElementById('cert-btn');
+  if (btn) { btn.textContent = 'Building...'; btn.disabled = true; }
+
+  try {
+    const { jsPDF } = window.jspdf;
+    const evName = document.getElementById('event-name').textContent;
+    const { data: ev } = await db.from('events').select('*').eq('id', eventId).single();
+    if (!ev) { alert('Event not found.'); return; }
+
+    const { data: attendance } = await db.from('attendance').select('participant_id').eq('event_id', eventId);
+    const signedIds = new Set((attendance || []).map(a => a.participant_id));
+    const eligible = allParticipants.filter(p => signedIds.has(p.id));
+
+    if (!eligible.length) { alert('No participants have signed attendance yet.'); return; }
+
+    async function loadImg(url) {
+      try {
+        const res = await fetch(url);
+        const blob = await res.blob();
+        return await new Promise(r => { const reader = new FileReader(); reader.onload = () => r(reader.result); reader.readAsDataURL(blob); });
+      } catch { return null; }
+    }
+
+    const sigB64 = ev.signatory_signature_url ? await loadImg(ev.signatory_signature_url) : null;
+    const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
+    const W = doc.internal.pageSize.getWidth();
+    const H = doc.internal.pageSize.getHeight();
+    const RED=[235,0,27], ORANGE=[255,95,0], YELLOW=[247,158,27], BLACK=[0,0,0], WHITE=[255,255,255];
+    const dateStr = ev.event_date ? new Date(ev.event_date).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'}) : new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
+
+    eligible.forEach((p, idx) => {
+      if (idx > 0) doc.addPage();
+      doc.setFillColor(...WHITE); doc.rect(0,0,W,H,'F');
+      doc.setFillColor(...RED); doc.rect(0,0,W,55,'F');
+      doc.setFillColor(...ORANGE); doc.rect(0,40,W,15,'F');
+      doc.setFillColor(...YELLOW); doc.rect(0,55,W,6,'F');
+      doc.setFillColor(...BLACK); doc.rect(0,H-55,W,55,'F');
+      doc.setFillColor(...YELLOW); doc.rect(0,H-55,W,8,'F');
+      doc.setFillColor(...RED); doc.rect(0,61,10,H-116,'F');
+      doc.setFillColor(...ORANGE); doc.rect(W-10,61,10,H-116,'F');
+      doc.setTextColor(...WHITE); doc.setFontSize(13); doc.setFont('helvetica','bold');
+      doc.text('CERTIFICATE OF PARTICIPATION',W/2,28,{align:'center'});
+      doc.setFontSize(9); doc.setFont('helvetica','normal');
+      doc.text('METSS LBG  ·  Monitoring, Evaluation & Learning',30,H-22);
+      doc.text(dateStr,W-30,H-22,{align:'right'});
+      const CX=40, CY=85;
+      doc.setTextColor(120,120,120); doc.setFontSize(13); doc.setFont('helvetica','italic');
+      doc.text('This is to certify that',CX,CY);
+      const fs = p.name.length>25?32:p.name.length>20?36:42;
+      doc.setFontSize(fs); doc.setFont('helvetica','bold'); doc.setTextColor(...RED);
+      doc.text(p.name||'',CX,CY+50);
+      const nw=Math.min(doc.getTextWidth(p.name||''),W-80);
+      doc.setFillColor(...YELLOW); doc.rect(CX,CY+56,nw,4,'F');
+      const det=[p.position_title,p.org].filter(Boolean).join('   ·   ');
+      doc.setTextColor(80,80,80); doc.setFontSize(12); doc.setFont('helvetica','normal');
+      if(det) doc.text(det,CX,CY+78);
+      doc.setTextColor(100,100,100); doc.setFontSize(13); doc.setFont('helvetica','italic');
+      doc.text('has successfully participated in',CX,CY+108);
+      doc.setTextColor(...ORANGE); doc.setFontSize(22); doc.setFont('helvetica','bold');
+      const evLines=doc.splitTextToSize(evName,W-320);
+      doc.text(evLines,CX,CY+135);
+      doc.setTextColor(100,100,100); doc.setFontSize(11); doc.setFont('helvetica','normal');
+      if(ev.organizer) doc.text('Organised by  '+ev.organizer,CX,CY+135+evLines.length*26+8);
+      const SX=W-260, SY=H-110;
+      if(sigB64) doc.addImage(sigB64,'PNG',SX,SY-45,150,40);
+      doc.setDrawColor(...BLACK); doc.setLineWidth(1); doc.line(SX,SY,SX+200,SY);
+      doc.setTextColor(...BLACK); doc.setFontSize(11); doc.setFont('helvetica','bold');
+      doc.text(ev.signatory_name||'Authorised Signatory',SX,SY+14);
+      doc.setFontSize(9); doc.setFont('helvetica','normal'); doc.setTextColor(80,80,80);
+      if(ev.signatory_title) doc.text(ev.signatory_title,SX,SY+26);
+      doc.setFillColor(...YELLOW); doc.roundedRect(CX,H-100-14,90,20,4,4,'F');
+      doc.setTextColor(...BLACK); doc.setFontSize(9); doc.setFont('helvetica','bold');
+      doc.text(p.code||'',CX+45,H-100-0.5,{align:'center'});
+    });
+
+    doc.save('certificates-'+evName.replace(/\s+/g,'-')+'-'+new Date().toISOString().slice(0,10)+'.pdf');
+  } catch(e) { alert('Certificate generation failed: '+e.message); console.error(e); }
+  finally { if(btn){btn.textContent='🎓 Certificates';btn.disabled=false;} }
 }
 
 async function init() {
