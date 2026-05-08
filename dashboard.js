@@ -154,32 +154,7 @@ function renderDashboard() {
   tableHtml += '</tbody>';
   document.getElementById('events-table').innerHTML = tableHtml;
 
-  // Program breakdown bars
-  const progCounts = {};
-  participants.forEach(p => {
-    const prog = (p.prog && p.prog !== 'Other') ? p.prog : 'Other';
-    if (!progCounts[prog]) progCounts[prog] = { total: 0, signed: 0 };
-    progCounts[prog].total++;
-    if (signedIds.has(p.id)) progCounts[prog].signed++;
-  });
 
-  const COLOURS = ['var(--red)', 'var(--orange)', 'var(--yellow)', 'var(--black)', 'var(--green)', '#888'];
-  let progHtml = '';
-  Object.entries(progCounts).sort((a,b) => b[1].total - a[1].total).forEach(([prog, counts], i) => {
-    const barPct = pct(counts.total, total);
-    const colour = COLOURS[i % COLOURS.length];
-    progHtml += `
-      <div style="margin-bottom:12px">
-        <div style="display:flex;justify-content:space-between;margin-bottom:4px;align-items:center">
-          <span style="font-size:13px;font-weight:600">${prog}</span>
-          <span style="font-size:13px;color:var(--text-muted)">${counts.total} registered · ${counts.signed} signed (${pct(counts.signed,counts.total)}%)</span>
-        </div>
-        <div style="background:#f0f0f0;border-radius:20px;height:14px;overflow:hidden">
-          <div style="width:${barPct}%;height:100%;background:${colour};border-radius:20px"></div>
-        </div>
-      </div>`;
-  });
-  document.getElementById('program-bars').innerHTML = progHtml || '<p style="color:var(--text-muted);font-size:13px">No program data</p>';
 
   document.getElementById('loading').style.display = 'none';
   document.getElementById('dashboard-content').style.display = 'block';
