@@ -37,6 +37,8 @@ body {
   overflow: hidden;
   background: var(--green);
   color: white;
+  display: block;
+  width: 100%;
 }
 .reg-header-banner {
   width: 100%;

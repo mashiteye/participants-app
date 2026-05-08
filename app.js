@@ -226,7 +226,7 @@ async function registerParticipant() {
   document.getElementById('confirm-name').textContent = name;
   document.getElementById('confirm-code').textContent = code;
   document.getElementById('confirm-hint').textContent = isWalkin
-    ? 'You may need this code for future event days.'
+    ? 'You may need this code for event days.'
     : 'Keep this code — you will need it on the event day.';
   const modal = document.getElementById('success-modal');
   modal.style.display = 'flex';

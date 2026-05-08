@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Not Yet Signed</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="no-event" style="display:none">
+    <div class="empty-state">
+      <p class="empty-title">Event not found</p>
+      <p class="empty-sub">Check your link and try again.</p>
+    </div>
+  </div>
+
+  <div id="main-ui" style="display:none">
+    <div class="reg-header">
+      <img src="banner.jpg" alt="" class="reg-header-banner" />
+      <div class="reg-header-content">
+        <p class="reg-header-sub" id="event-code-prog"></p>
+        <p class="reg-header-title" id="event-name"></p>
+        <p class="reg-header-meta" id="event-meta"></p>
+      </div>
+    </div>
+
+    <div class="event-body">
+      <div class="reg-nav">
+        <span class="reg-form-title">Not Yet Signed</span>
+        <button class="reg-back-btn" onclick="goBack()">← Participant Search</button>
+      </div>
+
+      <!-- Day selector -->
+      <div style="margin-bottom:1.25rem">
+        <p style="font-size:13px;color:var(--text-muted);margin-bottom:0.75rem">Select a day to see who hasn't signed:</p>
+        <div class="toggle-group" id="day-buttons" style="flex-wrap:wrap;gap:8px"></div>
+      </div>
+
+      <!-- Info note -->
+      <div id="day-note" style="font-size:12px;color:var(--text-muted);background:var(--bg-secondary);border-radius:var(--radius-md);padding:10px 14px;margin-bottom:1.25rem;display:none"></div>
+
+      <!-- Stats -->
+      <div class="stats" id="unsigned-stats" style="margin-bottom:1.25rem"></div>
+
+      <!-- Search -->
+      <input type="text" id="p-search" placeholder="Search name, org, position, code..."
+        oninput="renderList()" class="search-input" style="margin-bottom:1rem" />
+
+      <!-- List -->
+      <div id="unsigned-list"><div class="empty">Select a day above to view unsigned participants.</div></div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="unsigned.js"></script>
+</body>
+</html>

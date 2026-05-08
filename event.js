@@ -302,3 +302,7 @@ async function exportEventPDF() {
     if (btn) { btn.textContent = 'Export PDF'; btn.disabled = false; }
   }
 }
+
+function openUnsigned() {
+  window.open(BASE_URL + 'unsigned.html?event=' + eventId, '_blank');
+}
