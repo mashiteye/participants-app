@@ -49,7 +49,7 @@ async function init() {
   }
 
   if (isWalkin) {
-    document.getElementById('form-type-label').textContent = 'Walk-in Registration';
+    document.getElementById('form-type-label').textContent = 'Walk-in Registration Form';
     document.getElementById('walkin-fields').style.display = 'block';
     document.getElementById('submit-btn').textContent = 'Submit & Sign';
 
@@ -69,7 +69,7 @@ async function init() {
     }
     initSignature();
   } else {
-    document.getElementById('form-type-label').textContent = 'Pre-Registration';
+    document.getElementById('form-type-label').textContent = 'Pre-Registration Form';
     document.getElementById('f-day').value = '';
   }
 }
