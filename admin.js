@@ -120,9 +120,9 @@ async function deleteEvent(id) {
   loadEvents();
 }
 
-let currentAttendance = {};
 
-let currentEventDays = 1;
+
+
 
 async function viewParticipants(eventId, eventName) {
   window.open(BASE_URL + 'event.html?event=' + eventId + '&from=admin', '_blank');
