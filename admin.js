@@ -103,6 +103,7 @@ async function loadEvents() {
       <div class="event-card-actions">
         <button class="btn-action-red btn-sm" style="background:var(--red);color:white;border:none;font-weight:600" onclick="viewParticipants('${e.id}','${esc(e.name)}')">View participants</button>
         <button class="btn-sm" onclick="fetchAndEdit('${e.id}')">Edit</button>
+        <button class="btn-sm" style="background:var(--yellow);border-color:var(--yellow);color:var(--black);font-weight:600" onclick="openImportForEvent('${e.id}','${esc(e.name)}')">↑ Import CSV</button>
         <button class="btn-sm" style="background:var(--yellow);border-color:var(--yellow);color:var(--black);font-weight:600" onclick="copyEventLink('${e.id}','prereg',this)">Copy pre-reg link</button>
         <button class="btn-sm" style="background:var(--yellow);border-color:var(--yellow);color:var(--black);font-weight:600" onclick="copyEventLink('${e.id}','walkin',this)">Copy walk-in link</button>
         <button class="btn-sm" style="background:var(--yellow);border-color:var(--yellow);color:var(--black);font-weight:600" onclick="copyEventLink('${e.id}','view',this)">Copy participant view</button>
@@ -739,11 +740,20 @@ async function exportPDF() {
 let importRows = [];
 let importValidRows = [];
 
+function openImportForEvent(eventId, eventName) {
+  // Pre-select the event — no dropdown needed
+  const sel = document.getElementById('import-event-sel');
+  sel.innerHTML = '';
+  const opt = document.createElement('option');
+  opt.value = eventId; opt.textContent = eventName; opt.selected = true;
+  sel.appendChild(opt);
+  showImportStep('upload');
+  document.getElementById('import-modal').style.display = 'flex';
+}
+
 async function promptImport() {
   showImportStep('upload');
   document.getElementById('import-modal').style.display = 'flex';
-
-  // Load events into selector
   const { data: events } = await db.from('events').select('id, name').order('created_at', { ascending: false });
   const sel = document.getElementById('import-event-sel');
   sel.innerHTML = '<option value="">-- Select event --</option>';
