@@ -1160,23 +1160,19 @@ async function generateCertificates() {
     const { jsPDF } = window.jspdf;
     const eventName = document.getElementById('view-event-name').textContent;
 
-    // Fetch event details including signatory
     const { data: ev } = await db.from('events').select('*').eq('id', currentEventId).single();
     if (!ev) { alert('Event not found.'); return; }
 
-    // Fetch attendance to know who signed
     const { data: attendance } = await db.from('attendance')
       .select('participant_id').eq('event_id', currentEventId);
     const signedIds = new Set((attendance || []).map(a => a.participant_id));
-
-    // Only participants who signed at least one day
     const eligible = currentParticipants.filter(p => signedIds.has(p.id));
+
     if (!eligible.length) {
-      alert('No participants have signed attendance yet. Certificates can only be generated for participants who attended.');
+      alert('No participants have signed attendance yet.');
       return;
     }
 
-    // Pre-load banner and signatory signature
     async function loadImage(url) {
       try {
         const res = await fetch(url);
@@ -1189,7 +1185,6 @@ async function generateCertificates() {
       } catch { return null; }
     }
 
-    const bannerB64 = await loadImage(window.location.origin + window.location.pathname.replace('admin.html','') + 'banner.jpg');
     const sigB64 = ev.signatory_signature_url ? await loadImage(ev.signatory_signature_url) : null;
 
     const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
@@ -1203,116 +1198,143 @@ async function generateCertificates() {
     eligible.forEach((p, idx) => {
       if (idx > 0) doc.addPage();
 
-      // Background
+      // ── Background: white ──
       doc.setFillColor(255, 255, 255);
       doc.rect(0, 0, W, H, 'F');
 
-      // Top colour band — full width
+      // ── Left block: solid red fills left third ──
       doc.setFillColor(235, 0, 27);
-      doc.rect(0, 0, W * 0.4, 18, 'F');
+      doc.rect(0, 0, W * 0.32, H, 'F');
+
+      // ── Top band on right section: black strip ──
+      doc.setFillColor(0, 0, 0);
+      doc.rect(W * 0.32, 0, W * 0.68, 10, 'F');
+
+      // ── Bottom band: orange strip ──
       doc.setFillColor(255, 95, 0);
-      doc.rect(W * 0.4, 0, W * 0.4, 18, 'F');
+      doc.rect(W * 0.32, H - 10, W * 0.68, 10, 'F');
+
+      // ── Yellow vertical accent bar ──
       doc.setFillColor(247, 158, 27);
-      doc.rect(W * 0.8, 0, W * 0.2, 18, 'F');
+      doc.rect(W * 0.32, 0, 8, H, 'F');
 
-      // Bottom colour band
-      doc.setFillColor(0, 0, 0);
-      doc.rect(0, H - 18, W, 18, 'F');
+      // ── LEFT PANEL text (white on red) ──
+      const LCX = W * 0.16; // centre of left panel
 
-      // Left sidebar — black
-      doc.setFillColor(0, 0, 0);
-      doc.rect(0, 18, 52, H - 36, 'F');
-
-      // Sidebar text — rotated "CERTIFICATE OF PARTICIPATION"
+      // "CERTIFICATE" stacked large
       doc.setTextColor(255, 255, 255);
-      doc.setFontSize(8); doc.setFont('helvetica', 'bold');
-      doc.text('CERTIFICATE OF PARTICIPATION', 28, H - 60, { angle: 90, align: 'center' });
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(22);
+      doc.text('CERTIFICATE', LCX, 90, { align: 'center' });
 
-      // Banner image on right side
-      if (bannerB64) {
-        doc.addImage(bannerB64, 'JPEG', W - 220, 18, 220, H - 36);
-        // Overlay gradient to fade banner into white
-        doc.setFillColor(255, 255, 255);
-        doc.setGState(new doc.GState({ opacity: 0.6 }));
-        doc.rect(W - 220, 18, 220, H - 36, 'F');
-        doc.setGState(new doc.GState({ opacity: 1 }));
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'normal');
+      doc.text('OF', LCX, 112, { align: 'center' });
+
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'bold');
+      doc.text('PARTICIPATION', LCX, 133, { align: 'center' });
+
+      // Divider
+      doc.setDrawColor(255, 255, 255);
+      doc.setLineWidth(0.5);
+      doc.line(LCX - 55, 145, LCX + 55, 145);
+
+      // Participant code badge
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(255, 220, 180);
+      doc.text('PARTICIPANT CODE', LCX, 162, { align: 'center' });
+
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(247, 158, 27);
+      doc.text(p.code || '', LCX, 182, { align: 'center' });
+
+      // Date
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(255, 200, 200);
+      doc.text(dateStr, LCX, H - 120, { align: 'center', maxWidth: W * 0.28 });
+
+      // Organiser
+      if (ev.organizer) {
+        doc.setFontSize(8);
+        doc.setTextColor(255, 200, 200);
+        doc.text(ev.organizer, LCX, H - 105, { align: 'center', maxWidth: W * 0.28 });
       }
 
-      // Yellow accent line
-      doc.setFillColor(247, 158, 27);
-      doc.rect(52, 50, 4, H - 86, 'F');
-
-      // Content area
-      const CX = 80; // content x start
+      // ── RIGHT PANEL content ──
+      const RX = W * 0.32 + 40; // content start x
+      const RW = W * 0.68 - 60; // usable width
 
       // "This is to certify that"
-      doc.setTextColor(100, 100, 100);
-      doc.setFontSize(12); doc.setFont('helvetica', 'normal');
-      doc.text('This is to certify that', CX, 90);
+      doc.setTextColor(150, 150, 150);
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'normal');
+      doc.text('This is to certify that', RX, 45);
 
-      // Participant name — large, red
-      doc.setTextColor(235, 0, 27);
-      doc.setFontSize(32); doc.setFont('helvetica', 'bold');
-      const nameText = p.name || '';
-      doc.text(nameText, CX, 135);
-
-      // Underline under name
-      const nameW = doc.getTextWidth(nameText);
-      doc.setDrawColor(247, 158, 27);
-      doc.setLineWidth(2);
-      doc.line(CX, 142, CX + Math.min(nameW, W - 280), 142);
-
-      // Position and org
-      doc.setTextColor(60, 60, 60);
-      doc.setFontSize(11); doc.setFont('helvetica', 'normal');
-      const detailLine = [p.position_title, p.org].filter(Boolean).join(' · ');
-      if (detailLine) doc.text(detailLine, CX, 162);
-
-      // Body text
-      doc.setFontSize(12); doc.setFont('helvetica', 'normal');
-      doc.setTextColor(40, 40, 40);
-      doc.text('has successfully participated in', CX, 195);
-
-      // Event name — orange bold
-      doc.setFontSize(18); doc.setFont('helvetica', 'bold');
-      doc.setTextColor(255, 95, 0);
-      const evNameLines = doc.splitTextToSize(eventName, W - 320);
-      doc.text(evNameLines, CX, 222);
-
-      // Organizer + date
-      doc.setFontSize(11); doc.setFont('helvetica', 'normal');
-      doc.setTextColor(80, 80, 80);
-      const orgLine = [ev.organizer, dateStr].filter(Boolean).join('   ·   ');
-      doc.text(orgLine, CX, 222 + evNameLines.length * 22 + 10);
-
-      // Code badge
-      const codeY = H - 100;
-      doc.setFillColor(247, 158, 27);
-      doc.roundedRect(CX, codeY - 16, 100, 22, 4, 4, 'F');
+      // Participant name — very large, black
+      const nameText = (p.name || '').toUpperCase();
+      let nameFontSize = 40;
+      doc.setFont('helvetica', 'bold');
+      while (doc.setFontSize(nameFontSize) || doc.getTextWidth(nameText) > RW - 10) {
+        nameFontSize -= 1;
+        if (nameFontSize < 18) break;
+      }
+      doc.setFontSize(nameFontSize);
       doc.setTextColor(0, 0, 0);
-      doc.setFontSize(10); doc.setFont('helvetica', 'bold');
-      doc.text(p.code || '', CX + 50, codeY - 1, { align: 'center' });
+      doc.text(nameText, RX, 100);
 
-      // Signatory section
-      const sigX = CX;
-      const sigY = H - 80;
+      // Yellow underline
+      doc.setDrawColor(247, 158, 27);
+      doc.setLineWidth(3);
+      doc.line(RX, 108, RX + Math.min(doc.getTextWidth(nameText), RW), 108);
 
+      // Position · Org
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(100, 100, 100);
+      const detailLine = [p.position_title, p.org].filter(Boolean).join('  ·  ');
+      if (detailLine) doc.text(detailLine, RX, 128);
+
+      // "has successfully participated in"
+      doc.setFontSize(13);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(60, 60, 60);
+      doc.text('has successfully participated in', RX, 165);
+
+      // Event name — large orange
+      const evLines = doc.splitTextToSize(eventName.toUpperCase(), RW);
+      let evFontSize = 24;
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(evFontSize);
+      doc.setTextColor(255, 95, 0);
+      doc.text(evLines, RX, 195);
+
+      // ── Signatory section bottom right ──
+      const sigY = H - 55;
+      const sigX = RX;
+
+      // Signature image — large and visible
       if (sigB64) {
-        doc.addImage(sigB64, 'PNG', sigX, sigY - 40, 120, 35);
+        doc.addImage(sigB64, 'PNG', sigX, sigY - 52, 150, 45);
       }
 
       // Signature line
       doc.setDrawColor(0, 0, 0);
-      doc.setLineWidth(0.5);
-      doc.line(sigX, sigY, sigX + 160, sigY);
+      doc.setLineWidth(1);
+      doc.line(sigX, sigY, sigX + 200, sigY);
 
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'bold');
       doc.setTextColor(0, 0, 0);
-      doc.setFontSize(10); doc.setFont('helvetica', 'bold');
-      doc.text(ev.signatory_name || 'Authorised Signatory', sigX, sigY + 13);
+      doc.text(ev.signatory_name || 'Authorised Signatory', sigX, sigY + 15);
 
-      doc.setFontSize(8); doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
       doc.setTextColor(100, 100, 100);
-      doc.text(ev.signatory_title || '', sigX, sigY + 24);
+      if (ev.signatory_title) doc.text(ev.signatory_title, sigX, sigY + 28);
     });
 
     doc.save('certificates-' + eventName.replace(/\s+/g,'-') + '-' + new Date().toISOString().slice(0,10) + '.pdf');
