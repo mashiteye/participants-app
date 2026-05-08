@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard — Participants App</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app-wrapper">
+    <header class="app-header" style="display:flex;justify-content:space-between;align-items:flex-start">
+      <div>
+        <p class="app-subtitle">Participants App</p>
+        <h1 class="app-title">Dashboard</h1>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="btn-secondary" onclick="loadDashboard()">↻ Refresh</button>
+        <a href="admin.html" class="btn-secondary" style="text-decoration:none;padding:9px 18px;display:inline-block">← Admin Panel</a>
+      </div>
+    </header>
+
+    <!-- Filters -->
+    <div style="display:flex;gap:8px;margin-bottom:1.5rem;flex-wrap:wrap;align-items:center">
+      <select id="filter-program" onchange="renderDashboard()" style="font-size:13px;padding:7px 12px;border-radius:var(--radius-md);border:1.5px solid var(--black);font-family:inherit;font-weight:500">
+        <option value="">All Programs</option>
+        <option>AYAW</option><option>FIRST+II</option><option>BIA</option>
+        <option>FILMA</option><option>MCF</option><option>Other</option>
+      </select>
+      <select id="filter-year" onchange="renderDashboard()" style="font-size:13px;padding:7px 12px;border-radius:var(--radius-md);border:1.5px solid var(--black);font-family:inherit;font-weight:500">
+        <option value="">All Years</option>
+      </select>
+      <p style="font-size:12px;color:var(--text-muted)" id="last-updated"></p>
+    </div>
+
+    <!-- Loading -->
+    <div id="loading" style="text-align:center;padding:3rem;color:var(--text-muted)">Loading dashboard...</div>
+
+    <!-- Content -->
+    <div id="dashboard-content" style="display:none">
+
+      <!-- Headline stats -->
+      <div class="stats" id="headline-stats" style="margin-bottom:2rem"></div>
+
+      <!-- Sign rate bar -->
+      <div style="background:white;border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:1.5rem;margin-bottom:1.5rem">
+        <p style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:1rem;color:var(--black)">Overall Sign Rate</p>
+        <div style="background:#f0f0f0;border-radius:20px;height:20px;overflow:hidden;margin-bottom:6px">
+          <div id="sign-rate-bar" style="height:100%;border-radius:20px;background:linear-gradient(90deg,var(--red),var(--orange));transition:width 0.6s ease"></div>
+        </div>
+        <p style="font-size:13px;color:var(--text-muted)" id="sign-rate-label"></p>
+      </div>
+
+      <!-- Gender breakdown -->
+      <div style="background:white;border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:1.5rem;margin-bottom:1.5rem">
+        <p style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:1rem;color:var(--black)">Gender Breakdown</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem" id="gender-bars"></div>
+      </div>
+
+      <!-- Per-event table -->
+      <div style="background:white;border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:1.5rem;margin-bottom:1.5rem">
+        <p style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:1rem;color:var(--black)">Events</p>
+        <div style="overflow-x:auto">
+          <table id="events-table" style="font-size:13px;width:100%;border-collapse:collapse"></table>
+        </div>
+      </div>
+
+      <!-- Program breakdown -->
+      <div style="background:white;border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:1.5rem">
+        <p style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:1rem;color:var(--black)">By Program</p>
+        <div id="program-bars"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="dashboard.js"></script>
+</body>
+</html>
