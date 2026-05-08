@@ -728,3 +728,211 @@ async function exportPDF() {
   }
 }
 
+
+// ── CSV Import ──
+let importRows = [];
+let importValidRows = [];
+
+function promptImport() {
+  document.getElementById('import-pwd').value = '';
+  document.getElementById('import-pwd-err').style.display = 'none';
+  showImportStep('pwd');
+  document.getElementById('import-modal').style.display = 'flex';
+  setTimeout(() => document.getElementById('import-pwd').focus(), 100);
+}
+
+function closeImport() {
+  document.getElementById('import-modal').style.display = 'none';
+  document.getElementById('import-file').value = '';
+  document.getElementById('import-preview').style.display = 'none';
+  document.getElementById('import-confirm-btn').style.display = 'none';
+  document.getElementById('import-err').style.display = 'none';
+  importRows = []; importValidRows = [];
+}
+
+function showImportStep(step) {
+  ['pwd','upload','done'].forEach(s => {
+    document.getElementById('import-step-' + s).style.display = s === step ? 'block' : 'none';
+  });
+}
+
+async function checkImportPwd() {
+  const pwd = document.getElementById('import-pwd').value;
+  if (pwd !== 'METSSLBG') {
+    document.getElementById('import-pwd-err').style.display = 'block';
+    document.getElementById('import-pwd').value = '';
+    return;
+  }
+  document.getElementById('import-pwd-err').style.display = 'none';
+
+  // Load events into selector
+  const { data: events } = await db.from('events').select('id, name').order('created_at', { ascending: false });
+  const sel = document.getElementById('import-event-sel');
+  sel.innerHTML = '<option value="">-- Select event --</option>';
+  (events || []).forEach(e => {
+    const opt = document.createElement('option');
+    opt.value = e.id; opt.textContent = e.name;
+    sel.appendChild(opt);
+  });
+
+  showImportStep('upload');
+}
+
+function downloadTemplate() {
+  const csv = 'Name,Sex,Organization,Program,Position,Email,Phone\nAma Asante,Female,METSS LBG,A2F MEL Support,MEL Officer,ama@metss.com,0244000001\n';
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = 'participants-import-template.csv';
+  a.click();
+}
+
+function previewCSV() {
+  const file = document.getElementById('import-file').files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => parseCSV(e.target.result);
+  reader.readAsText(file);
+}
+
+function parseCSV(text) {
+  const lines = text.trim().split(/\r?\n/);
+  if (lines.length < 2) { showImportErr('CSV has no data rows.'); return; }
+
+  const headers = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/[^a-z]/g,''));
+  const REQUIRED = { name:['name','fullname'], sex:['sex','gender'], org:['organization','org','organisation'],
+    prog:['program','programme'], position:['position','role','title'], email:['email'], phone:['phone','phonenumber'] };
+
+  // Map headers to fields
+  const colMap = {};
+  Object.entries(REQUIRED).forEach(([field, aliases]) => {
+    const idx = headers.findIndex(h => aliases.includes(h));
+    if (idx >= 0) colMap[field] = idx;
+  });
+
+  const missing = Object.keys(REQUIRED).filter(f => colMap[f] === undefined);
+  if (missing.length) { showImportErr('Missing columns: ' + missing.join(', ')); return; }
+
+  importRows = []; importValidRows = [];
+  const errors = [];
+
+  lines.slice(1).forEach((line, i) => {
+    if (!line.trim()) return;
+    // Handle quoted fields
+    const cols = line.match(/(".*?"|[^,]+)(?=,|$)/g) || line.split(',');
+    const clean = cols.map(c => c.replace(/^"|"$/g,'').trim());
+
+    const row = {};
+    Object.entries(colMap).forEach(([field, idx]) => { row[field] = clean[idx] || ''; });
+    row._line = i + 2;
+
+    const rowErrors = [];
+    if (!row.name) rowErrors.push('Name required');
+    if (!row.sex || !['male','female'].includes(row.sex.toLowerCase())) rowErrors.push('Sex must be Male or Female');
+    if (!row.org) rowErrors.push('Organization required');
+    if (!row.prog) rowErrors.push('Program required');
+    if (!row.position) rowErrors.push('Position required');
+    if (row.email && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(row.email)) rowErrors.push('Invalid email');
+    if (row.phone && !/^(0\d{9}|\+?233\d{9})$/.test(row.phone.replace(/[\s\-().]/g,''))) rowErrors.push('Invalid phone');
+
+    if (rowErrors.length) {
+      errors.push('Row ' + row._line + ': ' + rowErrors.join(', '));
+    } else {
+      row.sex = row.sex.charAt(0).toUpperCase() + row.sex.slice(1).toLowerCase();
+      importValidRows.push(row);
+    }
+    importRows.push({ ...row, _errors: rowErrors });
+  });
+
+  renderPreview(errors);
+}
+
+function showImportErr(msg) {
+  const el = document.getElementById('import-err');
+  el.textContent = msg; el.style.display = 'block';
+}
+
+function renderPreview(errors) {
+  document.getElementById('import-err').style.display = 'none';
+  document.getElementById('import-preview').style.display = 'block';
+  document.getElementById('preview-count').textContent =
+    '(' + importValidRows.length + ' valid' + (errors.length ? ', ' + errors.length + ' with issues' : '') + ')';
+
+  // Preview table
+  const table = document.getElementById('preview-table');
+  const fields = ['name','sex','org','prog','position','email','phone'];
+  let html = '<thead><tr>' + ['Name','Sex','Org','Program','Position','Email','Phone','Status']
+    .map(h => `<th style="background:var(--black);color:white;padding:8px 10px;font-size:11px;white-space:nowrap">${h}</th>`).join('') + '</tr></thead><tbody>';
+
+  importRows.forEach(row => {
+    const ok = row._errors.length === 0;
+    const bg = ok ? '' : 'background:rgba(235,0,27,0.06)';
+    html += `<tr style="${bg}">` +
+      fields.map(f => `<td style="padding:6px 10px;border-bottom:0.5px solid #eee;white-space:nowrap">${esc(row[f]||'')}</td>`).join('') +
+      `<td style="padding:6px 10px;border-bottom:0.5px solid #eee;font-size:11px;white-space:nowrap;color:${ok?'var(--green)':'var(--red)'}">
+        ${ok ? '✓ Valid' : '✗ ' + row._errors.join('; ')}
+      </td></tr>`;
+  });
+  table.innerHTML = html + '</tbody>';
+
+  // Error list
+  const errDiv = document.getElementById('import-errors');
+  if (errors.length) {
+    errDiv.style.display = 'block';
+    document.getElementById('error-list').innerHTML = errors.map(e => `<li>${e}</li>`).join('');
+  } else {
+    errDiv.style.display = 'none';
+  }
+
+  // Confirm button
+  const btn = document.getElementById('import-confirm-btn');
+  if (importValidRows.length > 0) {
+    document.getElementById('import-valid-count').textContent = importValidRows.length;
+    btn.style.display = 'inline-block';
+  } else {
+    btn.style.display = 'none';
+  }
+}
+
+async function confirmImport() {
+  const eventId = document.getElementById('import-event-sel').value;
+  if (!eventId) { showImportErr('Please select an event.'); return; }
+
+  const btn = document.getElementById('import-confirm-btn');
+  btn.textContent = 'Importing...'; btn.disabled = true;
+
+  // Get current participant count to generate codes
+  const { data: existing } = await db.from('participants').select('code').eq('event_id', eventId).not('code','is',null);
+  const { data: ev } = await db.from('events').select('program,event_code').eq('id', eventId).single();
+
+  const progRaw = (ev?.program && ev.program !== 'Other') ? ev.program : '';
+  const prefix = ev?.event_code || progRaw.replace(/[^A-Z]/g,'').slice(0,3) || 'P';
+
+  const nums = (existing || []).map(p => { const m = (p.code||'').match(/(\d+)$/); return m ? parseInt(m[1]) : 0; });
+  let nextNum = nums.length ? Math.max(...nums) + 1 : 1;
+
+  const payload = importValidRows.map(row => ({
+    name: row.name,
+    sex: row.sex,
+    org: row.org,
+    prog: row.prog,
+    position_title: row.position,
+    email: row.email || null,
+    phone: row.phone || null,
+    reg_type: 'Pre-registration',
+    event_id: eventId,
+    code: prefix + '-' + String(nextNum++).padStart(3, '0')
+  }));
+
+  // Insert in batches of 20
+  let inserted = 0;
+  for (let i = 0; i < payload.length; i += 20) {
+    const batch = payload.slice(i, i + 20);
+    const { error } = await db.from('participants').insert(batch);
+    if (!error) inserted += batch.length;
+  }
+
+  document.getElementById('import-done-msg').textContent =
+    inserted + ' participant' + (inserted !== 1 ? 's' : '') + ' imported successfully.';
+  showImportStep('done');
+  loadEvents(); // refresh counts
+}
