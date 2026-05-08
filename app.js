@@ -319,10 +319,11 @@ function normalisePhone(p) {
 }
 
 async function checkDuplicates(name, phone) {
-  const { data } = await db.from('participants')
+  try {
+  const { data, error } = await db.from('participants')
     .select('id, name, phone, code, org')
     .eq('event_id', eventId);
-  if (!data || !data.length) return null;
+  if (error || !data || !data.length) return null;
 
   const normPhone = normalisePhone(phone);
   const results = [];
@@ -347,4 +348,5 @@ async function checkDuplicates(name, phone) {
     const rank = { both: 3, phone: 2, name: 1 };
     return rank[b.type] - rank[a.type];
   })[0];
+  } catch(e) { console.warn('Duplicate check failed:', e.message); return null; }
 }
