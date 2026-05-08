@@ -29,24 +29,18 @@ async function init() {
   document.title = ev.name + ' — Participants';
 
   await loadParticipants();
-
-  // Refresh when user returns to this tab after signing in another tab
-  document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') loadParticipants();
-  });
 }
 
 async function loadParticipants() {
-  const [partsRes, attRes] = await Promise.all([
+  const [{ data: parts }, { data: att }] = await Promise.all([
     db.from('participants').select('*').eq('event_id', eventId).order('code', { ascending: true }),
-    db.from('attendance').select('day, participant_id').eq('event_id', eventId)
+    db.from('attendance').select('day').eq('event_id', eventId)
   ]);
-  allParticipants = partsRes.data || [];
-  const att = attRes.data || [];
-  // Build day counts and signed set
+  allParticipants = parts || [];
+  // Build day counts
   window._attendanceByDay = {};
-  att.forEach(a => {
-    if (a.day) window._attendanceByDay[a.day] = (window._attendanceByDay[a.day] || 0) + 1;
+  (att || []).forEach(a => {
+    window._attendanceByDay[a.day] = (window._attendanceByDay[a.day] || 0) + 1;
   });
   renderStats();
   filterParticipants();
@@ -73,7 +67,7 @@ function renderStats() {
 
 function filterParticipants() {
   const q = (document.getElementById('p-search').value || '').toLowerCase();
-  let filtered = allParticipants.filter(p =>
+  const filtered = allParticipants.filter(p =>
     (p.name || '').toLowerCase().includes(q) ||
     (p.org || '').toLowerCase().includes(q) ||
     (p.position_title || '').toLowerCase().includes(q) ||

@@ -188,31 +188,11 @@ async function registerParticipant() {
     payload.signature = sigCanvas.toDataURL('image/png');
   }
 
-  const { data: inserted, error } = await db.from('participants').insert([payload]).select().single();
+  const { error } = await db.from('participants').insert([payload]);
   btn.textContent = isWalkin ? 'Submit & Sign' : 'Submit & Register';
   btn.disabled = false;
 
   if (error) { errEl.textContent = 'Error: ' + error.message; errEl.style.display = 'block'; return; }
-
-  // Walk-in: also insert attendance record so they show as signed immediately
-  if (isWalkin && inserted && payload.signature) {
-    // Upload signature to storage then insert attendance
-    try {
-      const day = payload.day_attended || 'Day 1';
-      const sigBlob = await (await fetch(payload.signature)).blob();
-      const path = eventId + '/' + inserted.id + '/' + day.replace(' ','_') + '_' + Date.now() + '.png';
-      const { error: upErr } = await db.storage.from('signatures').upload(path, sigBlob, { contentType: 'image/png' });
-      if (!upErr) {
-        const { data: { publicUrl } } = db.storage.from('signatures').getPublicUrl(path);
-        await db.from('attendance').insert([{
-          participant_id: inserted.id,
-          event_id: eventId,
-          day,
-          signature_url: publicUrl
-        }]);
-      }
-    } catch(e) { console.warn('Attendance record creation failed:', e.message); }
-  }
 
   ['f-name','f-org','f-prog','f-position','f-email','f-phone','f-mel'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('f-sex').value = '';
@@ -223,7 +203,7 @@ async function registerParticipant() {
   document.getElementById('confirm-code').textContent = code;
   const s = document.getElementById('success');
   s.style.display = 'block';
-  setTimeout(() => s.scrollIntoView({ behavior: 'smooth', block: 'center' }), 50);
+  s.scrollIntoView({ behavior: 'smooth' });
   setTimeout(() => s.style.display = 'none', 8000);
 }
 
