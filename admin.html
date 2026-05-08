@@ -177,6 +177,7 @@
           <button class="btn-sm" style="background:var(--yellow);border-color:var(--yellow);color:var(--black);font-weight:600" onclick="openRegLink()">Pre-reg form</button>
           <button class="btn-action-orange" onclick="openWalkinLink()">Walk-in form</button>
           <button class="btn-action-red" onclick="exportPDF()">Export PDF</button>
+          <button class="btn-sm" style="background:var(--black);color:white;border-color:var(--black)" onclick="exportQRSheet()">Export QR Sheet</button>
         </div>
       </div>
       <div class="stats" id="view-stats"></div>
@@ -240,6 +241,7 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
   <script src="admin.js"></script>

@@ -997,3 +997,102 @@ function setMelRequired(prefix, required) {
   document.getElementById(prefix + '-mel-opt').classList.toggle('active', !required);
   document.getElementById(prefix + '-mel-req').classList.toggle('active', required);
 }
+
+// ── QR Sheet Export ──
+async function exportQRSheet() {
+  const btn = [...document.querySelectorAll('.btn-sm')].find(b => b.textContent === 'Export QR Sheet');
+  if (btn) { btn.textContent = 'Building...'; btn.disabled = true; }
+
+  try {
+    const { jsPDF } = window.jspdf;
+    const eventName = document.getElementById('view-event-name').textContent;
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
+    const pageW = doc.internal.pageSize.getWidth();
+    const pageH = doc.internal.pageSize.getHeight();
+    const MARGIN = 30;
+
+    // Header
+    doc.setFillColor(235, 0, 27);   doc.rect(0, 0, pageW * 0.4, 40, 'F');
+    doc.setFillColor(255, 95, 0);   doc.rect(pageW * 0.4, 0, pageW * 0.35, 40, 'F');
+    doc.setFillColor(247, 158, 27); doc.rect(pageW * 0.75, 0, pageW * 0.25, 40, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(13); doc.setFont('helvetica', 'bold');
+    doc.text(eventName, MARGIN, 18);
+    doc.setFontSize(8); doc.setFont('helvetica', 'normal');
+    doc.text('Participant QR Codes  ·  Scan to sign attendance', MARGIN, 32);
+
+    // Generate QR codes for each participant
+    const BASE = window.location.origin + window.location.pathname.replace('admin.html', '');
+    const COLS = 3;
+    const CELL_W = (pageW - MARGIN * 2) / COLS;
+    const QR_SIZE = 90;
+    const CELL_H = QR_SIZE + 55;
+    let x = MARGIN, y = 55, col = 0;
+
+    for (let i = 0; i < currentParticipants.length; i++) {
+      const p = currentParticipants[i];
+      const signUrl = BASE + 'sign.html?participant=' + p.id + '&event=' + currentEventId;
+
+      // Generate QR as data URL via canvas
+      const qrDataUrl = await new Promise((resolve, reject) => {
+        const canvas = document.createElement('canvas');
+        QRCode.toCanvas(canvas, signUrl, { width: QR_SIZE, margin: 1,
+          color: { dark: '#000000', light: '#ffffff' } }, err => {
+          if (err) reject(err);
+          else resolve(canvas.toDataURL('image/png'));
+        });
+      });
+
+      // Page break
+      if (y + CELL_H > pageH - 20) {
+        doc.addPage();
+        y = 20;
+      }
+
+      // Draw card border
+      doc.setDrawColor(220, 220, 220);
+      doc.setFillColor(255, 255, 255);
+      doc.roundedRect(x + 4, y + 2, CELL_W - 8, CELL_H - 4, 6, 6, 'FD');
+
+      // QR image
+      doc.addImage(qrDataUrl, 'PNG', x + (CELL_W - QR_SIZE) / 2, y + 8, QR_SIZE, QR_SIZE);
+
+      // Code — orange bold
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(11);
+      doc.setTextColor(255, 95, 0);
+      doc.text(p.code || '—', x + CELL_W / 2, y + QR_SIZE + 20, { align: 'center' });
+
+      // Name
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(8);
+      doc.setTextColor(0, 0, 0);
+      const nameText = p.name.length > 22 ? p.name.slice(0, 21) + '…' : p.name;
+      doc.text(nameText, x + CELL_W / 2, y + QR_SIZE + 33, { align: 'center' });
+
+      // Org
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(7);
+      doc.setTextColor(100, 100, 100);
+      const orgText = (p.org || '').length > 25 ? (p.org || '').slice(0, 24) + '…' : (p.org || '');
+      doc.text(orgText, x + CELL_W / 2, y + QR_SIZE + 44, { align: 'center' });
+
+      // Move to next cell
+      col++;
+      if (col >= COLS) { col = 0; x = MARGIN; y += CELL_H; }
+      else { x += CELL_W; }
+    }
+
+    // Footer
+    const pages = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= pages; i++) {
+      doc.setPage(i);
+      doc.setFontSize(6.5); doc.setTextColor(160, 160, 160);
+      doc.text('Page ' + i + ' of ' + pages + '  ·  ' + eventName + '  ·  METSS LBG Participants App', MARGIN, pageH - 10);
+    }
+
+    doc.save('qr-codes-' + eventName.replace(/\s+/g, '-') + '-' + new Date().toISOString().slice(0,10) + '.pdf');
+  } catch(e) {
+    alert('QR export failed: ' + e.message);
+    console.error(e);
+  } finally {
+    if (btn) { btn.textContent = 'Export QR Sheet'; btn.disabled = false; }
+  }
+}

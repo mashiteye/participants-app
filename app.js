@@ -252,6 +252,16 @@ async function registerParticipant() {
   document.getElementById('confirm-hint').textContent = isWalkin
     ? 'You may need this code for event days.'
     : 'Keep this code — you will need it on the event day.';
+
+  // Generate QR code linking to participant sign-in form
+  const participantId = inserted ? inserted.id : null;
+  const qrCanvas = document.getElementById('confirm-qr');
+  if (participantId && typeof QRCode !== 'undefined') {
+    const signUrl = BASE_URL + 'sign.html?participant=' + participantId + '&event=' + eventId;
+    QRCode.toCanvas(qrCanvas, signUrl, { width: 160, margin: 1,
+      color: { dark: '#000000', light: '#ffffff' } }, () => {});
+  }
+
   const modal = document.getElementById('success-modal');
   modal.style.display = 'flex';
 }
