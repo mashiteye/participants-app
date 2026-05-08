@@ -57,6 +57,14 @@
             <label>Pre-registration comment or question for participants (optional)</label>
             <input type="text" id="e-mel" placeholder="e.g. What is your biggest M&E challenge?" oninput="toggleMelRequired('e')" />
           </div>
+          <div class="form-group full" id="e-mel-required-group" style="display:none">
+            <label>Response required?</label>
+            <div class="toggle-group" style="max-width:260px">
+              <button class="toggle-btn active" id="e-mel-opt" onclick="setMelRequired('e',false)">Optional</button>
+              <button class="toggle-btn" id="e-mel-req" onclick="setMelRequired('e',true)">Mandatory</button>
+            </div>
+            <input type="hidden" id="e-mel-required" value="false" />
+          </div>
           <div class="form-group">
             <label>Signatory name (for certificates)</label>
             <input type="text" id="e-signatory-name" placeholder="e.g. Dr. Michael Ashiteye" />
@@ -69,14 +77,6 @@
             <label>Signatory signature image (PNG/JPG)</label>
             <input type="file" id="e-signatory-sig" accept="image/png,image/jpeg" style="border:1px solid var(--border-strong);padding:8px;border-radius:8px" />
             <p style="font-size:11px;color:var(--text-muted);margin-top:4px">Upload a signature image to appear on certificates</p>
-          </div>
-          <div class="form-group full" id="e-mel-required-group" style="display:none">
-            <label>Response required?</label>
-            <div class="toggle-group" style="max-width:260px">
-              <button class="toggle-btn active" id="e-mel-opt" onclick="setMelRequired('e',false)">Optional</button>
-              <button class="toggle-btn" id="e-mel-req" onclick="setMelRequired('e',true)">Mandatory</button>
-            </div>
-            <input type="hidden" id="e-mel-required" value="false" />
           </div>
         </div>
         <div class="form-actions">
