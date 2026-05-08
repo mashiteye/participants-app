@@ -774,8 +774,9 @@ function closeImport() {
 }
 
 function showImportStep(step) {
-  ['pwd','upload','done'].forEach(s => {
-    document.getElementById('import-step-' + s).style.display = s === step ? 'block' : 'none';
+  ['upload','done'].forEach(s => {
+    const el = document.getElementById('import-step-' + s);
+    if (el) el.style.display = s === step ? 'block' : 'none';
   });
 }
 
