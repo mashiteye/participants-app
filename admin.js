@@ -935,7 +935,7 @@ async function confirmImport() {
   }));
 
   // Check for duplicates against existing participants
-  const { data: existing } = await db.from('participants')
+  const { data: existingParts } = await db.from('participants')
     .select('name, phone, code').eq('event_id', eventId);
 
   function lev(a, b) {
@@ -952,7 +952,7 @@ async function confirmImport() {
 
   const dupWarnings = [];
   payload.forEach((row, i) => {
-    for (const ex of (existing||[])) {
+    for (const ex of (existingParts||[])) {
       const samePhone = normPhone(row.phone) && normPhone(row.phone) === normPhone(ex.phone);
       const sim = simScore(row.name, ex.name);
       if (samePhone || sim >= 0.80) {
