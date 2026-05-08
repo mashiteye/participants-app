@@ -25,14 +25,19 @@
     </div>
 
     <div class="event-body">
-      <div class="reg-nav">
+      <div class="reg-nav" style="flex-wrap:wrap;gap:8px">
         <span class="reg-form-title">Participants</span>
         <button class="reg-back-btn" id="back-to-events-btn" style="display:none" onclick="goBackToEvents()">← Back to Events</button>
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <button class="reg-back-btn" onclick="exportEventPDF()">Export PDF</button>
-          <button class="btn-action-red" onclick="openUnsigned()">Not yet signed</button>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-left:auto">
+          <span style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--text-muted)">Before:</span>
           <button class="reg-back-btn" onclick="openPreReg()">Pre-reg form</button>
+          <span style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--text-muted)">During:</span>
+          <button class="btn-action-red" onclick="openUnsigned()">Not yet signed</button>
           <button class="btn-action-orange" onclick="openWalkin()">Walk-in form</button>
+          <span style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--text-muted)">After:</span>
+          <button class="reg-back-btn" id="export-pdf-btn" onclick="exportEventPDF()">Export PDF</button>
+          <button class="btn-sm" style="background:var(--black);color:white;border-color:var(--black)" onclick="exportEventQRSheet()">QR Sheet</button>
+          <button class="btn-sm" id="cert-btn" style="display:none;background:var(--yellow);border-color:var(--yellow);color:var(--black);font-weight:700" onclick="generateEventCertificates()">🎓 Certificates</button>
         </div>
       </div>
 
@@ -50,8 +55,6 @@
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
   <script src="event.js"></script>
 </body>
 </html>
