@@ -43,9 +43,10 @@ async function init() {
   ].filter(Boolean).join(' · ');
   document.title = data.name;
 
-  if (data.mel_question) {
+  // Show pre-program question on pre-reg only, hide on walk-in
+  if (!isWalkin) {
     document.getElementById('mel-question-group').style.display = 'block';
-    document.getElementById('mel-question-label').textContent = data.mel_question;
+    document.getElementById('mel-question-label').textContent = data.mel_question || 'Pre-program Question (optional)';
   }
 
   if (isWalkin) {

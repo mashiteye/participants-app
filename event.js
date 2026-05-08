@@ -232,72 +232,146 @@ async function exportEventPDF() {
   if (btn) { btn.textContent = 'Building...'; btn.disabled = true; }
   try {
     const { jsPDF } = window.jspdf;
+    const evName = document.getElementById('event-name').textContent;
+    const evMeta = document.getElementById('event-meta').textContent;
+    const MARGIN = 30;
+
+    // Fetch attendance and event days
+    const [{ data: ev }, { data: attendance }] = await Promise.all([
+      db.from('events').select('days').eq('id', eventId).single(),
+      db.from('attendance').select('*').eq('event_id', eventId).order('signed_at', { ascending: true })
+    ]);
+    const numDays = ev?.days || 1;
+    const attMap = {};
+    (attendance || []).forEach(a => {
+      if (!attMap[a.participant_id]) attMap[a.participant_id] = {};
+      attMap[a.participant_id][a.day] = a;
+    });
+
+    // Pre-fetch signatures
+    async function urlToBase64(url) {
+      try {
+        const res = await fetch(url);
+        const blob = await res.blob();
+        return await new Promise(resolve => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.readAsDataURL(blob);
+        });
+      } catch { return null; }
+    }
+    const sigCache = {};
+    const urlsToFetch = [];
+    allParticipants.forEach(p => {
+      const days = attMap[p.id] || {};
+      Object.values(days).forEach(a => {
+        if (a.signature_url && !sigCache[a.signature_url]) urlsToFetch.push(a.signature_url);
+      });
+    });
+    await Promise.all(urlsToFetch.map(async url => { sigCache[url] = await urlToBase64(url); }));
+
     const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
     const pageW = doc.internal.pageSize.getWidth();
     const pageH = doc.internal.pageSize.getHeight();
-    const MARGIN = 30;
-
-    const evName = document.getElementById('event-name').textContent;
-    const evMeta = document.getElementById('event-meta').textContent;
 
     // Header
     doc.setFillColor(235, 0, 27);   doc.rect(0, 0, pageW * 0.4, 50, 'F');
-    doc.setFillColor(243, 112, 33); doc.rect(pageW * 0.4, 0, pageW * 0.4, 50, 'F');
+    doc.setFillColor(255, 95, 0);   doc.rect(pageW * 0.4, 0, pageW * 0.4, 50, 'F');
     doc.setFillColor(247, 158, 27); doc.rect(pageW * 0.8, 0, pageW * 0.2, 50, 'F');
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(16); doc.setFont('helvetica', 'bold');
     doc.text(evName, MARGIN, 22);
     doc.setFontSize(9); doc.setFont('helvetica', 'normal');
     doc.text(evMeta + '  ·  ' + new Date().toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' }), MARGIN, 36);
-    doc.text('Total registered: ' + allParticipants.length, MARGIN, 47);
+    doc.text('Registered: ' + allParticipants.length + '   Signed: ' + Object.keys(attMap).length, MARGIN, 47);
 
-    const head = [['#','Code','Name','Sex','Organization','Position','Program','Type']];
-    const body = allParticipants.map((p, i) => [
-      String(i + 1),
-      p.code || '—',
-      p.name || '',
-      p.sex || '—',
-      p.org || '',
-      p.position_title || '',
-      p.prog || '',
-      p.reg_type === 'Walk-in' ? 'Walk-in' : 'Pre-reg'
-    ]);
+    const dayLabels = Array.from({ length: numDays }, (_, i) => 'Day ' + (i + 1));
+    const FIXED_COLS = [
+      { label: '#', w: 18 }, { label: 'Code', w: 38 }, { label: 'Name', w: 85 },
+      { label: 'Sex', w: 24 }, { label: 'Organization', w: 90 },
+      { label: 'Position', w: 75 }, { label: 'Program', w: 70 }, { label: 'Type', w: 38 }
+    ];
+    const usable = pageW - MARGIN * 2 - FIXED_COLS.reduce((a,b) => a + b.w, 0);
+    const dayW = Math.max(55, Math.floor(usable / numDays));
+    const ALL_COLS = [...FIXED_COLS, ...dayLabels.map(d => ({ label: d, w: dayW }))];
+    let cx = MARGIN;
+    ALL_COLS.forEach(c => { c.x = cx; cx += c.w; });
 
-    doc.autoTable({
-      head,
-      body,
-      startY: 58,
-      margin: { left: MARGIN, right: MARGIN },
-      styles: { fontSize: 8, cellPadding: 4, overflow: 'ellipsize' },
-      headStyles: { fillColor: [26, 26, 26], textColor: 255, fontStyle: 'bold', fontSize: 7.5 },
-      alternateRowStyles: { fillColor: [250, 250, 248] },
-      columnStyles: {
-        0: { cellWidth: 20 }, 1: { cellWidth: 45 }, 2: { cellWidth: 110 },
-        3: { cellWidth: 30 }, 4: { cellWidth: 110 }, 5: { cellWidth: 90 },
-        6: { cellWidth: 90 }, 7: { cellWidth: 45 }
-      },
-      didParseCell: (data) => {
-        if (data.section === 'body' && data.column.index === 1) {
-          data.cell.styles.textColor = [243, 112, 33];
-          data.cell.styles.fontStyle = 'bold';
-        }
-        if (data.section === 'body' && data.column.index === 7) {
-          const p = allParticipants[data.row.index];
-          data.cell.styles.textColor = p?.reg_type === 'Walk-in' ? [243, 112, 33] : [0, 92, 42];
-        }
+    const SIG_H = 55;
+    const TEXT_H = 20;
+
+    function drawHeaderRow(y) {
+      doc.setFillColor(0, 0, 0);
+      doc.rect(MARGIN, y, pageW - MARGIN * 2, 14, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(6.5); doc.setFont('helvetica', 'bold');
+      ALL_COLS.forEach(c => doc.text(c.label, c.x + 2, y + 9.5));
+    }
+
+    function trunc(s, n) { s = s||''; return s.length > n ? s.slice(0,n-1)+'…' : s; }
+
+    drawHeaderRow(58);
+    let y = 72;
+
+    for (let idx = 0; idx < allParticipants.length; idx++) {
+      const p = allParticipants[idx];
+      const pAtt = attMap[p.id] || {};
+      const hasSig = Object.values(pAtt).some(a => a.signature_url && sigCache[a.signature_url]);
+      const rowH = hasSig ? SIG_H : TEXT_H;
+
+      if (y + rowH > pageH - 20) {
+        doc.addPage();
+        y = 14;
+        drawHeaderRow(y); y += 14;
       }
-    });
+
+      doc.setFillColor(idx % 2 === 0 ? 255 : 249, idx % 2 === 0 ? 255 : 249, idx % 2 === 0 ? 255 : 249);
+      doc.rect(MARGIN, y, pageW - MARGIN * 2, rowH, 'F');
+      doc.setDrawColor(220, 220, 220);
+      doc.rect(MARGIN, y, pageW - MARGIN * 2, rowH, 'S');
+
+      const ty = y + (rowH > TEXT_H ? 8 : 13);
+      doc.setFontSize(7); doc.setFont('helvetica', 'normal');
+      doc.setTextColor(0,0,0); doc.text(String(idx+1), FIXED_COLS[0].x+2, ty);
+      doc.setTextColor(255,95,0); doc.setFont('helvetica','bold');
+      doc.text(trunc(p.code||'—',10), FIXED_COLS[1].x+2, ty);
+      doc.setTextColor(0,0,0); doc.setFont('helvetica','normal');
+      doc.text(trunc(p.name||'',22), FIXED_COLS[2].x+2, ty);
+      doc.text(trunc(p.sex||'—',6), FIXED_COLS[3].x+2, ty);
+      doc.text(trunc(p.org||'',24), FIXED_COLS[4].x+2, ty);
+      doc.text(trunc(p.position_title||'',20), FIXED_COLS[5].x+2, ty);
+      doc.text(trunc(p.prog||'',18), FIXED_COLS[6].x+2, ty);
+      const rt = p.reg_type==='Walk-in';
+      doc.setTextColor(rt?255:0, rt?95:92, rt?0:42);
+      doc.text(rt?'Walk-in':'Pre-reg', FIXED_COLS[7].x+2, ty);
+
+      // Day signature columns
+      dayLabels.forEach(dl => {
+        const dc = ALL_COLS.find(c => c.label === dl);
+        const att = pAtt[dl];
+        if (att?.signature_url && sigCache[att.signature_url]) {
+          try {
+            doc.addImage(sigCache[att.signature_url],'PNG', dc.x+2, y+2, dc.w-4, rowH-4);
+          } catch { doc.setFontSize(6); doc.setTextColor(180,180,180); doc.text('[err]',dc.x+2,ty); }
+        } else {
+          doc.setDrawColor(230,230,230);
+          doc.rect(dc.x+2, y+2, dc.w-4, rowH-4);
+        }
+      });
+      y += rowH;
+    }
 
     const pages = doc.internal.getNumberOfPages();
     for (let i = 1; i <= pages; i++) {
       doc.setPage(i);
-      doc.setFontSize(7); doc.setTextColor(160, 160, 160);
-      doc.text('Page ' + i + ' of ' + pages + '  ·  ' + evName + '  ·  METSS LBG Participants App', MARGIN, pageH - 14);
+      doc.setFontSize(6.5); doc.setTextColor(150,150,150);
+      doc.text('Page '+i+' of '+pages+'  ·  '+evName+'  ·  METSS LBG Participants App', MARGIN, pageH-10);
     }
 
-    doc.save('participants-' + evName.replace(/\s+/g, '-') + '-' + new Date().toISOString().slice(0,10) + '.pdf');
+    doc.save('attendance-'+evName.replace(/\s+/g,'-')+'-'+new Date().toISOString().slice(0,10)+'.pdf');
   } catch(e) {
     alert('PDF export failed: ' + e.message);
+    console.error(e);
   } finally {
     if (btn) { btn.textContent = 'Export PDF'; btn.disabled = false; }
   }
