@@ -142,7 +142,7 @@
       <div class="pane-title">Events</div>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
         <button class="btn-sm" onclick="toggleGuide()">? How to use</button>
-        <button class="btn-secondary" onclick="showPane('create')">+ New event</button>
+        <button class="btn-action-orange" onclick="showPane('create')">+ New event</button>
       </div>
 
       <div id="events-loading" class="empty">Loading events...</div>
@@ -158,9 +158,9 @@
           <h2 class="section-title" id="view-event-name" style="margin:0"></h2>
         </div>
         <div style="display:flex;gap:8px">
-          <button class="btn-secondary" onclick="openRegLink()">Pre-reg form</button>
-          <button class="btn-secondary" onclick="openWalkinLink()">Walk-in form</button>
-          <button class="btn-secondary" onclick="exportPDF()">Export PDF</button>
+          <button class="btn-sm" style="background:var(--yellow);border-color:var(--yellow);color:var(--black);font-weight:600" onclick="openRegLink()">Pre-reg form</button>
+          <button class="btn-action-orange" onclick="openWalkinLink()">Walk-in form</button>
+          <button class="btn-action-red" onclick="exportPDF()">Export PDF</button>
         </div>
       </div>
       <div class="stats" id="view-stats"></div>

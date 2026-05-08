@@ -99,11 +99,11 @@ async function loadEvents() {
         </div>
       </div>
       <div class="event-card-actions">
-        <button class="btn-sm" onclick="viewParticipants('${e.id}','${esc(e.name)}')">View participants</button>
+        <button class="btn-action-red btn-sm" style="background:var(--red);color:white;border:none;font-weight:600" onclick="viewParticipants('${e.id}','${esc(e.name)}')">View participants</button>
         <button class="btn-sm" onclick="fetchAndEdit('${e.id}')">Edit</button>
-        <button class="btn-sm accent" onclick="copyEventLink('${e.id}','prereg',this)">Copy pre-reg link</button>
-        <button class="btn-sm accent" onclick="copyEventLink('${e.id}','walkin',this)">Copy walk-in link</button>
-        <button class="btn-sm accent" onclick="copyEventLink('${e.id}','view',this)">Copy participant view</button>
+        <button class="btn-sm" style="background:var(--yellow);border-color:var(--yellow);color:var(--black);font-weight:600" onclick="copyEventLink('${e.id}','prereg',this)">Copy pre-reg link</button>
+        <button class="btn-sm" style="background:var(--yellow);border-color:var(--yellow);color:var(--black);font-weight:600" onclick="copyEventLink('${e.id}','walkin',this)">Copy walk-in link</button>
+        <button class="btn-sm" style="background:var(--yellow);border-color:var(--yellow);color:var(--black);font-weight:600" onclick="copyEventLink('${e.id}','view',this)">Copy participant view</button>
         <button class="btn-sm danger" onclick="deleteEvent('${e.id}')">Delete</button>
       </div>
     </div>`;
