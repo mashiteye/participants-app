@@ -7,8 +7,6 @@ const eventId = params.get('event');
 const BASE_URL = window.location.origin + window.location.pathname.replace('event.html', '');
 let allParticipants = [];
 let eventDays = 1;
-let currentFilter = 'all';
-let signedParticipantIds = new Set();
 
 async function init() {
   if (!eventId) { document.getElementById('no-event').style.display = 'block'; return; }
@@ -47,10 +45,8 @@ async function loadParticipants() {
   const att = attRes.data || [];
   // Build day counts and signed set
   window._attendanceByDay = {};
-  signedParticipantIds = new Set();
   att.forEach(a => {
     if (a.day) window._attendanceByDay[a.day] = (window._attendanceByDay[a.day] || 0) + 1;
-    if (a.participant_id) signedParticipantIds.add(a.participant_id);
   });
   renderStats();
   filterParticipants();
@@ -75,13 +71,6 @@ function renderStats() {
   document.getElementById('view-stats').innerHTML = html;
 }
 
-function setFilter(f) {
-  currentFilter = f;
-  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('filter-' + f).classList.add('active');
-  filterParticipants();
-}
-
 function filterParticipants() {
   const q = (document.getElementById('p-search').value || '').toLowerCase();
   let filtered = allParticipants.filter(p =>
@@ -90,8 +79,6 @@ function filterParticipants() {
     (p.position_title || '').toLowerCase().includes(q) ||
     (p.code || '').toLowerCase().includes(q)
   );
-  if (currentFilter === 'unsigned') filtered = filtered.filter(p => !signedParticipantIds.has(p.id));
-  if (currentFilter === 'signed') filtered = filtered.filter(p => signedParticipantIds.has(p.id));
   const container = document.getElementById('participants-list');
   if (!filtered.length) {
     container.innerHTML = `<div class="empty">${allParticipants.length ? 'No results.' : 'No participants registered yet.'}</div>`;
