@@ -255,15 +255,6 @@ async function registerParticipant() {
     ? 'You may need this code for event days.'
     : 'Keep this code — you will need it on the event day.';
 
-  // Generate QR code linking to participant sign-in form
-  const participantId = inserted ? inserted.id : null;
-  const qrCanvas = document.getElementById('confirm-qr');
-  if (participantId && typeof QRCode !== 'undefined') {
-    const signUrl = BASE_URL + 'sign.html?participant=' + participantId + '&event=' + eventId;
-    QRCode.toCanvas(qrCanvas, signUrl, { width: 160, margin: 1,
-      color: { dark: '#000000', light: '#ffffff' } }, () => {});
-  }
-
   const modal = document.getElementById('success-modal');
   modal.style.display = 'flex';
 
@@ -306,11 +297,11 @@ function proceedDespiteDuplicate() {
 }
 
 // ── Email confirmation ──
-const RESEND_API_KEY = 're_gNeFVV7F_JZ8zKssUS9e4uophYqp3SQLk';
-const FROM_EMAIL = 'onboarding@resend.dev';
+// Worker URL set after Cloudflare Worker is deployed
+const EMAIL_WORKER_URL = 'https://participants-email.metsslbg.workers.dev';
 
 async function sendConfirmationEmail(toEmail, participantName, code, eventName, eventDate, participantId, signUrl) {
-  if (!toEmail) return; // skip if no email provided
+  if (!toEmail) return;
 
   const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(signUrl)}`;
 
@@ -378,15 +369,11 @@ async function sendConfirmationEmail(toEmail, participantName, code, eventName, 
   `;
 
   try {
-    await fetch('https://api.resend.com/emails', {
+    await fetch(EMAIL_WORKER_URL, {
       method: 'POST',
-      headers: {
-        'Authorization': 'Bearer ' + RESEND_API_KEY,
-        'Content-Type': 'application/json'
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        from: FROM_EMAIL,
-        to: [toEmail],
+        to: toEmail,
         subject: 'Registration Confirmed — ' + eventName + ' [' + code + ']',
         html
       })
