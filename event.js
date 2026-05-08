@@ -39,17 +39,18 @@ async function init() {
 }
 
 async function loadParticipants() {
-  const [{ data: parts }, { data: att }] = await Promise.all([
+  const [partsRes, attRes] = await Promise.all([
     db.from('participants').select('*').eq('event_id', eventId).order('code', { ascending: true }),
     db.from('attendance').select('day, participant_id').eq('event_id', eventId)
   ]);
-  allParticipants = parts || [];
+  allParticipants = partsRes.data || [];
+  const att = attRes.data || [];
   // Build day counts and signed set
   window._attendanceByDay = {};
   signedParticipantIds = new Set();
-  (att || []).forEach(a => {
-    window._attendanceByDay[a.day] = (window._attendanceByDay[a.day] || 0) + 1;
-    signedParticipantIds.add(a.participant_id);
+  att.forEach(a => {
+    if (a.day) window._attendanceByDay[a.day] = (window._attendanceByDay[a.day] || 0) + 1;
+    if (a.participant_id) signedParticipantIds.add(a.participant_id);
   });
   renderStats();
   filterParticipants();
