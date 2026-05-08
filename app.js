@@ -225,10 +225,12 @@ async function registerParticipant() {
 
   document.getElementById('confirm-name').textContent = name;
   document.getElementById('confirm-code').textContent = code;
-  const s = document.getElementById('success');
-  s.style.display = 'block';
-  s.scrollIntoView({ behavior: 'smooth' });
-  setTimeout(() => s.style.display = 'none', 8000);
+  const modal = document.getElementById('success-modal');
+  modal.style.display = 'flex';
+}
+
+function closeSuccessModal() {
+  document.getElementById('success-modal').style.display = 'none';
 }
 
 init();

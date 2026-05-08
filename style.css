@@ -443,3 +443,19 @@ tr[data-pid]:hover td:first-child {
   margin: 0 auto;
   padding: 1.5rem;
 }
+
+/* Filter buttons */
+.filter-btn {
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1px solid var(--border-strong);
+  background: white;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+  color: var(--text-muted);
+  transition: all 0.15s;
+}
+.filter-btn.active { background: var(--orange); border-color: var(--orange); color: white; }
+.filter-btn:hover:not(.active) { background: var(--bg-secondary); color: var(--text); }

@@ -7,6 +7,9 @@ const eventId = params.get('event');
 const BASE_URL = window.location.origin + window.location.pathname.replace('event.html', '');
 let allParticipants = [];
 let eventDays = 1;
+let currentFilter = 'all';
+let currentFilterDay = 'Day 1';
+let attendanceByDay = {}; // day -> Set of participant_ids
 
 async function init() {
   if (!eventId) { document.getElementById('no-event').style.display = 'block'; return; }
@@ -63,6 +66,32 @@ function renderStats() {
     });
   }
   document.getElementById('view-stats').innerHTML = html;
+}
+
+function buildDaySelector() {
+  const sel = document.getElementById('filter-day');
+  sel.innerHTML = '';
+  Array.from({ length: eventDays }, (_, i) => 'Day ' + (i + 1)).forEach(d => {
+    const opt = document.createElement('option');
+    opt.value = d; opt.textContent = d;
+    if (d === currentFilterDay) opt.selected = true;
+    sel.appendChild(opt);
+  });
+}
+
+function setFilter(f) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('filter-' + f).classList.add('active');
+  // Show day selector only when filtering by signed status
+  const daySelVisible = f !== 'all';
+  document.getElementById('filter-day').style.display = daySelVisible ? 'block' : 'none';
+  filterParticipants();
+}
+
+function applyDayFilter() {
+  currentFilterDay = document.getElementById('filter-day').value;
+  filterParticipants();
 }
 
 function filterParticipants() {

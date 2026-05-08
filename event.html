@@ -75,6 +75,14 @@
 
       <div class="stats" id="view-stats"></div>
 
+      <!-- Filter bar -->
+      <div style="display:flex;gap:8px;margin-bottom:0.75rem;flex-wrap:wrap;align-items:center">
+        <button class="filter-btn active" id="filter-all" onclick="setFilter('all')">All</button>
+        <button class="filter-btn" id="filter-unsigned" onclick="setFilter('unsigned')">Not yet signed</button>
+        <button class="filter-btn" id="filter-signed" onclick="setFilter('signed')">Signed</button>
+        <select id="filter-day" onchange="applyDayFilter()" style="font-size:12px;padding:5px 10px;border-radius:20px;border:1px solid var(--border-strong);background:white;font-family:inherit;display:none">
+        </select>
+      </div>
       <input type="text" id="p-search" placeholder="Search name, org, position, code..."
         oninput="filterParticipants()" class="search-input" style="margin-bottom:1rem" />
 

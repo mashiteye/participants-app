@@ -30,11 +30,19 @@
         <button class="reg-back-btn" id="back-btn" onclick="goBack()">← Participant Search</button>
       </div>
 
-      <div class="success-msg" id="success" style="display:none">
-        <p style="font-size:15px;font-weight:700;margin-bottom:4px">Registered, <span id="confirm-name"></span>!</p>
-        <p style="font-size:13px;margin-bottom:4px">Your participant code is:</p>
-        <p style="font-size:30px;font-weight:800;letter-spacing:0.1em;margin:6px 0;color:var(--orange)" id="confirm-code"></p>
-        <p style="font-size:12px;opacity:0.75">Keep this code — you will need it on the event day.</p>
+      <!-- Success popup modal -->
+      <div id="success-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:200;align-items:center;justify-content:center;padding:1rem">
+        <div style="background:white;border-radius:16px;padding:2rem 1.5rem;max-width:340px;width:100%;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,0.2)">
+          <div style="width:56px;height:56px;background:var(--success-bg);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:24px">✓</div>
+          <p style="font-size:13px;color:var(--text-muted);margin-bottom:4px">Registration confirmed</p>
+          <p style="font-size:18px;font-weight:700;margin-bottom:1rem" id="confirm-name"></p>
+          <div style="background:var(--bg-secondary);border-radius:10px;padding:1rem;margin-bottom:1rem">
+            <p style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px">Your participant code</p>
+            <p style="font-size:36px;font-weight:800;letter-spacing:0.1em;color:var(--orange)" id="confirm-code"></p>
+          </div>
+          <p style="font-size:12px;color:var(--text-muted);margin-bottom:1.25rem">Keep this code — you will need it on the event day.</p>
+          <button class="btn-submit" onclick="closeSuccessModal()" style="margin-top:0">Done</button>
+        </div>
       </div>
 
       <div class="field-group">
