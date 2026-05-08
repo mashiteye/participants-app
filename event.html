@@ -83,6 +83,23 @@
           </div>
         </div>
 
+        <!-- Zone 4: Manage (admin only) -->
+        <div id="manage-zone" style="display:none;background:white;border:1px solid var(--border);border-radius:var(--radius-lg);padding:1rem">
+          <p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:10px;border-bottom:2px solid var(--black);padding-bottom:5px">Manage Event</p>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <button onclick="editEvent()" style="padding:12px;background:white;border:1.5px solid var(--black);border-radius:var(--radius-md);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;text-align:left;transition:all 0.15s" onmouseover="this.style.background='var(--black)';this.style.color='white'" onmouseout="this.style.background='white';this.style.color='inherit'">✏ Edit Event</button>
+            <button onclick="importCSV()" style="padding:12px;background:var(--yellow);border:none;border-radius:var(--radius-md);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--black);text-align:left">↑ Import CSV</button>
+            <hr style="border:none;border-top:0.5px solid var(--border);margin:4px 0">
+            <p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:4px">Share Links</p>
+            <button id="share-prereg-btn" onclick="copyShareLink('prereg')" style="padding:10px 12px;background:white;border:1.5px solid var(--orange);border-radius:var(--radius-md);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--orange);text-align:left">📋 Pre-reg Link</button>
+            <button id="share-walkin-btn" onclick="copyShareLink('walkin')" style="padding:10px 12px;background:white;border:1.5px solid var(--orange);border-radius:var(--radius-md);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--orange);text-align:left">➕ Walk-in Link</button>
+            <button id="share-view-btn" onclick="copyShareLink('view')" style="padding:10px 12px;background:white;border:1.5px solid var(--orange);border-radius:var(--radius-md);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--orange);text-align:left">👥 Participant Link</button>
+            <button id="share-checkin-btn" onclick="copyShareLink('checkin')" style="padding:10px 12px;background:white;border:1.5px solid var(--orange);border-radius:var(--radius-md);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--orange);text-align:left">🔗 Check-in Link</button>
+            <hr style="border:none;border-top:0.5px solid var(--border);margin:4px 0">
+            <button onclick="deleteEventFromPage()" style="padding:10px 12px;background:white;border:1.5px solid var(--red);border-radius:var(--radius-md);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--red);text-align:left">🗑 Delete Event</button>
+          </div>
+        </div>
+
       </div>
 
       <!-- Participants table zone -->

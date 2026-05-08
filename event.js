@@ -112,9 +112,8 @@ async function init() {
   const fromAdmin = new URLSearchParams(window.location.search).get('from') === 'admin';
   if (fromAdmin) {
     document.getElementById('back-to-events-btn').style.display = 'inline-block';
-    document.getElementById('cert-btn').style.display = 'inline-flex';
-    document.getElementById('cert-btn').style.alignItems = 'center';
-    document.getElementById('cert-btn').style.gap = '6px';
+    document.getElementById('cert-btn').style.display = 'block';
+    document.getElementById('manage-zone').style.display = 'block';
   }
   if (!eventId) { document.getElementById('no-event').style.display = 'block'; return; }
 
@@ -528,4 +527,34 @@ async function exportEventQRSheet() {
     doc.save('qr-codes-' + evName.replace(/\s+/g, '-') + '.pdf');
   } catch(e) { alert('QR export failed: ' + e.message); }
   finally { if (btn) { btn.textContent = 'Export QR Sheet'; btn.disabled = false; } }
+}
+
+// ── Manage zone functions (admin only) ──
+function editEvent() {
+  window.open(BASE_URL + 'admin.html#edit-' + eventId, '_blank');
+}
+
+function importCSV() {
+  window.open(BASE_URL + 'admin.html#import-' + eventId, '_blank');
+}
+
+function copyShareLink(type) {
+  let url;
+  if (type === 'prereg') url = BASE_URL + 'index.html?event=' + eventId;
+  else if (type === 'walkin') url = BASE_URL + 'index.html?event=' + eventId + '&walkin=1';
+  else if (type === 'view') url = BASE_URL + 'event.html?event=' + eventId;
+  else if (type === 'checkin') url = BASE_URL + 'checkin.html?event=' + eventId;
+
+  const btn = document.getElementById('share-' + type + '-btn');
+  const orig = btn ? btn.textContent : '';
+  navigator.clipboard.writeText(url).then(() => {
+    if (btn) { btn.textContent = '✓ Copied!'; setTimeout(() => btn.textContent = orig, 2000); }
+  });
+}
+
+async function deleteEventFromPage() {
+  if (!confirm('Delete this event and all its participants? This cannot be undone.')) return;
+  const { error } = await db.from('events').delete().eq('id', eventId);
+  if (!error) window.location.href = BASE_URL + 'admin.html';
+  else alert('Delete failed: ' + error.message);
 }
