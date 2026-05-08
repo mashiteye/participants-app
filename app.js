@@ -55,6 +55,8 @@ async function init() {
         melLabel + ' <span style="color:var(--red)">*</span>';
     }
     window._melRequired = melRequired;
+  window._eventName = data.name || '';
+  window._eventDate = data.event_date || '';
   }
 
   if (isWalkin) {
@@ -264,6 +266,15 @@ async function registerParticipant() {
 
   const modal = document.getElementById('success-modal');
   modal.style.display = 'flex';
+
+  // Send confirmation email if participant has an email address
+  if (inserted && payload.email) {
+    const signUrl = BASE_URL + 'sign.html?participant=' + inserted.id + '&event=' + eventId;
+    const evDateStr = window._eventDate
+      ? new Date(window._eventDate).toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' })
+      : '';
+    sendConfirmationEmail(payload.email, name, code, window._eventName || 'Event', evDateStr, inserted.id, signUrl);
+  }
 }
 
 function showDupWarning(dup, name, phone) {
@@ -292,6 +303,97 @@ function proceedDespiteDuplicate() {
   document.getElementById('dup-modal').style.display = 'none';
   window._dupBypass = true;
   registerParticipant();
+}
+
+// ── Email confirmation ──
+const RESEND_API_KEY = 're_gNeFVV7F_JZ8zKssUS9e4uophYqp3SQLk';
+const FROM_EMAIL = 'onboarding@resend.dev';
+
+async function sendConfirmationEmail(toEmail, participantName, code, eventName, eventDate, participantId, signUrl) {
+  if (!toEmail) return; // skip if no email provided
+
+  const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(signUrl)}`;
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <body style="margin:0;padding:0;font-family:Arial,sans-serif;background:#f5f5f5">
+      <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;padding:30px 0">
+        <tr><td align="center">
+          <table width="600" cellpadding="0" cellspacing="0" style="background:white;border-radius:12px;overflow:hidden;max-width:600px">
+
+            <!-- Header band -->
+            <tr>
+              <td style="background:linear-gradient(90deg,#EB001B 0%,#FF5F00 60%,#F79E1B 100%);padding:28px 32px">
+                <p style="margin:0;color:white;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em">Registration Confirmed</p>
+                <h1 style="margin:6px 0 0;color:white;font-size:22px;font-weight:800">${eventName}</h1>
+                ${eventDate ? `<p style="margin:4px 0 0;color:rgba(255,255,255,0.85);font-size:13px">${eventDate}</p>` : ''}
+              </td>
+            </tr>
+
+            <!-- Body -->
+            <tr><td style="padding:32px">
+              <p style="margin:0 0 6px;color:#666;font-size:14px">Dear <strong style="color:#000">${participantName}</strong>,</p>
+              <p style="margin:0 0 24px;color:#555;font-size:14px;line-height:1.6">
+                Your registration has been confirmed. Please keep your participant code safe — you will need it to sign attendance on event day.
+              </p>
+
+              <!-- Code box -->
+              <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px">
+                <tr>
+                  <td style="background:#f9f9f9;border-radius:10px;padding:20px;text-align:center">
+                    <p style="margin:0 0 6px;color:#888;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em">Your Participant Code</p>
+                    <p style="margin:0;color:#FF5F00;font-size:40px;font-weight:800;letter-spacing:0.1em;font-family:monospace">${code}</p>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- QR code -->
+              <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px">
+                <tr>
+                  <td style="text-align:center">
+                    <p style="margin:0 0 12px;color:#555;font-size:13px">Scan this QR code on event day to sign attendance directly</p>
+                    <img src="${qrImageUrl}" width="150" height="150" style="border:3px solid #F79E1B;border-radius:8px" alt="QR Code" />
+                  </td>
+                </tr>
+              </table>
+
+              <p style="margin:0;color:#999;font-size:12px;text-align:center">
+                If you have any questions, please contact the event organiser.
+              </p>
+            </td></tr>
+
+            <!-- Footer -->
+            <tr>
+              <td style="background:#000;padding:16px 32px;text-align:center">
+                <p style="margin:0;color:#F79E1B;font-size:11px;font-weight:700">METSS LBG · Participants App</p>
+              </td>
+            </tr>
+
+          </table>
+        </td></tr>
+      </table>
+    </body>
+    </html>
+  `;
+
+  try {
+    await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + RESEND_API_KEY,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        from: FROM_EMAIL,
+        to: [toEmail],
+        subject: 'Registration Confirmed — ' + eventName + ' [' + code + ']',
+        html
+      })
+    });
+  } catch(e) {
+    console.warn('Email send failed:', e.message);
+  }
 }
 
 function closeSuccessModal() {
