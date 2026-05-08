@@ -41,6 +41,8 @@ async function submitEvent() {
     if (!data || !data.length) { errEl.textContent = 'No data returned.'; errEl.style.display = 'inline'; return; }
 
     ['e-name','e-organizer','e-date','e-mel','e-code','e-prog-other'].forEach(id => document.getElementById(id).value = '');
+    setMelRequired('e', false);
+    document.getElementById('e-mel-required-group').style.display = 'none';
     document.getElementById('e-prog').selectedIndex = 0;
     document.getElementById('e-days').selectedIndex = 0;
     document.getElementById('e-prog-other-group').style.display = 'none';
@@ -296,6 +298,9 @@ function openEdit(e) {
   document.getElementById('edit-organizer').value = e.organizer || '';
   document.getElementById('edit-date').value = e.event_date || '';
   document.getElementById('edit-mel').value = e.mel_question || '';
+  toggleMelRequired('edit');
+  if (e.mel_question_required) setMelRequired('edit', true);
+  else setMelRequired('edit', false);
   document.getElementById('edit-code').value = e.event_code || '';
   const ep = document.getElementById('edit-prog');
   ep.value = e.program || '';
@@ -341,6 +346,7 @@ async function saveEdit() {
     event_date: document.getElementById('edit-date').value || null,
     days: parseInt(document.getElementById('edit-days').value) || 1,
     mel_question: document.getElementById('edit-mel').value.trim() || null,
+    mel_question_required: document.getElementById('edit-mel-required').value === 'true',
     event_code: document.getElementById('edit-code').value.trim().toUpperCase() || null
   }).eq('id', document.getElementById('edit-id').value);
 
@@ -922,4 +928,16 @@ async function confirmImport() {
     inserted + ' participant' + (inserted !== 1 ? 's' : '') + ' imported successfully.';
   showImportStep('done');
   loadEvents(); // refresh counts
+}
+
+// ── MEL question required toggle ──
+function toggleMelRequired(prefix) {
+  const val = document.getElementById(prefix + '-mel').value.trim();
+  document.getElementById(prefix + '-mel-required-group').style.display = val ? 'block' : 'none';
+}
+
+function setMelRequired(prefix, required) {
+  document.getElementById(prefix + '-mel-required').value = required ? 'true' : 'false';
+  document.getElementById(prefix + '-mel-opt').classList.toggle('active', !required);
+  document.getElementById(prefix + '-mel-req').classList.toggle('active', required);
 }

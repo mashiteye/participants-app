@@ -46,7 +46,15 @@ async function init() {
   // Show pre-program question on pre-reg only, hide on walk-in
   if (!isWalkin) {
     document.getElementById('mel-question-group').style.display = 'block';
-    document.getElementById('mel-question-label').textContent = data.mel_question || 'Pre-program Question (optional)';
+    const melRequired = data.mel_question_required === true;
+    const melLabel = data.mel_question ||
+      (melRequired ? 'Comments or Questions' : 'Comments or Questions (optional)');
+    document.getElementById('mel-question-label').textContent = melLabel;
+    if (melRequired) {
+      document.getElementById('mel-question-label').innerHTML =
+        melLabel + ' <span style="color:var(--red)">*</span>';
+    }
+    window._melRequired = melRequired;
   }
 
   if (isWalkin) {
@@ -159,6 +167,11 @@ async function registerParticipant() {
 
   if (!name || !sex || !org || !prog || !position || !email || !phone) {
     errEl.textContent = 'Please fill in all required fields.'; errEl.style.display = 'block'; return;
+  }
+  // Validate MEL question if mandatory
+  if (!isWalkin && window._melRequired) {
+    const melVal = fval('f-mel');
+    if (!melVal) { errEl.textContent = 'Please answer the pre-registration question.'; errEl.style.display = 'block'; return; }
   }
   const emailCheck = validateEmail(email);
   if (!emailCheck.valid) { errEl.textContent = emailCheck.msg; errEl.style.display = 'block'; return; }
