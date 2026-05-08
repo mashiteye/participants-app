@@ -115,20 +115,14 @@ function filterParticipants() {
   }
   let html = `<div style="overflow-x:auto"><table id="participants-table">
     <thead><tr>
-      <th style="width:9%">Code</th>
-      <th style="width:18%">Name</th>
-      <th style="width:6%">Sex</th>
-      <th style="width:18%">Organization</th>
-      <th style="width:14%">Position</th>
-      <th style="width:13%">Program</th>
+      <th style="width:11%">Code</th>
+      <th style="width:26%">Name</th>
+      <th style="width:8%">Sex</th>
+      <th style="width:26%">Organization</th>
+      <th style="width:20%">Position</th>
       <th style="width:9%">Type</th>
-      <th style="width:13%">Days Signed</th>
     </tr></thead><tbody>`;
   filtered.forEach(p => {
-    const att = attendanceByDay;
-    const daysSigned = Object.entries(att)
-      .filter(([, set]) => set.has(p.id))
-      .map(([d]) => d).sort().join(', ') || '&mdash;';
     const regTypeBadge = p.reg_type === 'Walk-in'
       ? '<span style="background:#fff3e8;color:var(--orange);font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px">Walk-in</span>'
       : '<span style="background:#f0f9f4;color:#005c2a;font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px">Pre-reg</span>';
@@ -138,9 +132,7 @@ function filterParticipants() {
       <td>${esc(p.sex) || '&mdash;'}</td>
       <td title="${esc(p.org)}">${esc(p.org)}</td>
       <td>${esc(p.position_title) || '&mdash;'}</td>
-      <td>${esc(p.prog) || '&mdash;'}</td>
       <td>${regTypeBadge}</td>
-      <td style="font-size:12px">${daysSigned}</td>
     </tr>`;
   });
   html += `</tbody></table></div>`;
