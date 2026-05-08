@@ -41,7 +41,7 @@ async function init() {
 async function loadParticipants() {
   const [{ data: parts }, { data: att }] = await Promise.all([
     db.from('participants').select('*').eq('event_id', eventId).order('code', { ascending: true }),
-    db.from('attendance').select('day').eq('event_id', eventId)
+    db.from('attendance').select('day, participant_id').eq('event_id', eventId)
   ]);
   allParticipants = parts || [];
   // Build day counts and signed set
