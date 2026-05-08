@@ -46,7 +46,9 @@ async function loadParticipants() {
     window._attendanceByDay[a.day] = (window._attendanceByDay[a.day] || 0) + 1;
   });
   renderStats();
-  filterParticipants();
+  // Show search prompt on load — don't render list until user types
+  document.getElementById('participants-list').innerHTML =
+    '<div style="padding:2.5rem 1rem;text-align:center;color:var(--text-muted);font-size:13px">Type a name, code, or organisation to search.</div>';
 }
 
 function renderStats() {
