@@ -1029,13 +1029,18 @@ async function exportQRSheet() {
       const signUrl = BASE + 'sign.html?participant=' + p.id + '&event=' + currentEventId;
 
       // Generate QR as data URL via canvas
+      const qrApiUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=' + QR_SIZE + 'x' + QR_SIZE + '&data=' + encodeURIComponent(signUrl);
       const qrDataUrl = await new Promise((resolve, reject) => {
-        const canvas = document.createElement('canvas');
-        QRCode.toCanvas(canvas, signUrl, { width: QR_SIZE, margin: 1,
-          color: { dark: '#000000', light: '#ffffff' } }, err => {
-          if (err) reject(err);
-          else resolve(canvas.toDataURL('image/png'));
-        });
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => {
+          const c = document.createElement('canvas');
+          c.width = QR_SIZE; c.height = QR_SIZE;
+          c.getContext('2d').drawImage(img, 0, 0, QR_SIZE, QR_SIZE);
+          resolve(c.toDataURL('image/png'));
+        };
+        img.onerror = reject;
+        img.src = qrApiUrl;
       });
 
       // Page break
@@ -1102,8 +1107,13 @@ function showCheckinQR(eventId, eventName) {
   const url = BASE_URL + 'checkin.html?event=' + eventId;
   document.getElementById('qr-event-name').textContent = eventName;
   const canvas = document.getElementById('checkin-qr-canvas');
-  QRCode.toCanvas(canvas, url, { width: 240, margin: 2,
-    color: { dark: '#000000', light: '#ffffff' } }, () => {});
+  const ctx = canvas.getContext('2d');
+  canvas.width = 240; canvas.height = 240;
+  ctx.fillStyle = '#ffffff'; ctx.fillRect(0,0,240,240);
+  const qrImg = new Image();
+  qrImg.crossOrigin = 'anonymous';
+  qrImg.onload = () => ctx.drawImage(qrImg, 0, 0, 240, 240);
+  qrImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=' + encodeURIComponent(url);
   document.getElementById('checkin-qr-modal').style.display = 'flex';
 }
 

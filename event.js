@@ -470,12 +470,18 @@ async function exportEventQRSheet() {
 
     for (const p of allParticipants) {
       const signUrl = BASE + 'sign.html?participant=' + p.id + '&event=' + eventId;
+      const qrApiUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=' + QR_SIZE + 'x' + QR_SIZE + '&data=' + encodeURIComponent(signUrl);
       const qrDataUrl = await new Promise((resolve, reject) => {
-        const canvas = document.createElement('canvas');
-        QRCode.toCanvas(canvas, signUrl, { width: QR_SIZE, margin: 1,
-          color: { dark: '#000000', light: '#ffffff' } }, err => {
-          if (err) reject(err); else resolve(canvas.toDataURL('image/png'));
-        });
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => {
+          const c = document.createElement('canvas');
+          c.width = QR_SIZE; c.height = QR_SIZE;
+          c.getContext('2d').drawImage(img, 0, 0, QR_SIZE, QR_SIZE);
+          resolve(c.toDataURL('image/png'));
+        };
+        img.onerror = reject;
+        img.src = qrApiUrl;
       });
 
       if (y + CELL_H > H - 20) { doc.addPage(); y = 20; }
