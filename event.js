@@ -11,7 +11,33 @@ let currentFilter = 'all';
 let currentFilterDay = 'Day 1';
 let attendanceByDay = {}; // day -> Set of participant_ids
 
+function goBackToEvents() {
+  window.location.href = BASE_URL + 'admin.html';
+}
+
+function openPreReg() { window.open(BASE_URL + 'index.html?event=' + eventId, '_blank'); }
+function openWalkin() { window.open(BASE_URL + 'index.html?event=' + eventId + '&walkin=1', '_blank'); }
+
+async function viewSig(participantId, day, e) {
+  e.stopPropagation();
+  const { data: att } = await db.from('attendance')
+    .select('signature_url').eq('participant_id', participantId)
+    .eq('event_id', eventId).eq('day', day).single();
+  if (att?.signature_url) window.open(att.signature_url, '_blank');
+}
+
+async function generateEventCertificates() {
+  // Redirect to admin with this event pre-selected
+  window.location.href = BASE_URL + 'admin.html?certEvent=' + eventId;
+}
+
 async function init() {
+  // Show Back to Events button if opened from admin
+  const fromAdmin = new URLSearchParams(window.location.search).get('from') === 'admin';
+  if (fromAdmin) {
+    document.getElementById('back-to-events-btn').style.display = 'inline-block';
+    document.getElementById('cert-btn').style.display = 'inline-block';
+  }
   if (!eventId) { document.getElementById('no-event').style.display = 'block'; return; }
 
   const { data: ev, error } = await db.from('events').select('*').eq('id', eventId).single();
@@ -122,14 +148,25 @@ function filterParticipants() {
   }
   let html = `<div style="overflow-x:auto"><table id="participants-table">
     <thead><tr>
-      <th style="width:11%">Code</th>
-      <th style="width:26%">Name</th>
-      <th style="width:8%">Sex</th>
-      <th style="width:26%">Organization</th>
-      <th style="width:20%">Position</th>
-      <th style="width:9%">Type</th>
+      <th style="width:9%">Code</th>
+      <th style="width:16%">Name</th>
+      <th style="width:6%">Sex</th>
+      <th style="width:16%">Organization</th>
+      <th style="width:13%">Position</th>
+      <th style="width:13%">Program</th>
+      <th style="width:8%">Type</th>
+      <th style="width:11%">Days Signed</th>
+      <th style="width:8%">Signature</th>
     </tr></thead><tbody>`;
   filtered.forEach(p => {
+    const pAtt = attendanceByDay;
+    const daysSigned = Object.entries(pAtt)
+      .filter(([, set]) => set.has(p.id))
+      .map(([d]) => d).sort().join(', ') || '&mdash;';
+    const sigLinks = Object.entries(pAtt)
+      .filter(([, set]) => set.has(p.id))
+      .map(([d]) => `<a href="#" style="font-size:10px;color:var(--orange)" onclick="viewSig('${p.id}','${d}',event)">${d}</a>`)
+      .join(' ');
     const regTypeBadge = p.reg_type === 'Walk-in'
       ? '<span style="background:#fff3e8;color:var(--orange);font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px">Walk-in</span>'
       : '<span style="background:#f0f9f4;color:#005c2a;font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px">Pre-reg</span>';
@@ -139,7 +176,10 @@ function filterParticipants() {
       <td>${esc(p.sex) || '&mdash;'}</td>
       <td title="${esc(p.org)}">${esc(p.org)}</td>
       <td>${esc(p.position_title) || '&mdash;'}</td>
+      <td>${esc(p.prog) || '&mdash;'}</td>
       <td>${regTypeBadge}</td>
+      <td style="font-size:12px">${daysSigned}</td>
+      <td style="font-size:11px">${sigLinks || '&mdash;'}</td>
     </tr>`;
   });
   html += `</tbody></table></div>`;
@@ -155,13 +195,9 @@ function filterParticipants() {
   }
 }
 
-function openPreReg() {
-  window.open(BASE_URL + 'index.html?event=' + eventId, '_blank');
-}
 
-function openWalkin() {
-  window.open(BASE_URL + 'index.html?event=' + eventId + '&walkin=1', '_blank');
-}
+
+
 
 function openSignForm(participantId) {
   window.open(BASE_URL + 'sign.html?participant=' + participantId + '&event=' + eventId, '_blank');

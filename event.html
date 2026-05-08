@@ -26,7 +26,8 @@
 
     <div class="event-body">
       <div class="reg-nav">
-        <span class="reg-form-title">Participant Search Form</span>
+        <span class="reg-form-title">Participants</span>
+        <button class="reg-back-btn" id="back-to-events-btn" style="display:none" onclick="goBackToEvents()">← Back to Events</button>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
           <button class="reg-back-btn" onclick="exportEventPDF()">Export PDF</button>
           <button class="btn-action-red" onclick="openUnsigned()">Not yet signed</button>
@@ -46,6 +47,9 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
   <script src="event.js"></script>
