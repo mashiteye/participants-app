@@ -188,11 +188,35 @@ async function registerParticipant() {
     payload.signature = sigCanvas.toDataURL('image/png');
   }
 
-  const { error } = await db.from('participants').insert([payload]);
+  const { data: inserted, error } = await db.from('participants').insert([payload]).select().single();
   btn.textContent = isWalkin ? 'Submit & Sign' : 'Submit & Register';
   btn.disabled = false;
 
   if (error) { errEl.textContent = 'Error: ' + error.message; errEl.style.display = 'block'; return; }
+
+  // Walk-in: create attendance record immediately with signature
+  if (isWalkin && inserted && payload.signature) {
+    try {
+      const day = payload.day_attended || 'Day 1';
+      // Convert base64 dataURL to Blob without fetch()
+      const base64 = payload.signature.split(',')[1];
+      const binary = atob(base64);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      const sigBlob = new Blob([bytes], { type: 'image/png' });
+      const path = eventId + '/' + inserted.id + '/' + day.replace(' ', '_') + '_' + Date.now() + '.png';
+      const { error: upErr } = await db.storage.from('signatures').upload(path, sigBlob, { contentType: 'image/png' });
+      if (!upErr) {
+        const { data: { publicUrl } } = db.storage.from('signatures').getPublicUrl(path);
+        await db.from('attendance').insert([{
+          participant_id: inserted.id,
+          event_id: eventId,
+          day,
+          signature_url: publicUrl
+        }]);
+      }
+    } catch(e) { console.warn('Auto-attendance failed:', e.message); }
+  }
 
   ['f-name','f-org','f-prog','f-position','f-email','f-phone','f-mel'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('f-sex').value = '';
