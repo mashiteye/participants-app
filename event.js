@@ -364,3 +364,72 @@ async function exportEventPDF() {
 function openUnsigned() {
   window.open(BASE_URL + 'unsigned.html?event=' + eventId, '_blank');
 }
+
+async function exportEventQRSheet() {
+  const btn = document.getElementById('qr-sheet-btn');
+  if (btn) { btn.textContent = 'Building...'; btn.disabled = true; }
+  try {
+    const { jsPDF } = window.jspdf;
+    const evName = document.getElementById('event-name').textContent;
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
+    const W = doc.internal.pageSize.getWidth();
+    const H = doc.internal.pageSize.getHeight();
+    const MARGIN = 30;
+
+    doc.setFillColor(235, 0, 27);   doc.rect(0, 0, W * 0.4, 40, 'F');
+    doc.setFillColor(255, 95, 0);   doc.rect(W * 0.4, 0, W * 0.35, 40, 'F');
+    doc.setFillColor(247, 158, 27); doc.rect(W * 0.75, 0, W * 0.25, 40, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(13); doc.setFont('helvetica', 'bold');
+    doc.text(evName, MARGIN, 18);
+    doc.setFontSize(8); doc.setFont('helvetica', 'normal');
+    doc.text('Participant QR Codes  ·  Scan to sign attendance', MARGIN, 32);
+
+    const BASE = window.location.origin + window.location.pathname.replace('event.html', '');
+    const COLS = 3;
+    const CELL_W = (W - MARGIN * 2) / COLS;
+    const QR_SIZE = 90;
+    const CELL_H = QR_SIZE + 55;
+    let x = MARGIN, y = 55, col = 0;
+
+    for (const p of allParticipants) {
+      const signUrl = BASE + 'sign.html?participant=' + p.id + '&event=' + eventId;
+      const qrDataUrl = await new Promise((resolve, reject) => {
+        const canvas = document.createElement('canvas');
+        QRCode.toCanvas(canvas, signUrl, { width: QR_SIZE, margin: 1,
+          color: { dark: '#000000', light: '#ffffff' } }, err => {
+          if (err) reject(err); else resolve(canvas.toDataURL('image/png'));
+        });
+      });
+
+      if (y + CELL_H > H - 20) { doc.addPage(); y = 20; }
+
+      doc.setDrawColor(220, 220, 220);
+      doc.setFillColor(255, 255, 255);
+      doc.roundedRect(x + 4, y + 2, CELL_W - 8, CELL_H - 4, 6, 6, 'FD');
+      doc.addImage(qrDataUrl, 'PNG', x + (CELL_W - QR_SIZE) / 2, y + 8, QR_SIZE, QR_SIZE);
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(11);
+      doc.setTextColor(255, 95, 0);
+      doc.text(p.code || '—', x + CELL_W / 2, y + QR_SIZE + 20, { align: 'center' });
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(8);
+      doc.setTextColor(0, 0, 0);
+      doc.text((p.name||'').slice(0,22), x + CELL_W / 2, y + QR_SIZE + 33, { align: 'center' });
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(7);
+      doc.setTextColor(100, 100, 100);
+      doc.text((p.org||'').slice(0,25), x + CELL_W / 2, y + QR_SIZE + 44, { align: 'center' });
+
+      col++;
+      if (col >= COLS) { col = 0; x = MARGIN; y += CELL_H; } else { x += CELL_W; }
+    }
+
+    const pages = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= pages; i++) {
+      doc.setPage(i);
+      doc.setFontSize(6.5); doc.setTextColor(150, 150, 150);
+      doc.text('Page ' + i + ' of ' + pages + '  ·  ' + evName, MARGIN, H - 10);
+    }
+
+    doc.save('qr-codes-' + evName.replace(/\s+/g, '-') + '.pdf');
+  } catch(e) { alert('QR export failed: ' + e.message); }
+  finally { if (btn) { btn.textContent = 'Export QR Sheet'; btn.disabled = false; } }
+}
