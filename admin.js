@@ -934,6 +934,44 @@ async function confirmImport() {
     code: prefix + '-' + String(nextNum++).padStart(3, '0')
   }));
 
+  // Check for duplicates against existing participants
+  const { data: existing } = await db.from('participants')
+    .select('name, phone, code').eq('event_id', eventId);
+
+  function lev(a, b) {
+    a = a.toLowerCase().trim(); b = b.toLowerCase().trim();
+    const m = a.length, n = b.length;
+    const dp = Array.from({length:m+1},(_,i)=>[i,...Array(n).fill(0)]);
+    for(let j=0;j<=n;j++) dp[0][j]=j;
+    for(let i=1;i<=m;i++) for(let j=1;j<=n;j++)
+      dp[i][j]=a[i-1]===b[j-1]?dp[i-1][j-1]:1+Math.min(dp[i-1][j],dp[i][j-1],dp[i-1][j-1]);
+    return dp[m][n];
+  }
+  function normPhone(p) { return (p||'').replace(/[\s\-().+]/g,'').replace(/^233/,'0').replace(/^0+/,'0'); }
+  function simScore(a,b) { const mx=Math.max(a.length,b.length); return mx?1-lev(a,b)/mx:1; }
+
+  const dupWarnings = [];
+  payload.forEach((row, i) => {
+    for (const ex of (existing||[])) {
+      const samePhone = normPhone(row.phone) && normPhone(row.phone) === normPhone(ex.phone);
+      const sim = simScore(row.name, ex.name);
+      if (samePhone || sim >= 0.80) {
+        dupWarnings.push(`Row ${i+1} "${row.name}" — similar to existing participant "${ex.name}" (${ex.code})`);
+        break;
+      }
+    }
+  });
+
+  if (dupWarnings.length) {
+    const proceed = confirm(
+      dupWarnings.length + ' possible duplicate(s) found:\n\n' +
+      dupWarnings.slice(0,5).join('\n') +
+      (dupWarnings.length > 5 ? '\n...and ' + (dupWarnings.length-5) + ' more.' : '') +
+      '\n\nProceed with import anyway?'
+    );
+    if (!proceed) { btn.textContent = 'Import ' + importValidRows.length + ' participants'; btn.disabled = false; return; }
+  }
+
   // Insert in batches of 20
   let inserted = 0;
   for (let i = 0; i < payload.length; i += 20) {

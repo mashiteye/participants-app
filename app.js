@@ -184,6 +184,16 @@ async function registerParticipant() {
   }
   errEl.style.display = 'none';
 
+  // Duplicate check — only if not bypassed
+  if (!window._dupBypass) {
+    const dup = await checkDuplicates(name, phone);
+    if (dup) {
+      showDupWarning(dup, name, phone);
+      return;
+    }
+  }
+  window._dupBypass = false;
+
   const btn = document.getElementById('submit-btn');
   btn.textContent = 'Submitting...'; btn.disabled = true;
 
@@ -246,8 +256,95 @@ async function registerParticipant() {
   modal.style.display = 'flex';
 }
 
+function showDupWarning(dup, name, phone) {
+  const p = dup.participant;
+  const messages = {
+    both: 'Very likely duplicate — same phone number and similar name already registered.',
+    phone: 'Same phone number already registered under a different name.',
+    name: 'Similar name already registered in this event.'
+  };
+  document.getElementById('dup-title').textContent = messages[dup.type];
+  document.getElementById('dup-details').innerHTML =
+    `<p style="margin-bottom:4px"><strong>Existing:</strong> ${p.name}</p>` +
+    `<p style="margin-bottom:4px"><strong>Code:</strong> <span style="font-family:monospace;color:var(--orange);font-weight:700">${p.code || '—'}</span></p>` +
+    `<p style="margin-bottom:4px"><strong>Organisation:</strong> ${p.org || '—'}</p>` +
+    `<p><strong>Phone:</strong> ${p.phone || '—'}</p>`;
+  const modal = document.getElementById('dup-modal');
+  modal.style.display = 'flex';
+}
+
+function closeDupModal() {
+  document.getElementById('dup-modal').style.display = 'none';
+  window._dupBypass = false;
+}
+
+function proceedDespiteDuplicate() {
+  document.getElementById('dup-modal').style.display = 'none';
+  window._dupBypass = true;
+  registerParticipant();
+}
+
 function closeSuccessModal() {
   document.getElementById('success-modal').style.display = 'none';
 }
 
 init();
+
+// ── Duplicate detection ──
+function levenshtein(a, b) {
+  a = a.toLowerCase().trim();
+  b = b.toLowerCase().trim();
+  const m = a.length, n = b.length;
+  const dp = Array.from({ length: m + 1 }, (_, i) => [i, ...Array(n).fill(0)]);
+  for (let j = 0; j <= n; j++) dp[0][j] = j;
+  for (let i = 1; i <= m; i++)
+    for (let j = 1; j <= n; j++)
+      dp[i][j] = a[i-1] === b[j-1]
+        ? dp[i-1][j-1]
+        : 1 + Math.min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1]);
+  return dp[m][n];
+}
+
+function nameSimilarity(a, b) {
+  a = a.toLowerCase().trim();
+  b = b.toLowerCase().trim();
+  const maxLen = Math.max(a.length, b.length);
+  if (maxLen === 0) return 1;
+  return 1 - levenshtein(a, b) / maxLen;
+}
+
+function normalisePhone(p) {
+  if (!p) return '';
+  return p.replace(/[\s\-().+]/g, '').replace(/^233/, '0').replace(/^0+/, '0');
+}
+
+async function checkDuplicates(name, phone) {
+  const { data } = await db.from('participants')
+    .select('id, name, phone, code, org')
+    .eq('event_id', eventId);
+  if (!data || !data.length) return null;
+
+  const normPhone = normalisePhone(phone);
+  const results = [];
+
+  for (const p of data) {
+    const samePhone = normPhone && normalisePhone(p.phone) === normPhone;
+    const nameSim = nameSimilarity(name, p.name);
+    const fuzzyName = nameSim >= 0.80;
+
+    if (samePhone && fuzzyName) {
+      results.push({ participant: p, type: 'both', sim: nameSim });
+    } else if (samePhone) {
+      results.push({ participant: p, type: 'phone', sim: nameSim });
+    } else if (fuzzyName) {
+      results.push({ participant: p, type: 'name', sim: nameSim });
+    }
+  }
+
+  // Return highest confidence match
+  if (!results.length) return null;
+  return results.sort((a, b) => {
+    const rank = { both: 3, phone: 2, name: 1 };
+    return rank[b.type] - rank[a.type];
+  })[0];
+}
