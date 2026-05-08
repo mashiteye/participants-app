@@ -57,6 +57,19 @@
             <label>Pre-registration comment or question for participants (optional)</label>
             <input type="text" id="e-mel" placeholder="e.g. What is your biggest M&E challenge?" oninput="toggleMelRequired('e')" />
           </div>
+          <div class="form-group">
+            <label>Signatory name (for certificates)</label>
+            <input type="text" id="e-signatory-name" placeholder="e.g. Dr. Michael Ashiteye" />
+          </div>
+          <div class="form-group">
+            <label>Signatory title</label>
+            <input type="text" id="e-signatory-title" placeholder="e.g. Executive Director, METSS LBG" />
+          </div>
+          <div class="form-group full">
+            <label>Signatory signature image (PNG/JPG)</label>
+            <input type="file" id="e-signatory-sig" accept="image/png,image/jpeg" style="border:1px solid var(--border-strong);padding:8px;border-radius:8px" />
+            <p style="font-size:11px;color:var(--text-muted);margin-top:4px">Upload a signature image to appear on certificates</p>
+          </div>
           <div class="form-group full" id="e-mel-required-group" style="display:none">
             <label>Response required?</label>
             <div class="toggle-group" style="max-width:260px">
@@ -128,6 +141,19 @@
             <label>Pre-registration comment or question for participants (optional)</label>
             <input type="text" id="edit-mel" oninput="toggleMelRequired('edit')" />
           </div>
+          <div class="form-group">
+            <label>Signatory name (for certificates)</label>
+            <input type="text" id="edit-signatory-name" placeholder="e.g. Dr. Michael Ashiteye" />
+          </div>
+          <div class="form-group">
+            <label>Signatory title</label>
+            <input type="text" id="edit-signatory-title" placeholder="e.g. Executive Director, METSS LBG" />
+          </div>
+          <div class="form-group full">
+            <label>Signatory signature image (PNG/JPG — leave blank to keep existing)</label>
+            <input type="file" id="edit-signatory-sig" accept="image/png,image/jpeg" style="border:1px solid var(--border-strong);padding:8px;border-radius:8px" />
+            <p style="font-size:11px;color:var(--text-muted);margin-top:4px" id="edit-signatory-current"></p>
+          </div>
           <div class="form-group full" id="edit-mel-required-group" style="display:none">
             <label>Response required?</label>
             <div class="toggle-group" style="max-width:260px">
@@ -178,6 +204,7 @@
           <button class="btn-sm" style="background:var(--yellow);border-color:var(--yellow);color:var(--black);font-weight:600" onclick="openRegLink()">Pre-reg form</button>
           <button class="btn-action-orange" onclick="openWalkinLink()">Walk-in form</button>
           <button class="btn-action-red" onclick="exportPDF()">Export PDF</button>
+          <button class="btn-sm" style="background:var(--yellow);border-color:var(--yellow);color:var(--black);font-weight:700" onclick="generateCertificates()">🎓 Certificates</button>
           <button class="btn-sm" style="background:var(--black);color:white;border-color:var(--black)" onclick="exportQRSheet()">Export QR Sheet</button>
         </div>
       </div>

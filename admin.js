@@ -40,12 +40,23 @@ async function submitEvent() {
     if (error) { errEl.textContent = 'Error: ' + error.message; errEl.style.display = 'inline'; return; }
     if (!data || !data.length) { errEl.textContent = 'No data returned.'; errEl.style.display = 'inline'; return; }
 
-    ['e-name','e-organizer','e-date','e-mel','e-code','e-prog-other'].forEach(id => document.getElementById(id).value = '');
+    ['e-name','e-organizer','e-date','e-mel','e-code','e-prog-other','e-signatory-name','e-signatory-title','e-signatory-sig'].forEach(id => document.getElementById(id).value = '');
     setMelRequired('e', false);
     document.getElementById('e-mel-required-group').style.display = 'none';
     document.getElementById('e-prog').selectedIndex = 0;
     document.getElementById('e-days').selectedIndex = 0;
     document.getElementById('e-prog-other-group').style.display = 'none';
+
+    // Upload signatory signature if provided
+    const sigFile = document.getElementById('e-signatory-sig').files[0];
+    if (sigFile && data[0]) {
+      const path = 'signatories/' + data[0].id + '.' + sigFile.name.split('.').pop();
+      const { error: upErr } = await db.storage.from('signatures').upload(path, sigFile, { contentType: sigFile.type, upsert: true });
+      if (!upErr) {
+        const { data: { publicUrl } } = db.storage.from('signatures').getPublicUrl(path);
+        await db.from('events').update({ signatory_signature_url: publicUrl }).eq('id', data[0].id);
+      }
+    }
 
     document.getElementById('share-link').textContent = BASE_URL + 'index.html?event=' + data[0].id;
     showPane('link');
@@ -301,6 +312,10 @@ function openEdit(e) {
   document.getElementById('edit-organizer').value = e.organizer || '';
   document.getElementById('edit-date').value = e.event_date || '';
   document.getElementById('edit-mel').value = e.mel_question || '';
+  document.getElementById('edit-signatory-name').value = e.signatory_name || '';
+  document.getElementById('edit-signatory-title').value = e.signatory_title || '';
+  const sigCurrent = document.getElementById('edit-signatory-current');
+  sigCurrent.textContent = e.signatory_signature_url ? 'Current signature on file ✓' : 'No signature uploaded yet';
   toggleMelRequired('edit');
   if (e.mel_question_required) setMelRequired('edit', true);
   else setMelRequired('edit', false);
@@ -350,6 +365,8 @@ async function saveEdit() {
     days: parseInt(document.getElementById('edit-days').value) || 1,
     mel_question: document.getElementById('edit-mel').value.trim() || null,
     mel_question_required: document.getElementById('edit-mel-required').value === 'true',
+    signatory_name: document.getElementById('edit-signatory-name').value.trim() || null,
+    signatory_title: document.getElementById('edit-signatory-title').value.trim() || null,
     event_code: document.getElementById('edit-code').value.trim().toUpperCase() || null
   }).eq('id', document.getElementById('edit-id').value);
 
@@ -1132,4 +1149,178 @@ function downloadCheckinQR() {
   a.href = canvas.toDataURL('image/png');
   a.download = 'checkin-qr-' + currentCheckinEventName.replace(/\s+/g,'-') + '.png';
   a.click();
+}
+
+// ── Certificate Generation ──
+async function generateCertificates() {
+  const btn = [...document.querySelectorAll('.btn-sm')].find(b => b.textContent === '🎓 Certificates');
+  if (btn) { btn.textContent = 'Building...'; btn.disabled = true; }
+
+  try {
+    const { jsPDF } = window.jspdf;
+    const eventName = document.getElementById('view-event-name').textContent;
+
+    // Fetch event details including signatory
+    const { data: ev } = await db.from('events').select('*').eq('id', currentEventId).single();
+    if (!ev) { alert('Event not found.'); return; }
+
+    // Fetch attendance to know who signed
+    const { data: attendance } = await db.from('attendance')
+      .select('participant_id').eq('event_id', currentEventId);
+    const signedIds = new Set((attendance || []).map(a => a.participant_id));
+
+    // Only participants who signed at least one day
+    const eligible = currentParticipants.filter(p => signedIds.has(p.id));
+    if (!eligible.length) {
+      alert('No participants have signed attendance yet. Certificates can only be generated for participants who attended.');
+      return;
+    }
+
+    // Pre-load banner and signatory signature
+    async function loadImage(url) {
+      try {
+        const res = await fetch(url);
+        const blob = await res.blob();
+        return await new Promise(resolve => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.readAsDataURL(blob);
+        });
+      } catch { return null; }
+    }
+
+    const bannerB64 = await loadImage(window.location.origin + window.location.pathname.replace('admin.html','') + 'banner.jpg');
+    const sigB64 = ev.signatory_signature_url ? await loadImage(ev.signatory_signature_url) : null;
+
+    const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
+    const W = doc.internal.pageSize.getWidth();
+    const H = doc.internal.pageSize.getHeight();
+
+    const dateStr = ev.event_date
+      ? new Date(ev.event_date).toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' })
+      : new Date().toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' });
+
+    eligible.forEach((p, idx) => {
+      if (idx > 0) doc.addPage();
+
+      // Background
+      doc.setFillColor(255, 255, 255);
+      doc.rect(0, 0, W, H, 'F');
+
+      // Top colour band — full width
+      doc.setFillColor(235, 0, 27);
+      doc.rect(0, 0, W * 0.4, 18, 'F');
+      doc.setFillColor(255, 95, 0);
+      doc.rect(W * 0.4, 0, W * 0.4, 18, 'F');
+      doc.setFillColor(247, 158, 27);
+      doc.rect(W * 0.8, 0, W * 0.2, 18, 'F');
+
+      // Bottom colour band
+      doc.setFillColor(0, 0, 0);
+      doc.rect(0, H - 18, W, 18, 'F');
+
+      // Left sidebar — black
+      doc.setFillColor(0, 0, 0);
+      doc.rect(0, 18, 52, H - 36, 'F');
+
+      // Sidebar text — rotated "CERTIFICATE OF PARTICIPATION"
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(8); doc.setFont('helvetica', 'bold');
+      doc.text('CERTIFICATE OF PARTICIPATION', 28, H - 60, { angle: 90, align: 'center' });
+
+      // Banner image on right side
+      if (bannerB64) {
+        doc.addImage(bannerB64, 'JPEG', W - 220, 18, 220, H - 36);
+        // Overlay gradient to fade banner into white
+        doc.setFillColor(255, 255, 255);
+        doc.setGState(new doc.GState({ opacity: 0.6 }));
+        doc.rect(W - 220, 18, 220, H - 36, 'F');
+        doc.setGState(new doc.GState({ opacity: 1 }));
+      }
+
+      // Yellow accent line
+      doc.setFillColor(247, 158, 27);
+      doc.rect(52, 50, 4, H - 86, 'F');
+
+      // Content area
+      const CX = 80; // content x start
+
+      // "This is to certify that"
+      doc.setTextColor(100, 100, 100);
+      doc.setFontSize(12); doc.setFont('helvetica', 'normal');
+      doc.text('This is to certify that', CX, 90);
+
+      // Participant name — large, red
+      doc.setTextColor(235, 0, 27);
+      doc.setFontSize(32); doc.setFont('helvetica', 'bold');
+      const nameText = p.name || '';
+      doc.text(nameText, CX, 135);
+
+      // Underline under name
+      const nameW = doc.getTextWidth(nameText);
+      doc.setDrawColor(247, 158, 27);
+      doc.setLineWidth(2);
+      doc.line(CX, 142, CX + Math.min(nameW, W - 280), 142);
+
+      // Position and org
+      doc.setTextColor(60, 60, 60);
+      doc.setFontSize(11); doc.setFont('helvetica', 'normal');
+      const detailLine = [p.position_title, p.org].filter(Boolean).join(' · ');
+      if (detailLine) doc.text(detailLine, CX, 162);
+
+      // Body text
+      doc.setFontSize(12); doc.setFont('helvetica', 'normal');
+      doc.setTextColor(40, 40, 40);
+      doc.text('has successfully participated in', CX, 195);
+
+      // Event name — orange bold
+      doc.setFontSize(18); doc.setFont('helvetica', 'bold');
+      doc.setTextColor(255, 95, 0);
+      const evNameLines = doc.splitTextToSize(eventName, W - 320);
+      doc.text(evNameLines, CX, 222);
+
+      // Organizer + date
+      doc.setFontSize(11); doc.setFont('helvetica', 'normal');
+      doc.setTextColor(80, 80, 80);
+      const orgLine = [ev.organizer, dateStr].filter(Boolean).join('   ·   ');
+      doc.text(orgLine, CX, 222 + evNameLines.length * 22 + 10);
+
+      // Code badge
+      const codeY = H - 100;
+      doc.setFillColor(247, 158, 27);
+      doc.roundedRect(CX, codeY - 16, 100, 22, 4, 4, 'F');
+      doc.setTextColor(0, 0, 0);
+      doc.setFontSize(10); doc.setFont('helvetica', 'bold');
+      doc.text(p.code || '', CX + 50, codeY - 1, { align: 'center' });
+
+      // Signatory section
+      const sigX = CX;
+      const sigY = H - 80;
+
+      if (sigB64) {
+        doc.addImage(sigB64, 'PNG', sigX, sigY - 40, 120, 35);
+      }
+
+      // Signature line
+      doc.setDrawColor(0, 0, 0);
+      doc.setLineWidth(0.5);
+      doc.line(sigX, sigY, sigX + 160, sigY);
+
+      doc.setTextColor(0, 0, 0);
+      doc.setFontSize(10); doc.setFont('helvetica', 'bold');
+      doc.text(ev.signatory_name || 'Authorised Signatory', sigX, sigY + 13);
+
+      doc.setFontSize(8); doc.setFont('helvetica', 'normal');
+      doc.setTextColor(100, 100, 100);
+      doc.text(ev.signatory_title || '', sigX, sigY + 24);
+    });
+
+    doc.save('certificates-' + eventName.replace(/\s+/g,'-') + '-' + new Date().toISOString().slice(0,10) + '.pdf');
+
+  } catch(e) {
+    alert('Certificate generation failed: ' + e.message);
+    console.error(e);
+  } finally {
+    if (btn) { btn.textContent = '🎓 Certificates'; btn.disabled = false; }
+  }
 }
