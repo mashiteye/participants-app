@@ -733,12 +733,19 @@ async function exportPDF() {
 let importRows = [];
 let importValidRows = [];
 
-function promptImport() {
-  document.getElementById('import-pwd').value = '';
-  document.getElementById('import-pwd-err').style.display = 'none';
-  showImportStep('pwd');
+async function promptImport() {
+  showImportStep('upload');
   document.getElementById('import-modal').style.display = 'flex';
-  setTimeout(() => document.getElementById('import-pwd').focus(), 100);
+
+  // Load events into selector
+  const { data: events } = await db.from('events').select('id, name').order('created_at', { ascending: false });
+  const sel = document.getElementById('import-event-sel');
+  sel.innerHTML = '<option value="">-- Select event --</option>';
+  (events || []).forEach(e => {
+    const opt = document.createElement('option');
+    opt.value = e.id; opt.textContent = e.name;
+    sel.appendChild(opt);
+  });
 }
 
 function closeImport() {
@@ -756,27 +763,7 @@ function showImportStep(step) {
   });
 }
 
-async function checkImportPwd() {
-  const pwd = document.getElementById('import-pwd').value;
-  if (pwd !== 'METSSLBG') {
-    document.getElementById('import-pwd-err').style.display = 'block';
-    document.getElementById('import-pwd').value = '';
-    return;
-  }
-  document.getElementById('import-pwd-err').style.display = 'none';
 
-  // Load events into selector
-  const { data: events } = await db.from('events').select('id, name').order('created_at', { ascending: false });
-  const sel = document.getElementById('import-event-sel');
-  sel.innerHTML = '<option value="">-- Select event --</option>';
-  (events || []).forEach(e => {
-    const opt = document.createElement('option');
-    opt.value = e.id; opt.textContent = e.name;
-    sel.appendChild(opt);
-  });
-
-  showImportStep('upload');
-}
 
 function downloadTemplate() {
   const csv = 'Name,Sex,Organization,Program,Position,Email,Phone\nAma Asante,Female,METSS LBG,A2F MEL Support,MEL Officer,ama@metss.com,0244000001\n';
