@@ -111,16 +111,35 @@ async function loadEvents() {
           <span class="count-label">participants</span>
         </div>
       </div>
-      <div class="event-card-actions">
-        <button class="btn-action-red btn-sm" style="background:var(--red);color:white;border:none;font-weight:600" onclick="viewParticipants('${e.id}','${esc(e.name)}')">View participants</button>
-        <button class="btn-sm" onclick="fetchAndEdit('${e.id}')">Edit</button>
-        <button class="btn-sm" style="background:var(--yellow);border-color:var(--yellow);color:var(--black);font-weight:600" onclick="openImportForEvent('${e.id}','${esc(e.name)}')">↑ Import CSV</button>
-        <button class="btn-sm" style="background:var(--yellow);border-color:var(--yellow);color:var(--black);font-weight:600" onclick="copyEventLink('${e.id}','prereg',this)">Copy pre-reg link</button>
-        <button class="btn-sm" style="background:var(--yellow);border-color:var(--yellow);color:var(--black);font-weight:600" onclick="copyEventLink('${e.id}','walkin',this)">Copy walk-in link</button>
-        <button class="btn-sm" style="background:var(--yellow);border-color:var(--yellow);color:var(--black);font-weight:600" onclick="copyEventLink('${e.id}','view',this)">Copy participant view</button>
-        <button class="btn-sm" style="background:var(--black);color:white;border-color:var(--black);font-weight:600" onclick="showCheckinQR('${e.id}','${esc(e.name)}')">Show Check-in QR</button>
-        <button class="btn-sm" onclick="copyCheckinLink('${e.id}',this)">Copy check-in link</button>
-        <button class="btn-sm danger" onclick="deleteEvent('${e.id}')">Delete</button>
+      <!-- Before Event -->
+      <div style="margin-top:10px">
+        <p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:6px;border-bottom:2px solid var(--yellow);padding-bottom:3px;display:inline-block">Before Event</p>
+        <div class="event-card-actions" style="margin-top:4px">
+          <button class="btn-sm" onclick="fetchAndEdit('${e.id}')">Edit Event</button>
+          <button class="btn-sm" style="background:var(--yellow);border-color:var(--yellow);color:var(--black);font-weight:600" onclick="openImportForEvent('${e.id}','${esc(e.name)}')">↑ Import CSV</button>
+          <button class="btn-sm" style="background:var(--yellow);border-color:var(--yellow);color:var(--black);font-weight:600" onclick="copyEventLink('${e.id}','prereg',this)">Copy & Share Pre-reg</button>
+        </div>
+      </div>
+
+      <!-- During Event -->
+      <div style="margin-top:10px">
+        <p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:6px;border-bottom:2px solid var(--orange);padding-bottom:3px;display:inline-block">During Event</p>
+        <div class="event-card-actions" style="margin-top:4px">
+          <button class="btn-action-red btn-sm" style="background:var(--red);color:white;border:none;font-weight:600" onclick="viewParticipants('${e.id}','${esc(e.name)}')">View Participants</button>
+          <button class="btn-sm" style="background:var(--yellow);border-color:var(--yellow);color:var(--black);font-weight:600" onclick="copyEventLink('${e.id}','walkin',this)">Copy & Share Walk-in</button>
+          <button class="btn-sm" style="background:var(--yellow);border-color:var(--yellow);color:var(--black);font-weight:600" onclick="copyEventLink('${e.id}','view',this)">Copy & Share Participant View</button>
+          <button class="btn-sm" style="background:var(--black);color:white;border-color:var(--black);font-weight:600" onclick="showCheckinQR('${e.id}','${esc(e.name)}')">Show Check-in QR</button>
+          <button class="btn-sm" onclick="copyCheckinLink('${e.id}',this)">Copy & Share Check-in</button>
+        </div>
+      </div>
+
+      <!-- After Event -->
+      <div style="margin-top:10px;margin-bottom:4px">
+        <p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:6px;border-bottom:2px solid var(--red);padding-bottom:3px;display:inline-block">After Event</p>
+        <div class="event-card-actions" style="margin-top:4px">
+          <button class="btn-sm" style="background:var(--yellow);border-color:var(--yellow);color:var(--black);font-weight:600" onclick="copyEventLink('${e.id}','view',this)">Export & Share Report</button>
+          <button class="btn-sm danger" onclick="deleteEvent('${e.id}')">Delete</button>
+        </div>
       </div>
     </div>`;
   });
