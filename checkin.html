@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Check In</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="no-event" style="display:none">
+    <div class="empty-state">
+      <p class="empty-title">Event not found</p>
+      <p class="empty-sub">Check your link and try again.</p>
+    </div>
+  </div>
+
+  <div id="event-ui" style="display:none">
+    <div class="reg-header">
+      <img src="banner.jpg" alt="" class="reg-header-banner" />
+      <div class="reg-header-content">
+        <p class="reg-header-sub" id="event-code-prog"></p>
+        <p class="reg-header-title" id="event-name"></p>
+        <p class="reg-header-meta" id="event-meta"></p>
+      </div>
+    </div>
+
+    <div class="reg-body" style="max-width:420px">
+      <div class="reg-nav">
+        <span class="reg-form-title">Attendance Check-in</span>
+        <button class="reg-back-btn" id="refresh-btn" onclick="window.location.reload()">↻ Refresh</button>
+      </div>
+
+      <!-- Error state -->
+      <div id="not-found-msg" style="display:none;background:#fff0f0;border:1px solid var(--red);border-radius:10px;padding:1rem;text-align:center;margin-bottom:1.25rem">
+        <p style="font-size:15px;font-weight:700;color:var(--red);margin-bottom:4px">Code not found</p>
+        <p style="font-size:13px;color:var(--text-muted)" id="not-found-detail"></p>
+      </div>
+
+      <!-- Code entry -->
+      <div id="code-entry">
+        <p style="font-size:14px;color:var(--text-muted);margin-bottom:1.25rem;text-align:center">Enter your participant code to sign attendance</p>
+
+        <div class="field-group">
+          <label>Participant Code</label>
+          <input type="text" id="code-input"
+            placeholder="e.g. MCF-001"
+            style="font-size:22px;font-weight:700;text-align:center;letter-spacing:0.08em;text-transform:uppercase;padding:14px"
+            oninput="this.value=this.value.toUpperCase()"
+            onkeydown="if(event.key==='Enter')findParticipant()" />
+        </div>
+
+        <button class="btn-submit" onclick="findParticipant()" id="find-btn">Find Me</button>
+
+        <div style="text-align:center;margin-top:1.25rem">
+          <p style="font-size:12px;color:var(--text-muted);margin-bottom:0.5rem">Not yet registered?</p>
+          <button class="btn-secondary" onclick="openWalkin()" style="font-size:13px">Walk-in Registration</button>
+        </div>
+      </div>
+
+      <!-- Participant found — confirm and sign -->
+      <div id="participant-found" style="display:none">
+        <div style="background:white;border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:1.25rem;margin-bottom:1.25rem;text-align:center">
+          <p style="font-size:13px;color:var(--text-muted);margin-bottom:4px">Welcome back</p>
+          <p style="font-size:20px;font-weight:800" id="found-name"></p>
+          <p style="font-size:12px;color:var(--text-muted);margin-top:4px" id="found-details"></p>
+          <p style="font-size:24px;font-weight:800;font-family:monospace;color:var(--orange);margin-top:8px" id="found-code"></p>
+        </div>
+
+        <!-- Day selection -->
+        <div class="field-group" id="found-day-group" style="display:none">
+          <label>Select Day *</label>
+          <div class="toggle-group" id="found-day-buttons"></div>
+          <input type="hidden" id="found-day" />
+        </div>
+
+        <!-- Signature -->
+        <div class="field-group">
+          <label>Signature *</label>
+          <div class="sig-container">
+            <canvas id="found-sig-canvas"></canvas>
+            <p class="sig-hint">Sign here</p>
+          </div>
+          <button class="btn-clear-sig" onclick="clearFoundSig()">Clear</button>
+        </div>
+
+        <span id="found-err" class="err-msg" style="display:none"></span>
+        <button class="btn-submit" id="sign-btn" onclick="submitFoundAttendance()">Sign Attendance</button>
+        <button class="btn-secondary" onclick="resetCheckin()" style="width:100%;margin-top:8px">← Try another code</button>
+      </div>
+
+      <!-- Success -->
+      <div id="checkin-success" style="display:none;text-align:center;padding:2rem 0">
+        <div style="font-size:56px;margin-bottom:1rem">✓</div>
+        <p style="font-size:18px;font-weight:800;margin-bottom:4px" id="success-name"></p>
+        <p style="font-size:13px;color:var(--text-muted);margin-bottom:4px">Attendance recorded for</p>
+        <p style="font-size:16px;font-weight:700;color:var(--orange)" id="success-day"></p>
+        <button class="btn-submit" onclick="resetCheckin()" style="margin-top:1.5rem">Done — Next participant</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="checkin.js"></script>
+</body>
+</html>

@@ -107,6 +107,8 @@ async function loadEvents() {
         <button class="btn-sm" style="background:var(--yellow);border-color:var(--yellow);color:var(--black);font-weight:600" onclick="copyEventLink('${e.id}','prereg',this)">Copy pre-reg link</button>
         <button class="btn-sm" style="background:var(--yellow);border-color:var(--yellow);color:var(--black);font-weight:600" onclick="copyEventLink('${e.id}','walkin',this)">Copy walk-in link</button>
         <button class="btn-sm" style="background:var(--yellow);border-color:var(--yellow);color:var(--black);font-weight:600" onclick="copyEventLink('${e.id}','view',this)">Copy participant view</button>
+        <button class="btn-sm" style="background:var(--black);color:white;border-color:var(--black);font-weight:600" onclick="showCheckinQR('${e.id}','${esc(e.name)}')">Show Check-in QR</button>
+        <button class="btn-sm" onclick="copyCheckinLink('${e.id}',this)">Copy check-in link</button>
         <button class="btn-sm danger" onclick="deleteEvent('${e.id}')">Delete</button>
       </div>
     </div>`;
@@ -1095,4 +1097,39 @@ async function exportQRSheet() {
   } finally {
     if (btn) { btn.textContent = 'Export QR Sheet'; btn.disabled = false; }
   }
+}
+
+// ── Check-in QR ──
+let currentCheckinEventId = null;
+let currentCheckinEventName = '';
+
+function showCheckinQR(eventId, eventName) {
+  currentCheckinEventId = eventId;
+  currentCheckinEventName = eventName;
+  const url = BASE_URL + 'checkin.html?event=' + eventId;
+  document.getElementById('qr-event-name').textContent = eventName;
+  const canvas = document.getElementById('checkin-qr-canvas');
+  QRCode.toCanvas(canvas, url, { width: 240, margin: 2,
+    color: { dark: '#000000', light: '#ffffff' } }, () => {});
+  document.getElementById('checkin-qr-modal').style.display = 'flex';
+}
+
+function closeCheckinQR() {
+  document.getElementById('checkin-qr-modal').style.display = 'none';
+}
+
+function copyCheckinLink(eventId, btn) {
+  navigator.clipboard.writeText(BASE_URL + 'checkin.html?event=' + eventId).then(() => {
+    const orig = btn.textContent;
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = orig, 2000);
+  });
+}
+
+function downloadCheckinQR() {
+  const canvas = document.getElementById('checkin-qr-canvas');
+  const a = document.createElement('a');
+  a.href = canvas.toDataURL('image/png');
+  a.download = 'checkin-qr-' + currentCheckinEventName.replace(/\s+/g,'-') + '.png';
+  a.click();
 }
