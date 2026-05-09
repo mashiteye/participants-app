@@ -116,7 +116,9 @@ async function init() {
   if (fromAdmin) {
     document.getElementById('back-to-events-btn').style.display = 'inline-block';
     document.getElementById('cert-btn').style.display = 'block';
-    document.getElementById('manage-zone').style.display = 'block';
+    document.getElementById('edit-event-btn').style.display = 'block';
+    document.getElementById('import-csv-btn').style.display = 'block';
+    document.getElementById('delete-event-btn').style.display = 'block';
   }
   if (!eventId) { document.getElementById('no-event').style.display = 'block'; return; }
 
@@ -530,6 +532,44 @@ async function exportEventQRSheet() {
     doc.save('qr-codes-' + evName.replace(/\s+/g, '-') + '.pdf');
   } catch(e) { alert('QR export failed: ' + e.message); }
   finally { if (btn) { btn.textContent = 'Export QR Sheet'; btn.disabled = false; } }
+}
+
+// ── Admin password modal ──
+let _adminAction = null;
+
+function promptEditEvent() {
+  _adminAction = 'edit';
+  document.getElementById('admin-pwd-title').textContent = 'Enter admin password to edit event';
+  document.getElementById('admin-pwd-input').value = '';
+  document.getElementById('admin-pwd-err').style.display = 'none';
+  document.getElementById('admin-pwd-modal').style.display = 'flex';
+  setTimeout(() => document.getElementById('admin-pwd-input').focus(), 100);
+}
+
+function promptDeleteEvent() {
+  _adminAction = 'delete';
+  document.getElementById('admin-pwd-title').textContent = 'Enter admin password to delete event';
+  document.getElementById('admin-pwd-input').value = '';
+  document.getElementById('admin-pwd-err').style.display = 'none';
+  document.getElementById('admin-pwd-modal').style.display = 'flex';
+  setTimeout(() => document.getElementById('admin-pwd-input').focus(), 100);
+}
+
+function closeAdminPwd() {
+  document.getElementById('admin-pwd-modal').style.display = 'none';
+  _adminAction = null;
+}
+
+function checkAdminPwd() {
+  const pwd = document.getElementById('admin-pwd-input').value;
+  if (pwd !== 'METSSLBG') {
+    document.getElementById('admin-pwd-err').style.display = 'block';
+    document.getElementById('admin-pwd-input').value = '';
+    return;
+  }
+  closeAdminPwd();
+  if (_adminAction === 'edit') editEvent();
+  else if (_adminAction === 'delete') deleteEventFromPage();
 }
 
 // ── Manage zone functions (admin only) ──

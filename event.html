@@ -34,79 +34,43 @@
         <button class="reg-back-btn" id="back-to-events-btn" style="display:none" onclick="goBackToEvents()">← Back to Events</button>
       </div>
 
-      <!-- Stats zone -->
+      <!-- Stats zone: Days only -->
       <div style="margin-bottom:1.5rem">
-        <!-- Primary KPI -->
-        <div style="display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:8px">
-          <div class="stat-card" id="stat-registered" style="border-left:4px solid var(--red)">
-            <div class="stat-num" id="stat-registered-num" style="color:var(--red)">—</div>
-            <div class="stat-label">Registered</div>
-          </div>
-        </div>
-        <!-- Gender group -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
-          <div class="stat-card"><div class="stat-num" id="stat-female" style="color:var(--black)">—</div><div class="stat-label">Female</div></div>
-          <div class="stat-card"><div class="stat-num" id="stat-male" style="color:var(--black)">—</div><div class="stat-label">Male</div></div>
-        </div>
-        <!-- Days group -->
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(80px,1fr));gap:8px" id="stat-days"></div>
       </div>
 
-      <!-- Primary CTA: Participant Registration Form -->
+      <!-- Participant Registration Form — hero button -->
       <div style="margin-bottom:1.25rem">
         <button onclick="openRegistration()" style="width:100%;padding:20px;background:linear-gradient(90deg,var(--red) 0%,var(--orange) 100%);color:white;border:none;border-radius:var(--radius-lg);font-size:18px;font-weight:800;cursor:pointer;font-family:inherit;box-shadow:0 4px 16px rgba(235,0,27,0.35);letter-spacing:0.01em">
           Participant Registration Form →
         </button>
       </div>
 
-      <!-- Action toolbar — three contained zones -->
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:1.5rem">
+      <!-- Secondary buttons: 2-3 column grid -->
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1.5rem">
+        <button onclick="openUnsigned()" style="padding:14px 8px;background:var(--red);color:white;border:none;border-radius:var(--radius-md);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;text-align:center">⚠ Not Yet Signed</button>
+        <button id="export-pdf-btn" onclick="exportEventPDF()" style="padding:14px 8px;background:var(--black);color:white;border:none;border-radius:var(--radius-md);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;text-align:center">📄 Export PDF</button>
+        <button onclick="exportEventQRSheet()" style="padding:14px 8px;background:white;border:1.5px solid var(--black);border-radius:var(--radius-md);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;text-align:center">📱 QR Sheet</button>
+        <button id="cert-btn" onclick="generateEventCertificates()" style="display:none;padding:14px 8px;background:var(--yellow);border:none;border-radius:var(--radius-md);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--black);text-align:center">🎓 Certificates</button>
+        <button id="share-prereg-btn" onclick="copyShareLink('prereg')" style="padding:14px 8px;background:white;border:1.5px solid var(--orange);border-radius:var(--radius-md);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--orange);text-align:center">📋 Pre-reg Link</button>
+        <button id="share-view-btn" onclick="copyShareLink('view')" style="padding:14px 8px;background:white;border:1.5px solid var(--orange);border-radius:var(--radius-md);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--orange);text-align:center">👥 Participant Link</button>
+        <!-- Admin only -->
+        <button id="edit-event-btn" onclick="promptEditEvent()" style="display:none;padding:14px 8px;background:white;border:1.5px solid var(--black);border-radius:var(--radius-md);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;text-align:center">✏ Edit Event</button>
+        <button id="import-csv-btn" onclick="importCSV()" style="display:none;padding:14px 8px;background:var(--yellow);border:none;border-radius:var(--radius-md);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--black);text-align:center">↑ Import CSV</button>
+        <button id="delete-event-btn" onclick="promptDeleteEvent()" style="display:none;padding:14px 8px;background:white;border:1.5px solid var(--red);border-radius:var(--radius-md);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--red);text-align:center">🗑 Delete</button>
+      </div>
 
-        <!-- Zone 1: Registration -->
-        <div style="background:white;border:1px solid var(--border);border-radius:var(--radius-lg);padding:1rem">
-          <p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:10px;border-bottom:2px solid var(--yellow);padding-bottom:5px">Registration</p>
-          <div style="display:flex;flex-direction:column;gap:8px">
-            <button onclick="openPreReg()" style="padding:12px;background:white;border:1.5px solid var(--black);border-radius:var(--radius-md);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;text-align:left;transition:all 0.15s" onmouseover="this.style.background='var(--black)';this.style.color='white'" onmouseout="this.style.background='white';this.style.color='inherit'">📋 Pre-registration Form</button>
-            <button onclick="openWalkin()" style="padding:12px;background:var(--orange);border:none;border-radius:var(--radius-md);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;color:white;text-align:left">➕ Walk-in Form</button>
+      <!-- Password modal for admin actions -->
+      <div id="admin-pwd-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:200;align-items:center;justify-content:center;padding:1rem">
+        <div style="background:white;border-radius:16px;padding:2rem;max-width:320px;width:100%">
+          <p style="font-size:15px;font-weight:700;margin-bottom:1rem" id="admin-pwd-title">Admin Action</p>
+          <input type="password" id="admin-pwd-input" placeholder="Password" style="margin-bottom:0.75rem;width:100%" onkeydown="if(event.key==='Enter')checkAdminPwd()" />
+          <p id="admin-pwd-err" style="font-size:12px;color:var(--red);display:none;margin-bottom:0.5rem">Incorrect password.</p>
+          <div style="display:flex;gap:8px">
+            <button class="btn-primary" onclick="checkAdminPwd()" style="flex:1">Confirm</button>
+            <button class="btn-secondary" onclick="closeAdminPwd()" style="flex:1">Cancel</button>
           </div>
         </div>
-
-        <!-- Zone 2: Attendance -->
-        <div style="background:white;border:1px solid var(--border);border-radius:var(--radius-lg);padding:1rem">
-          <p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:10px;border-bottom:2px solid var(--orange);padding-bottom:5px">Attendance</p>
-          <div style="display:flex;flex-direction:column;gap:8px">
-            <button onclick="openUnsigned()" style="padding:12px;background:var(--red);border:none;border-radius:var(--radius-md);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;color:white;text-align:left">⚠ Not Yet Signed</button>
-            <button onclick="loadParticipants()" style="padding:12px;background:white;border:1.5px solid var(--black);border-radius:var(--radius-md);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;text-align:left;transition:all 0.15s" onmouseover="this.style.background='var(--black)';this.style.color='white'" onmouseout="this.style.background='white';this.style.color='inherit'">↻ Refresh Data</button>
-          </div>
-        </div>
-
-        <!-- Zone 3: Exports -->
-        <div style="background:white;border:1px solid var(--border);border-radius:var(--radius-lg);padding:1rem">
-          <p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:10px;border-bottom:2px solid var(--red);padding-bottom:5px">Exports</p>
-          <div style="display:flex;flex-direction:column;gap:8px">
-            <button id="export-pdf-btn" onclick="exportEventPDF()" style="padding:12px;background:var(--red);border:none;border-radius:var(--radius-md);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;color:white;text-align:left">📄 Export PDF</button>
-            <button onclick="exportEventQRSheet()" style="padding:12px;background:white;border:1.5px solid var(--black);border-radius:var(--radius-md);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;text-align:left;transition:all 0.15s" onmouseover="this.style.background='var(--black)';this.style.color='white'" onmouseout="this.style.background='white';this.style.color='inherit'">📱 QR Sheet</button>
-            <button id="cert-btn" onclick="generateEventCertificates()" style="display:none;padding:12px;background:var(--yellow);border:none;border-radius:var(--radius-md);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--black);text-align:left">🎓 Certificates</button>
-          </div>
-        </div>
-
-        <!-- Zone 4: Manage (admin only) -->
-        <div id="manage-zone" style="display:none;background:white;border:1px solid var(--border);border-radius:var(--radius-lg);padding:1rem">
-          <p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:10px;border-bottom:2px solid var(--black);padding-bottom:5px">Manage Event</p>
-          <div style="display:flex;flex-direction:column;gap:8px">
-            <button onclick="editEvent()" style="padding:12px;background:white;border:1.5px solid var(--black);border-radius:var(--radius-md);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;text-align:left;transition:all 0.15s" onmouseover="this.style.background='var(--black)';this.style.color='white'" onmouseout="this.style.background='white';this.style.color='inherit'">✏ Edit Event</button>
-            <button onclick="importCSV()" style="padding:12px;background:var(--yellow);border:none;border-radius:var(--radius-md);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--black);text-align:left">↑ Import CSV</button>
-            <hr style="border:none;border-top:0.5px solid var(--border);margin:4px 0">
-            <p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:4px">Share Links</p>
-            <button id="share-prereg-btn" onclick="copyShareLink('prereg')" style="padding:10px 12px;background:white;border:1.5px solid var(--orange);border-radius:var(--radius-md);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--orange);text-align:left">📋 Pre-reg Link</button>
-            <button id="share-walkin-btn" onclick="copyShareLink('walkin')" style="padding:10px 12px;background:white;border:1.5px solid var(--orange);border-radius:var(--radius-md);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--orange);text-align:left">➕ Walk-in Link</button>
-            <button id="share-view-btn" onclick="copyShareLink('view')" style="padding:10px 12px;background:white;border:1.5px solid var(--orange);border-radius:var(--radius-md);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--orange);text-align:left">👥 Participant Link</button>
-            <button id="share-checkin-btn" onclick="copyShareLink('checkin')" style="padding:10px 12px;background:white;border:1.5px solid var(--orange);border-radius:var(--radius-md);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--orange);text-align:left">🔗 Check-in Link</button>
-            <hr style="border:none;border-top:0.5px solid var(--border);margin:4px 0">
-            <button onclick="deleteEventFromPage()" style="padding:10px 12px;background:white;border:1.5px solid var(--red);border-radius:var(--radius-md);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--red);text-align:left">🗑 Delete Event</button>
-          </div>
-        </div>
-
       </div>
 
       <!-- Participants table zone -->
