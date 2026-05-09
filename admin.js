@@ -10,8 +10,16 @@ let currentAttendance = {};
 
 function showPane(name) {
   ['create','link','events','participants','edit'].forEach(p => {
-    document.getElementById('pane-' + p).style.display = p === name ? 'block' : 'none';
+    const el = document.getElementById('pane-' + p);
+    if (el) el.style.display = p === name ? 'block' : 'none';
   });
+  // Show back button only when not on events pane
+  const backBtn = document.getElementById('admin-back-btn');
+  const dashBtn = document.getElementById('admin-dashboard-btn');
+  const newBtn  = document.getElementById('admin-new-btn');
+  if (backBtn) backBtn.style.display = name !== 'events' ? 'inline-flex' : 'none';
+  if (dashBtn) dashBtn.style.display = name !== 'events' ? 'none' : 'inline-flex';
+  if (newBtn)  newBtn.style.display  = name !== 'events' ? 'none' : 'inline-flex';
   if (name === 'events') loadEvents();
 }
 
@@ -1396,8 +1404,16 @@ function renderEventCard(e, count, index) {
 
 function showPane(name) {
   ['create','link','events','participants','edit'].forEach(p => {
-    document.getElementById('pane-' + p).style.display = p === name ? 'block' : 'none';
+    const el = document.getElementById('pane-' + p);
+    if (el) el.style.display = p === name ? 'block' : 'none';
   });
+  // Show back button only when not on events pane
+  const backBtn = document.getElementById('admin-back-btn');
+  const dashBtn = document.getElementById('admin-dashboard-btn');
+  const newBtn  = document.getElementById('admin-new-btn');
+  if (backBtn) backBtn.style.display = name !== 'events' ? 'inline-flex' : 'none';
+  if (dashBtn) dashBtn.style.display = name !== 'events' ? 'none' : 'inline-flex';
+  if (newBtn)  newBtn.style.display  = name !== 'events' ? 'none' : 'inline-flex';
   if (name === 'events') loadEvents();
 }
 
