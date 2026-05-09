@@ -1341,6 +1341,12 @@ async function generateCertificates() {
   }
 }
 
+function handleEventClick(el) {
+  const id = el.getAttribute('data-eid');
+  const name = el.querySelector('p').textContent;
+  viewParticipants(id, name);
+}
+
 function renderEventCard(e, count, index) {
   let status = 'Before Event', statusColor = '#555', statusBg = '#f0f0f0';
   if (e.event_date) {
@@ -1362,10 +1368,10 @@ function renderEventCard(e, count, index) {
   // Alternate row colours — white and light yellow
   const bg = index % 2 === 0 ? '#ffffff' : '#fffbf0';
 
-  return '<div style="display:flex;align-items:center;padding:14px 16px;background:' + bg + ';border-bottom:1px solid #eee;cursor:pointer;transition:background 0.12s" ' +
-    'onclick="viewParticipants('' + id + '','' + name.replace(/'/g,"\'") + '')" ' +
-    'onmouseover="this.style.background='#fff5ef'" ' +
-    'onmouseout="this.style.background='' + bg + ''">' +
+  return '<div data-eid="' + id + '" style="display:flex;align-items:center;padding:14px 16px;background:' + bg + ';border-bottom:1px solid #eee;cursor:pointer" ' +
+    'onclick="handleEventClick(this)" ' +
+    'onmouseover="this.style.background=\'#fff5ef\'" ' +
+    'onmouseout="this.style.background=\'' + bg + '\'">' +
 
     // Left: name and meta
     '<div style="flex:1;min-width:0">' +
