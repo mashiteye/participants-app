@@ -117,11 +117,29 @@
     /* ── Section label ── */
     .section-lbl { font-size: 12px; font-weight: 700; color: #555; margin-bottom: 6px; display: block; }
 
+    /* ── KPI cards ── */
+    .kpi-card { background:#f8f8f8; border-radius:8px; padding:6px 4px; text-align:center; }
+    .kpi-card.red-card { background:#fff5f5; }
+    .kpi-num { font-size:18px; font-weight:800; line-height:1; }
+    .kpi-num.orange { color:var(--orange); }
+    .kpi-num.green  { color:var(--green); }
+    .kpi-num.red    { color:var(--red); }
+    .kpi-lbl { font-size:9px; color:#999; margin-top:2px; text-transform:uppercase; letter-spacing:0.04em; }
+
     /* ── Compact stat chips ── */
     .stat-chip { display:inline-flex; align-items:center; gap:4px; background:#f5f5f5; border-radius:20px; padding:3px 10px; font-size:12px; color:#555; }
     .stat-chip strong { font-size:14px; font-weight:800; color:var(--orange); }
     .stat-chip.green strong { color:var(--green); }
     .stat-chip span { font-size:11px; color:#888; }
+    .stat-chip.active-day { background:#fff5ef; border:1px solid var(--orange); }
+    .stat-chip.active-day strong { color:var(--orange); }
+
+    /* Responsive: desktop centers content */
+    @media (min-width:600px) {
+      #stats-row { max-width:480px; margin:0 auto; }
+      .kpi-card { padding:8px 6px; }
+      .kpi-num { font-size:22px; }
+    }
   </style>
 </head>
 <body>
@@ -141,11 +159,18 @@
     <a href="help.html?from=register" style="width:36px;height:36px;border-radius:50%;border:2px solid var(--orange);background:white;color:var(--orange);font-size:16px;font-weight:800;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0">?</a>
   </div>
 
-  <!-- ── Stats: compact chip row ── -->
-  <div id="stats-row" style="display:none;padding:6px 14px;background:#fff;border-bottom:1px solid #eee;display:flex;gap:6px;flex-wrap:wrap;align-items:center">
-    <span class="stat-chip"><strong id="stat-registered">—</strong><span>Total</span></span>
-    <span class="stat-chip green"><strong id="stat-female">—</strong><span>Female</span></span>
-    <div id="stat-days-boxes" style="display:contents"></div>
+  <!-- ── Stats: compact KPI grid ── -->
+  <div id="stats-row" style="display:none;background:#fff;border-bottom:1px solid #eee;padding:10px 12px 8px">
+    <!-- Row 1: Core KPIs -->
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:6px">
+      <div class="kpi-card"><div class="kpi-num orange" id="stat-registered">—</div><div class="kpi-lbl">Total</div></div>
+      <div class="kpi-card"><div class="kpi-num green" id="stat-female">—</div><div class="kpi-lbl">Female</div></div>
+      <div class="kpi-card"><div class="kpi-num" id="stat-male">—</div><div class="kpi-lbl">Male</div></div>
+      <div class="kpi-card"><div class="kpi-num orange" id="stat-signed-today">—</div><div class="kpi-lbl">Signed</div></div>
+      <div class="kpi-card red-card"><div class="kpi-num red" id="stat-unsigned-today">—</div><div class="kpi-lbl">Unsigned</div></div>
+    </div>
+    <!-- Row 2: Day chips -->
+    <div id="stat-days-boxes" style="display:flex;gap:5px;flex-wrap:wrap"></div>
   </div>
 
   <!-- ── SCREEN: Find ── -->

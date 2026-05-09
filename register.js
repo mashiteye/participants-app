@@ -26,11 +26,15 @@ async function init() {
   if (cached) {
     try {
       const c = JSON.parse(cached);
-      document.getElementById('stat-registered').textContent = c.total ?? '—';
-      document.getElementById('stat-female').textContent = c.female ?? '—';
+      const el = id => document.getElementById(id);
+      if (el('stat-registered'))    el('stat-registered').textContent    = c.total ?? '—';
+      if (el('stat-female'))        el('stat-female').textContent        = c.female ?? '—';
+      if (el('stat-male'))          el('stat-male').textContent          = c.male ?? '—';
+      if (el('stat-signed-today'))  el('stat-signed-today').textContent  = c.signedToday ?? '—';
+      if (el('stat-unsigned-today'))el('stat-unsigned-today').textContent= c.unsignedToday ?? '—';
       const daysBox = document.getElementById('stat-days-boxes');
       if (daysBox && c.days) daysBox.innerHTML = c.days;
-      document.getElementById('stats-row').style.display = 'flex';
+      document.getElementById('stats-row').style.display = 'block';
     } catch(e) {}
   } else {
     // Show skeleton immediately
@@ -98,34 +102,56 @@ function buildStatsDays() {
 }
 
 function showStatsSkeleton() {
-  document.getElementById('stat-registered').innerHTML = '<span class="skeleton" style="width:20px;height:14px;display:inline-block;border-radius:4px"></span>';
-  document.getElementById('stat-female').innerHTML = '<span class="skeleton" style="width:16px;height:14px;display:inline-block;border-radius:4px"></span>';
-  const daysBox = document.getElementById('stat-days-boxes');
-  if (daysBox) daysBox.innerHTML = '<span class="stat-chip"><span class="skeleton" style="width:16px;height:14px;display:inline-block;border-radius:4px"></span><span>Day</span></span>';
-  document.getElementById('stats-row').style.display = 'flex';
+  ['stat-registered','stat-female','stat-male','stat-signed-today','stat-unsigned-today'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = '<span class="skeleton" style="width:22px;height:16px;display:inline-block;border-radius:4px"></span>';
+  });
+  document.getElementById('stats-row').style.display = 'block';
 }
 
 function updateStats() {
   const days = eventData ? eventData.days || 1 : 1;
   const total = allParticipants.length;
   const female = allParticipants.filter(p => (p.sex||'').toLowerCase() === 'female').length;
-  document.getElementById('stat-registered').textContent = total;
-  document.getElementById('stat-female').textContent = female;
+  const male   = allParticipants.filter(p => (p.sex||'').toLowerCase() === 'male').length;
 
-  // Build day chips and cache
+  // Signed today and unsigned today
+  const today = new Date();
+  let currentDay = 'Day 1';
+  if (eventData && eventData.event_date) {
+    const start = new Date(eventData.event_date);
+    for (let i = 0; i < days; i++) {
+      const d = new Date(start); d.setDate(d.getDate() + i);
+      if (d.toDateString() === today.toDateString()) { currentDay = 'Day ' + (i + 1); break; }
+    }
+  }
+  const signedTodayIds = new Set(Object.entries(attendanceMap)
+    .filter(([,v]) => v[currentDay]).map(([k]) => k));
+  const signedToday  = signedTodayIds.size;
+  const unsignedToday = total - signedToday;
+
+  const el = id => document.getElementById(id);
+  if (el('stat-registered')) el('stat-registered').textContent = total;
+  if (el('stat-female'))     el('stat-female').textContent = female;
+  if (el('stat-male'))       el('stat-male').textContent = male;
+  if (el('stat-signed-today'))   el('stat-signed-today').textContent = signedToday;
+  if (el('stat-unsigned-today')) el('stat-unsigned-today').textContent = unsignedToday;
+
+  // Build day chips
   let daysHtml = '';
   for (let i = 1; i <= days; i++) {
     const d = 'Day ' + i;
     const count = Object.values(attendanceMap).filter(a => a[d]).length;
-    const el = document.getElementById('stat-day-num-' + i);
-    if (el) el.textContent = count;
-    daysHtml += '<span class="stat-chip"><strong id="stat-day-num-' + i + '">' + count + '</strong><span>' + d + '</span></span>';
+    const isToday = d === currentDay;
+    daysHtml += '<span class="stat-chip' + (isToday ? ' active-day' : '') + '"><strong id="stat-day-num-' + i + '">' + count + '</strong><span>' + d + '</span></span>';
   }
 
-  // Cache to sessionStorage for instant display on return
   try {
-    sessionStorage.setItem('stats_' + eventId, JSON.stringify({ total, female, days: daysHtml }));
+    sessionStorage.setItem('stats_' + eventId, JSON.stringify({ total, female, male, signedToday, unsignedToday, days: daysHtml }));
   } catch(e) {}
+
+  const db = document.getElementById('stat-days-boxes');
+  if (db) db.innerHTML = daysHtml;
 }
 
 function buildDayButtons(containerId) {
