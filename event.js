@@ -385,6 +385,9 @@ async function exportEventPDF() {
       doc.setTextColor(255, 255, 255);
       doc.setFontSize(6.5); doc.setFont('helvetica', 'bold');
       ALL_COLS.forEach(c => doc.text(c.label, c.x + 2, y + 9.5));
+      // Column dividers in header
+      doc.setDrawColor(80, 80, 80); doc.setLineWidth(0.4);
+      ALL_COLS.forEach((c, ci) => { if (ci > 0) doc.line(c.x, y, c.x, y + 14); });
     }
 
     function trunc(s, n) { s = s||''; return s.length > n ? s.slice(0,n-1)+'…' : s; }
@@ -406,8 +409,12 @@ async function exportEventPDF() {
 
       doc.setFillColor(idx % 2 === 0 ? 255 : 249, idx % 2 === 0 ? 255 : 249, idx % 2 === 0 ? 255 : 249);
       doc.rect(MARGIN, y, pageW - MARGIN * 2, rowH, 'F');
-      doc.setDrawColor(220, 220, 220);
+      // Row border
+      doc.setDrawColor(180, 180, 180); doc.setLineWidth(0.4);
       doc.rect(MARGIN, y, pageW - MARGIN * 2, rowH, 'S');
+      // Column dividers
+      doc.setDrawColor(210, 210, 210); doc.setLineWidth(0.3);
+      ALL_COLS.forEach((c, ci) => { if (ci > 0) doc.line(c.x, y, c.x, y + rowH); });
 
       const ty = y + (rowH > TEXT_H ? 8 : 13);
       doc.setFontSize(7); doc.setFont('helvetica', 'normal');
