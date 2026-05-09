@@ -230,23 +230,31 @@ async function findByCode() {
   }
 }
 
+function fuzzyScore(str, q) {
+  str = (str||'').toLowerCase(); q = q.toLowerCase();
+  if (str.includes(q)) return 2; // exact substring highest
+  let si = 0, qi = 0, score = 0;
+  while (si < str.length && qi < q.length) { if (str[si] === q[qi]) { score++; qi++; } si++; }
+  return qi === q.length ? score / str.length : 0;
+}
+
 function findByName() {
-  const q = document.getElementById('name-input').value.trim().toLowerCase();
+  const q = document.getElementById('name-input').value.trim();
   if (!q) return;
-  const results = allParticipants.filter(p =>
-    (p.name||'').toLowerCase().includes(q) ||
-    (p.org||'').toLowerCase().includes(q) ||
-    (p.prog||'').toLowerCase().includes(q)
-  ).slice(0, 10);
+  const scored = allParticipants.map(p => ({
+    p,
+    score: Math.max(fuzzyScore(p.name, q), fuzzyScore(p.org, q), fuzzyScore(p.prog, q))
+  })).filter(x => x.score > 0).sort((a,b) => b.score - a.score).slice(0,10);
+
   const container = document.getElementById('name-results');
-  if (!results.length) {
+  if (!scored.length) {
     container.innerHTML = '<p style="color:#aaa;font-size:13px;text-align:center;padding:10px 0">No results. Use New Participant below.</p>';
     return;
   }
-  container.innerHTML = results.map(p =>
-    '<div class="result-item" onclick="selectResult(\'' + p.id + '\')">' +
+  container.innerHTML = scored.map(({p}) =>
+    '<div class="result-item" onclick="selectResult(\''+ p.id +'\')">'  +
       '<div class="result-name">' + esc(p.name) + '</div>' +
-      '<div class="result-meta">' + esc(p.code||'') + ' · ' + esc(p.org||'') + '</div>' +
+      '<div class="result-meta">' + esc(p.code||'')+' · '+esc(p.org||'')+( p.prog?' · '+esc(p.prog):'')+'</div>' +
     '</div>'
   ).join('');
 }

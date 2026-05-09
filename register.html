@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
-  <title>Participant Registration</title>
+  <title>METSS LBG Participant Registration App</title>
   <style>
     :root {
       --red:    #EB001B;
@@ -119,7 +119,7 @@
 
   <!-- ── Header ── -->
   <div class="app-header">
-    <div class="label">MASTERCARD FOUNDATION</div>
+    <div class="label">METSS LBG</div>
     <h1 id="header-event-name">Loading...</h1>
     <p class="meta" id="header-meta"></p>
     <button class="exit-btn" onclick="exitRegistration()">✕ Exit</button>
@@ -144,8 +144,8 @@
 
       <!-- By Code -->
       <div id="find-by-code">
-        <span class="field-label">Participant Code or Phone Number</span>
-        <input type="text" id="code-input" class="big-input" placeholder="MCF-001 or 0244..."
+        <span class="field-label">Search by code or phone number</span>
+        <input type="text" id="code-input" class="big-input" placeholder="e.g. MCF-001 or 0244123456"
           oninput="this.value=this.value.toUpperCase()"
           onkeydown="if(event.key==='Enter')findByCode()" />
         <button class="btn-primary" onclick="findByCode()">Find Me</button>
