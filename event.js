@@ -73,7 +73,7 @@ async function generateEventCertificates() {
       doc.setTextColor(...WHITE); doc.setFontSize(13); doc.setFont('helvetica','bold');
       doc.text('CERTIFICATE OF PARTICIPATION',W/2,28,{align:'center'});
       doc.setFontSize(9); doc.setFont('helvetica','normal');
-      doc.text('METSS LBG  ·  Monitoring, Evaluation & Learning',30,H-22);
+      doc.text('',30,H-22);
       doc.text(dateStr,W-30,H-22,{align:'right'});
       const CX=40, CY=85;
       doc.setTextColor(120,120,120); doc.setFontSize(13); doc.setFont('helvetica','italic');
@@ -442,7 +442,7 @@ async function exportEventPDF() {
     for (let i = 1; i <= pages; i++) {
       doc.setPage(i);
       doc.setFontSize(6.5); doc.setTextColor(150,150,150);
-      doc.text('Page '+i+' of '+pages+'  ·  '+evName+'  ·  METSS LBG Participants App', MARGIN, pageH-10);
+      doc.text('Page '+i+' of '+pages+'  ·  '+evName, MARGIN, pageH-10);
     }
 
     doc.save('attendance-'+evName.replace(/\s+/g,'-')+'-'+new Date().toISOString().slice(0,10)+'.pdf');

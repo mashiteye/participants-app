@@ -357,7 +357,7 @@ async function sendConfirmationEmail(toEmail, participantName, code, eventName, 
             <!-- Footer -->
             <tr>
               <td style="background:#000;padding:16px 32px;text-align:center">
-                <p style="margin:0;color:#F79E1B;font-size:11px;font-weight:700">METSS LBG · Participants App</p>
+                <p style="margin:0;color:#F79E1B;font-size:11px;font-weight:700">Participant Registration App</p>
               </td>
             </tr>
 

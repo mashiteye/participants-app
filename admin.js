@@ -564,7 +564,7 @@ async function exportPDF() {
       doc.setPage(i);
       doc.setFontSize(7);
       doc.setTextColor(150);
-      doc.text('Page ' + i + ' of ' + pageCount + '  ·  Participants App · METSS LBG', 14, doc.internal.pageSize.height - 5);
+      doc.text('Page ' + i + ' of ' + pageCount + '  ·  Participant Registration App', 14, doc.internal.pageSize.height - 5);
     }
 
     doc.save('attendance-register-' + eventName.replace(/\s+/g, '-') + '-' + new Date().toISOString().slice(0,10) + '.pdf');
@@ -729,7 +729,7 @@ async function exportPDF() {
     for (let i = 1; i <= pages; i++) {
       doc.setPage(i);
       doc.setFontSize(7); doc.setTextColor(160, 160, 160); doc.setFont('helvetica', 'normal');
-      doc.text('Page ' + i + ' of ' + pages + '  ·  ' + eventName + '  ·  METSS LBG Participants App', MARGIN, pageH - 14);
+      doc.text('Page ' + i + ' of ' + pages + '  ·  ' + eventName + '  ·  Participant Registration App', MARGIN, pageH - 14);
     }
 
     doc.save('attendance-' + eventName.replace(/\s+/g, '-') + '-' + new Date().toISOString().slice(0,10) + '.pdf');
@@ -796,7 +796,7 @@ function showImportStep(step) {
 
 
 function downloadTemplate() {
-  const csv = 'Name,Sex,Organization,Program,Position,Email,Phone\nAma Asante,Female,METSS LBG,A2F MEL Support,MEL Officer,ama@metss.com,0244000001\n';
+  const csv = 'Name,Sex,Organization,Program,Position,Email,Phone\nAma Asante,Female,Organisation Name,Program Name,MEL Officer,ama@example.com,0244000001\n';
   const a = document.createElement('a');
   a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
   a.download = 'participants-import-template.csv';
@@ -1096,7 +1096,7 @@ async function exportQRSheet() {
     for (let i = 1; i <= pages; i++) {
       doc.setPage(i);
       doc.setFontSize(6.5); doc.setTextColor(160, 160, 160);
-      doc.text('Page ' + i + ' of ' + pages + '  ·  ' + eventName + '  ·  METSS LBG Participants App', MARGIN, pageH - 10);
+      doc.text('Page ' + i + ' of ' + pages + '  ·  ' + eventName + '  ·  Participant Registration App', MARGIN, pageH - 10);
     }
 
     doc.save('qr-codes-' + eventName.replace(/\s+/g, '-') + '-' + new Date().toISOString().slice(0,10) + '.pdf');
@@ -1239,11 +1239,11 @@ async function generateCertificates() {
       doc.setFont('helvetica', 'bold');
       doc.text('CERTIFICATE OF PARTICIPATION', W / 2, 28, { align: 'center' });
 
-      // ── METSS LBG — bottom band left ──
+      // ── bottom band left ──
       doc.setTextColor(...WHITE);
       doc.setFontSize(9);
       doc.setFont('helvetica', 'normal');
-      doc.text('METSS LBG  ·  Monitoring, Evaluation & Learning', 30, H - 22);
+      doc.text('', 30, H - 22);
 
       // ── Date — bottom band right ──
       doc.text(dateStr, W - 30, H - 22, { align: 'right' });
@@ -1948,7 +1948,7 @@ async function exportPDF() {
       doc.setPage(i);
       doc.setFontSize(7);
       doc.setTextColor(150);
-      doc.text('Page ' + i + ' of ' + pageCount + '  ·  Participants App · METSS LBG', 14, doc.internal.pageSize.height - 5);
+      doc.text('Page ' + i + ' of ' + pageCount + '  ·  Participant Registration App', 14, doc.internal.pageSize.height - 5);
     }
 
     doc.save('attendance-register-' + eventName.replace(/\s+/g, '-') + '-' + new Date().toISOString().slice(0,10) + '.pdf');
@@ -2113,7 +2113,7 @@ async function exportPDF() {
     for (let i = 1; i <= pages; i++) {
       doc.setPage(i);
       doc.setFontSize(7); doc.setTextColor(160, 160, 160); doc.setFont('helvetica', 'normal');
-      doc.text('Page ' + i + ' of ' + pages + '  ·  ' + eventName + '  ·  METSS LBG Participants App', MARGIN, pageH - 14);
+      doc.text('Page ' + i + ' of ' + pages + '  ·  ' + eventName + '  ·  Participant Registration App', MARGIN, pageH - 14);
     }
 
     doc.save('attendance-' + eventName.replace(/\s+/g, '-') + '-' + new Date().toISOString().slice(0,10) + '.pdf');
