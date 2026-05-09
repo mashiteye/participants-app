@@ -1358,6 +1358,22 @@ async function generateCertificates() {
   }
 }
 
+function promptEditFromList(eventId) {
+  const pwd = prompt('Enter admin password to edit this event:');
+  if (!pwd) return;
+  const encoder = new TextEncoder();
+  const data = encoder.encode(pwd.toUpperCase().trim());
+  crypto.subtle.digest('SHA-256', data).then(hashBuffer => {
+    const hashHex = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2,'0')).join('');
+    if (hashHex !== '3b33a25d09dbd7a9f00296a32852e0cb064eaaa76d4294c370b1b6da15ebb0bc') {
+      alert('Incorrect password.');
+      return;
+    }
+    const BASE_URL = window.location.origin + window.location.pathname.replace('admin.html','');
+    window.location.href = BASE_URL + 'edit-event.html?event=' + eventId;
+  });
+}
+
 function promptDeleteFromList(eventId) {
   const pwd = prompt('Enter admin password to delete this event:');
   if (!pwd) return;
@@ -1417,9 +1433,11 @@ function renderEventCard(e, count, index) {
       '<p style="font-size:10px;color:#aaa">registered</p>' +
     '</div>' +
 
-    // Delete button (password protected) + Arrow
+    // Edit + Delete buttons (password protected) + Arrow
+    '<button data-editid="' + id + '" onclick="event.stopPropagation();promptEditFromList(this.dataset.editid)" ' +
+      'style="flex-shrink:0;margin-left:8px;padding:5px 10px;background:white;border:1.5px solid #000;border-radius:6px;font-size:11px;font-weight:700;color:#000;cursor:pointer;font-family:inherit">✏</button>' +
     '<button data-delid="' + id + '" onclick="event.stopPropagation();promptDeleteFromList(this.dataset.delid)" ' +
-      'style="flex-shrink:0;margin-left:8px;padding:5px 10px;background:white;border:1.5px solid #EB001B;border-radius:6px;font-size:11px;font-weight:700;color:#EB001B;cursor:pointer;font-family:inherit">🗑</button>' +
+      'style="flex-shrink:0;margin-left:4px;padding:5px 10px;background:white;border:1.5px solid #EB001B;border-radius:6px;font-size:11px;font-weight:700;color:#EB001B;cursor:pointer;font-family:inherit">🗑</button>' +
     '<span style="flex-shrink:0;margin-left:8px;color:#ccc;font-size:18px">›</span>' +
   '</div>';
 }
