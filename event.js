@@ -124,7 +124,7 @@ async function init() {
   // Show Back to Events button if opened from admin
   const fromAdmin = new URLSearchParams(window.location.search).get('from') === 'admin';
   if (fromAdmin) {
-    document.getElementById('back-to-events-btn').style.display = 'inline-block';
+    // back-to-events-btn always visible
     document.getElementById('cert-btn').style.display = 'block';
     document.getElementById('edit-event-btn').style.display = 'block';
     document.getElementById('import-csv-btn').style.display = 'block';
