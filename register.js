@@ -82,6 +82,7 @@ function buildStatsDays() {
       if (c.days) { document.getElementById('stat-days-boxes').innerHTML = c.days; return; }
     } catch(e) {}
   }
+  // Build chip placeholders
   const days = eventData.days || 1;
   const container = document.getElementById('stat-days-boxes');
   container.style.display = 'contents';
@@ -97,10 +98,10 @@ function buildStatsDays() {
 }
 
 function showStatsSkeleton() {
-  document.getElementById('stat-registered').innerHTML = '<span class="skeleton skeleton-num" style="width:40px;height:24px;display:inline-block"></span>';
-  document.getElementById('stat-female').innerHTML = '<span class="skeleton skeleton-num" style="width:40px;height:24px;display:inline-block"></span>';
+  document.getElementById('stat-registered').innerHTML = '<span class="skeleton" style="width:20px;height:14px;display:inline-block;border-radius:4px"></span>';
+  document.getElementById('stat-female').innerHTML = '<span class="skeleton" style="width:16px;height:14px;display:inline-block;border-radius:4px"></span>';
   const daysBox = document.getElementById('stat-days-boxes');
-  if (daysBox) daysBox.innerHTML = '<div class="stat-box"><span class="skeleton skeleton-num" style="width:40px;height:24px;display:inline-block"></span><div class="stat-label">Day</div></div>';
+  if (daysBox) daysBox.innerHTML = '<span class="stat-chip"><span class="skeleton" style="width:16px;height:14px;display:inline-block;border-radius:4px"></span><span>Day</span></span>';
   document.getElementById('stats-row').style.display = 'flex';
 }
 
@@ -111,14 +112,14 @@ function updateStats() {
   document.getElementById('stat-registered').textContent = total;
   document.getElementById('stat-female').textContent = female;
 
-  // Build day stats HTML and cache it
+  // Build day chips and cache
   let daysHtml = '';
   for (let i = 1; i <= days; i++) {
     const d = 'Day ' + i;
     const count = Object.values(attendanceMap).filter(a => a[d]).length;
     const el = document.getElementById('stat-day-num-' + i);
     if (el) el.textContent = count;
-    daysHtml += '<div class="stat-box" style="border-top:3px solid var(--yellow)"><div class="stat-num orange" id="stat-day-num-' + i + '">' + count + '</div><div class="stat-label">' + d + '</div></div>';
+    daysHtml += '<span class="stat-chip"><strong id="stat-day-num-' + i + '">' + count + '</strong><span>' + d + '</span></span>';
   }
 
   // Cache to sessionStorage for instant display on return
