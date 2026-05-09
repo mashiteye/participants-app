@@ -216,11 +216,13 @@ function renderStats() {
       html += `<div class="stat-card"><div class="stat-num">${c}</div><div class="stat-label">${d}</div></div>`;
     });
   }
-  document.getElementById('view-stats').innerHTML = html;
+  const statsEl = document.getElementById('view-stats') || document.getElementById('stat-days');
+  if (statsEl) statsEl.innerHTML = html;
 }
 
 function buildDaySelector() {
   const sel = document.getElementById('filter-day');
+  if (!sel) return;
   sel.innerHTML = '';
   Array.from({ length: eventDays }, (_, i) => 'Day ' + (i + 1)).forEach(d => {
     const opt = document.createElement('option');
@@ -236,12 +238,12 @@ function setFilter(f) {
   document.getElementById('filter-' + f).classList.add('active');
   // Show day selector only when filtering by signed status
   const daySelVisible = f !== 'all';
-  document.getElementById('filter-day').style.display = daySelVisible ? 'block' : 'none';
+  const fdEl = document.getElementById('filter-day'); if (fdEl) fdEl.style.display = daySelVisible ? 'block' : 'none';
   filterParticipants();
 }
 
 function applyDayFilter() {
-  currentFilterDay = document.getElementById('filter-day').value;
+  const fdVal = document.getElementById('filter-day'); if (fdVal) currentFilterDay = fdVal.value;
   filterParticipants();
 }
 
