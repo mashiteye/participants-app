@@ -284,6 +284,15 @@ function esc(str) {
 
 showPane('events');
 
+// Auto-open import if triggered from Participants page
+const _importParam = new URLSearchParams(window.location.search).get('importEvent');
+if (_importParam) {
+  setTimeout(async () => {
+    const { data: ev } = await db.from('events').select('id,name').eq('id', _importParam).single();
+    if (ev) openImportForEvent(ev.id, ev.name);
+  }, 800);
+}
+
 function openEdit(e) {
   document.getElementById('edit-id').value = e.id;
   document.getElementById('edit-name').value = e.name || '';

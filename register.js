@@ -381,6 +381,14 @@ async function submitNew() {
       await db.from('attendance').insert([{ participant_id: ins.id, event_id: eventId, day: selectedDay, signature_url: publicUrl }]);
     }
     allParticipants.push(ins);
+    // Send email confirmation if email provided
+    if (email) {
+      const signUrl = BASE_URL + 'sign.html?participant=' + ins.id + '&event=' + eventId;
+      const dateStr = eventData.event_date
+        ? new Date(eventData.event_date).toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' })
+        : '';
+      sendEmail(email, name, ins.code, eventData.name, dateStr, signUrl);
+    }
     document.getElementById('success-name').textContent = name;
     document.getElementById('success-day').textContent = 'Registered and signed for ' + selectedDay;
     showScreen('success');
@@ -389,6 +397,39 @@ async function submitNew() {
   } finally {
     btn.textContent = 'Submit & Sign'; btn.disabled = false;
   }
+}
+
+async function sendEmail(toEmail, participantName, code, eventName, eventDate, signUrl) {
+  const qrImageUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' + encodeURIComponent(signUrl);
+  const html = '<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">' +
+    '<div style="background:linear-gradient(90deg,#EB001B,#FF5F00,#F79E1B);padding:24px 28px">' +
+      '<p style="color:white;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;margin:0 0 4px">METSS LBG</p>' +
+      '<h1 style="color:white;font-size:20px;font-weight:800;margin:0">' + eventName + '</h1>' +
+      (eventDate ? '<p style="color:rgba(255,255,255,0.85);font-size:12px;margin:4px 0 0">' + eventDate + '</p>' : '') +
+    '</div>' +
+    '<div style="padding:28px;background:#fff">' +
+      '<p style="color:#555;font-size:14px">Dear <strong>' + participantName + '</strong>,</p>' +
+      '<p style="color:#555;font-size:14px;line-height:1.6">Your registration is confirmed. Keep your participant code — you may need it for future event days.</p>' +
+      '<div style="background:#f9f9f9;border-radius:10px;padding:20px;text-align:center;margin:20px 0">' +
+        '<p style="color:#888;font-size:11px;font-weight:700;text-transform:uppercase;margin:0 0 6px">Participant Code</p>' +
+        '<p style="color:#FF5F00;font-size:36px;font-weight:800;margin:0;font-family:monospace">' + code + '</p>' +
+      '</div>' +
+      '<div style="text-align:center;margin:16px 0">' +
+        '<img src="' + qrImageUrl + '" width="150" height="150" style="border:3px solid #F79E1B;border-radius:8px" />' +
+        '<p style="color:#888;font-size:12px;margin-top:8px">Scan to sign attendance</p>' +
+      '</div>' +
+    '</div>' +
+    '<div style="background:#000;padding:14px 28px;text-align:center">' +
+      '<p style="color:#F79E1B;font-size:11px;font-weight:700;margin:0">METSS LBG · Participant Registration App</p>' +
+    '</div>' +
+  '</div>';
+  try {
+    await fetch('https://participants-email.metsslbg.workers.dev', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ to: toEmail, subject: 'Registration Confirmed — ' + eventName + ' [' + code + ']', html })
+    });
+  } catch(e) { console.warn('Email failed:', e.message); }
 }
 
 function esc(s) {

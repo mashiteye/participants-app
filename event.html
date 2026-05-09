@@ -54,6 +54,7 @@
         <button id="cert-btn" onclick="generateEventCertificates()" style="display:none;padding:14px 8px;background:var(--yellow);border:none;border-radius:var(--radius-md);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--black);text-align:center">🎓 Certificates</button>
         <button id="share-prereg-btn" onclick="copyShareLink('prereg')" style="padding:14px 8px;background:white;border:1.5px solid var(--orange);border-radius:var(--radius-md);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--orange);text-align:center">📋 Pre-reg Link</button>
         <button id="share-view-btn" onclick="copyShareLink('view')" style="padding:14px 8px;background:white;border:1.5px solid var(--orange);border-radius:var(--radius-md);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--orange);text-align:center">👥 Participant Link</button>
+        <button onclick="showEventCheckinQR()" style="padding:14px 8px;background:var(--black);color:white;border:none;border-radius:var(--radius-md);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;text-align:center">📱 Check-in QR</button>
         <!-- Admin only -->
         <button id="edit-event-btn" onclick="promptEditEvent()" style="display:none;padding:14px 8px;background:white;border:1.5px solid var(--black);border-radius:var(--radius-md);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;text-align:center">✏ Edit Event</button>
         <button id="import-csv-btn" onclick="importCSV()" style="display:none;padding:14px 8px;background:var(--yellow);border:none;border-radius:var(--radius-md);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--black);text-align:center">↑ Import CSV</button>
@@ -74,6 +75,22 @@
       </div>
 
     </div>
+
+  <!-- Check-in QR Modal -->
+  <div id="checkin-qr-modal-ev" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:200;align-items:center;justify-content:center;padding:1rem">
+    <div style="background:white;border-radius:20px;padding:2rem;max-width:340px;width:100%;text-align:center">
+      <p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:6px">Check-in QR Code</p>
+      <p style="font-size:15px;font-weight:800;margin-bottom:1.25rem" id="ev-qr-event-name"></p>
+      <div style="display:flex;justify-content:center;margin-bottom:1rem;padding:1rem;background:#f9f9f9;border-radius:12px;border:3px solid var(--yellow)">
+        <canvas id="ev-checkin-qr-canvas"></canvas>
+      </div>
+      <p style="font-size:12px;color:var(--text-muted);margin-bottom:1.5rem">Display or project — participants scan and enter their code</p>
+      <div style="display:flex;gap:10px">
+        <button onclick="downloadEvCheckinQR()" style="flex:1;padding:12px;background:var(--red);color:white;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">Download</button>
+        <button onclick="document.getElementById('checkin-qr-modal-ev').style.display='none'" style="flex:1;padding:12px;background:white;border:1.5px solid var(--black);border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">Close</button>
+      </div>
+    </div>
+  </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>

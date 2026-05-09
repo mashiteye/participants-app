@@ -89,7 +89,10 @@ function showError(msg) {
   el.querySelector('.empty-sub').textContent = msg;
 }
 
-function goBack() { window.location.href = BASE_URL + 'event.html?event=' + eventId; }
+function goBack() {
+  const fromAdmin = new URLSearchParams(window.location.search).get('from') === 'admin';
+  window.location.href = BASE_URL + 'event.html?event=' + eventId + (fromAdmin ? '&from=admin' : '');
+}
 
 function selectDay(day) {
   currentDay = day;

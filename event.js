@@ -165,9 +165,7 @@ async function loadParticipants() {
     window._attendanceByDay[a.day] = (window._attendanceByDay[a.day] || 0) + 1;
   });
   renderStats();
-  // Show search prompt on load — don't render list until user types
-  document.getElementById('participants-list').innerHTML =
-    '<div style="padding:2.5rem 1rem;text-align:center;color:var(--text-muted);font-size:13px">Type a name, code, or organisation to search.</div>';
+  // Data loaded — exports now have allParticipants available
 }
 
 function renderStats() {
@@ -670,14 +668,16 @@ async function saveInlineEdit() {
 }
 
 function importCSV() {
-  window.open(BASE_URL + 'admin.html#import-' + eventId, '_blank');
+  // Open admin panel and trigger import for this event
+  const adminUrl = BASE_URL + 'admin.html?importEvent=' + eventId;
+  window.open(adminUrl, '_blank');
 }
 
 function copyShareLink(type) {
   let url;
   if (type === 'prereg') url = BASE_URL + 'index.html?event=' + eventId;
   else if (type === 'walkin') url = BASE_URL + 'index.html?event=' + eventId + '&walkin=1';
-  else if (type === 'view') url = BASE_URL + 'event.html?event=' + eventId;
+  else if (type === 'view') url = BASE_URL + 'event.html?event=' + eventId; // no from=admin — public link
   else if (type === 'checkin') url = BASE_URL + 'checkin.html?event=' + eventId;
 
   const btn = document.getElementById('share-' + type + '-btn');
@@ -692,4 +692,29 @@ async function deleteEventFromPage() {
   const { error } = await db.from('events').delete().eq('id', eventId);
   if (!error) window.location.href = BASE_URL + 'admin.html';
   else alert('Delete failed: ' + error.message);
+}
+
+// ── Check-in QR on Participants page ──
+function showEventCheckinQR() {
+  const evName = document.getElementById('event-name').textContent;
+  document.getElementById('ev-qr-event-name').textContent = evName;
+  const url = BASE_URL + 'checkin.html?event=' + eventId;
+  const canvas = document.getElementById('ev-checkin-qr-canvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width = 220; canvas.height = 220;
+  ctx.fillStyle = '#ffffff'; ctx.fillRect(0,0,220,220);
+  const img = new Image();
+  img.crossOrigin = 'anonymous';
+  img.onload = () => ctx.drawImage(img, 0, 0, 220, 220);
+  img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=' + encodeURIComponent(url);
+  document.getElementById('checkin-qr-modal-ev').style.display = 'flex';
+}
+
+function downloadEvCheckinQR() {
+  const canvas = document.getElementById('ev-checkin-qr-canvas');
+  const evName = document.getElementById('event-name').textContent;
+  const a = document.createElement('a');
+  a.href = canvas.toDataURL('image/png');
+  a.download = 'checkin-qr-' + evName.replace(/\s+/g,'-') + '.png';
+  a.click();
 }
