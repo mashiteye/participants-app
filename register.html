@@ -11,22 +11,22 @@
       --orange: #FF5F00;
       --yellow: #F79E1B;
       --black:  #000000;
-      --green:  #00A86B;
-      --bg:     #f0ede8;
+      --green:  #2F7B6B;
+      --bg:     #f5f3f0;
       --card:   #ffffff;
       --border: #e0ddd8;
-      --muted:  #888;
+      --muted:  #777;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); min-height: 100vh; }
 
     /* ── Header ── */
     .app-header {
-      background: var(--orange);
-      padding: 1rem 1.25rem 1rem;
+      background: linear-gradient(135deg, var(--red) 0%, var(--orange) 55%, var(--yellow) 100%);
+      padding: 1.25rem 1.25rem 1rem;
       position: relative;
     }
-    .app-header .label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.8); margin-bottom: 3px; }
+    .app-header .label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: rgba(255,255,255,0.85); margin-bottom: 4px; }
     .app-header h1 { font-size: 22px; font-weight: 800; color: white; line-height: 1.2; }
     .app-header .meta { font-size: 12px; color: rgba(255,255,255,0.85); margin-top: 4px; }
     .exit-btn { position: absolute; top: 1rem; right: 1rem; background: rgba(255,255,255,0.25); border: none; color: white; font-size: 12px; font-weight: 700; padding: 5px 12px; border-radius: 16px; cursor: pointer; font-family: inherit; }
@@ -36,6 +36,7 @@
     .stat-box { flex: 1; background: var(--card); border-radius: 12px; padding: 12px 8px; text-align: center; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
     .stat-num { font-size: 26px; font-weight: 800; line-height: 1; }
     .stat-num.orange { color: var(--orange); }
+    .stat-box { border-top: 3px solid var(--yellow); }
     .stat-num.green  { color: var(--green); }
     .stat-num.red    { color: var(--red); }
     .stat-label { font-size: 11px; color: var(--muted); margin-top: 3px; font-weight: 500; }
@@ -47,14 +48,14 @@
     /* ── Tab toggle ── */
     .tab-row { display: flex; gap: 8px; margin-bottom: 1.1rem; }
     .tab-btn { flex: 1; padding: 11px 8px; border-radius: 10px; border: 2px solid var(--border); background: white; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; color: var(--muted); transition: all 0.15s; }
-    .tab-btn.active { border-color: var(--orange); background: #fff5ef; color: var(--orange); }
+    .tab-btn.active { border-color: var(--red); background: #fff0f0; color: var(--red); font-weight: 700; }
 
     /* ── Input ── */
     .field-label { font-size: 12px; color: var(--muted); margin-bottom: 6px; display: block; }
     .big-input { width: 100%; padding: 16px; font-size: 22px; font-weight: 700; text-align: center; letter-spacing: 0.08em; border: 2px solid var(--border); border-radius: 12px; font-family: inherit; margin-bottom: 12px; background: #fafafa; }
-    .big-input:focus { border-color: var(--orange); outline: none; background: white; }
+    .big-input:focus { border-color: var(--red); outline: none; background: white; box-shadow: 0 0 0 3px rgba(235,0,27,0.08); }
     .name-input { width: 100%; padding: 14px; font-size: 16px; border: 2px solid var(--border); border-radius: 12px; font-family: inherit; margin-bottom: 12px; background: #fafafa; }
-    .name-input:focus { border-color: var(--orange); outline: none; background: white; }
+    .name-input:focus { border-color: var(--red); outline: none; background: white; box-shadow: 0 0 0 3px rgba(235,0,27,0.08); }
 
     /* ── Buttons ── */
     .btn-primary { width: 100%; padding: 16px; background: var(--orange); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 800; cursor: pointer; font-family: inherit; margin-bottom: 10px; }
@@ -69,13 +70,13 @@
 
     /* ── Result list ── */
     .result-item { padding: 13px 14px; border: 1.5px solid var(--border); border-radius: 10px; margin-bottom: 8px; cursor: pointer; transition: all 0.12s; }
-    .result-item:active, .result-item:hover { border-color: var(--orange); background: #fff5ef; }
+    .result-item:active, .result-item:hover { border-color: var(--yellow); background: #fffbf0; }
     .result-name { font-size: 15px; font-weight: 700; color: var(--black); margin-bottom: 2px; }
     .result-meta { font-size: 12px; color: var(--muted); }
 
     /* ── Found participant card ── */
-    .found-card { background: #fff5ef; border: 2px solid var(--orange); border-radius: 12px; padding: 1rem 1.1rem; margin-bottom: 1rem; }
-    .found-card .p-code { font-size: 13px; font-weight: 800; color: var(--orange); font-family: monospace; margin-bottom: 3px; }
+    .found-card { background: #fffbf0; border: 1px solid var(--yellow); border-left: 5px solid var(--orange); border-radius: 12px; padding: 1rem 1.1rem; margin-bottom: 1rem; }
+    .found-card .p-code { font-size: 13px; font-weight: 800; color: var(--red); font-family: monospace; margin-bottom: 3px; }
     .found-card .p-name { font-size: 20px; font-weight: 800; color: var(--black); margin-bottom: 3px; }
     .found-card .p-org  { font-size: 13px; color: var(--muted); }
     .found-card .p-pos  { font-size: 12px; color: var(--muted); }
@@ -87,7 +88,7 @@
     .day-btn.done { border-color: var(--green); background: #f0fff8; color: var(--green); font-size: 12px; }
 
     /* ── Signature ── */
-    .sig-wrap { border: 2px solid var(--border); border-radius: 12px; background: #fafafa; position: relative; overflow: hidden; margin-bottom: 8px; }
+    .sig-wrap { border: 2px solid var(--yellow); border-radius: 12px; background: #fafafa; position: relative; overflow: hidden; margin-bottom: 8px; }
     .sig-wrap canvas { display: block; width: 100%; touch-action: none; }
     .sig-placeholder { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); color: #ccc; font-size: 14px; pointer-events: none; }
     .btn-clear { font-size: 12px; color: var(--muted); background: none; border: 1px solid var(--border); padding: 5px 14px; border-radius: 8px; cursor: pointer; font-family: inherit; margin-bottom: 8px; }
@@ -96,15 +97,15 @@
     .form-row { margin-bottom: 14px; }
     .form-row label { font-size: 12px; font-weight: 600; color: #555; display: block; margin-bottom: 5px; }
     .form-row input, .form-row textarea { width: 100%; padding: 13px 14px; border: 1.5px solid var(--border); border-radius: 10px; font-size: 15px; font-family: inherit; }
-    .form-row input:focus { border-color: var(--orange); outline: none; }
+    .form-row input:focus { border-color: var(--red); outline: none; box-shadow: 0 0 0 3px rgba(235,0,27,0.08); }
     .sex-row { display: flex; gap: 8px; }
     .sex-btn { flex: 1; padding: 13px; border: 2px solid var(--border); border-radius: 10px; background: white; font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; color: #666; }
-    .sex-btn.active { border-color: var(--orange); background: var(--orange); color: white; }
+    .sex-btn.active { border-color: var(--red); background: var(--red); color: white; }
 
     /* ── Success ── */
     .success-wrap { text-align: center; padding: 2.5rem 1rem; }
     .success-icon { font-size: 64px; margin-bottom: 1rem; }
-    .success-title { font-size: 22px; font-weight: 800; color: var(--green); margin-bottom: 6px; }
+    .success-title { font-size: 22px; font-weight: 800; color: var(--green); margin-bottom: 6px; letter-spacing: -0.01em; }
     .success-sub { font-size: 15px; color: var(--muted); margin-bottom: 1.5rem; }
 
     /* ── Error ── */
@@ -118,7 +119,7 @@
 
   <!-- ── Header ── -->
   <div class="app-header">
-    <div class="label" id="header-label">PARTICIPANT REGISTRATION</div>
+    <div class="label">MASTERCARD FOUNDATION</div>
     <h1 id="header-event-name">Loading...</h1>
     <p class="meta" id="header-meta"></p>
     <button class="exit-btn" onclick="exitRegistration()">✕ Exit</button>
