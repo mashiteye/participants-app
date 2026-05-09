@@ -93,11 +93,13 @@ async function loadEvents() {
     return;
   }
 
-  let html = '';
-  events.forEach(e => {
+  let html = '<div style="border-radius:12px;overflow:hidden;border:1px solid #eee;box-shadow:0 1px 6px rgba(0,0,0,0.06)">';
+  events.forEach((e, i) => {
     const count = countMap[e.id] || 0;
-    html += renderEventCard(e, count);
+    html += renderEventCard(e, count, i);
   });
+  html += '</div>';
+  if (!events.length) html = '<div class="empty" style="padding:2rem;text-align:center;color:#aaa">No events yet. Create your first event.</div>';
   document.getElementById('events-list').innerHTML = html;
 }
 
@@ -1339,8 +1341,8 @@ async function generateCertificates() {
   }
 }
 
-function renderEventCard(e, count) {
-  let status = 'Before Event', statusColor = '#333', statusBg = '#f0f0f0';
+function renderEventCard(e, count, index) {
+  let status = 'Before Event', statusColor = '#555', statusBg = '#f0f0f0';
   if (e.event_date) {
     const start = new Date(e.event_date);
     const end = new Date(e.event_date);
@@ -1351,32 +1353,37 @@ function renderEventCard(e, count) {
   }
   const dateStr = e.event_date
     ? new Date(e.event_date).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' })
-    : 'No date set';
+    : 'No date';
   const prog = (e.program && e.program !== 'Other') ? e.program : '';
-  const daysLabel = (e.days || 1) > 1 ? e.days + ' days' : '1 day';
-  const meta = [prog, dateStr, daysLabel].filter(Boolean).join(' · ');
+  const meta = [prog, dateStr].filter(Boolean).join(' · ');
   const name = esc(e.name);
-  const code = e.event_code ? esc(e.event_code) : '';
   const id = e.id;
 
-  const escapedName = name.replace(/'/g, "\\'");
-  return '<div class="event-card" style="cursor:pointer;transition:box-shadow 0.15s,transform 0.1s" ' +
-    'onclick="viewParticipants(\'' + id + '\',\'' + escapedName + '\')" ' +
-    'onmouseover="this.style.boxShadow=\'0 4px 16px rgba(0,0,0,0.12)\';this.style.transform=\'translateY(-1px)\'" ' +
-    'onmouseout="this.style.boxShadow=\'\';this.style.transform=\'\'">' +
-    '<div style="display:flex;justify-content:space-between;align-items:flex-start">' +
-      '<div style="flex:1;min-width:0">' +
-        '<p class="event-card-name" style="margin-bottom:4px">' + name + '</p>' +
-        '<p style="font-size:12px;color:var(--text-muted)">' + meta + '</p>' +
-        (code ? '<span style="font-family:monospace;font-size:11px;font-weight:700;background:var(--yellow);padding:1px 7px;border-radius:3px;color:var(--black);display:inline-block;margin-top:4px">' + code + '</span>' : '') +
-      '</div>' +
-      '<div style="text-align:right;flex-shrink:0;margin-left:1rem">' +
-        '<span style="display:inline-block;background:' + statusBg + ';color:' + statusColor + ';font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:0.05em">' + status + '</span>' +
-        '<p class="count-num" style="margin-top:6px;color:var(--red)">' + count + '</p>' +
-        '<p style="font-size:11px;color:var(--text-muted)">participants</p>' +
-      '</div>' +
+  // Alternate row colours — white and light yellow
+  const bg = index % 2 === 0 ? '#ffffff' : '#fffbf0';
+
+  return '<div style="display:flex;align-items:center;padding:14px 16px;background:' + bg + ';border-bottom:1px solid #eee;cursor:pointer;transition:background 0.12s" ' +
+    'onclick="viewParticipants('' + id + '','' + name.replace(/'/g,"\'") + '')" ' +
+    'onmouseover="this.style.background='#fff5ef'" ' +
+    'onmouseout="this.style.background='' + bg + ''">' +
+
+    // Left: name and meta
+    '<div style="flex:1;min-width:0">' +
+      '<p style="font-size:15px;font-weight:700;color:#000;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + name + '</p>' +
+      '<p style="font-size:12px;color:#888">' + meta + '</p>' +
     '</div>' +
-    '<p style="font-size:11px;color:var(--text-muted);margin-top:10px">Tap to open event →</p>' +
+
+    // Middle: status badge
+    '<span style="flex-shrink:0;margin:0 12px;background:' + statusBg + ';color:' + statusColor + ';font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;text-transform:uppercase;letter-spacing:0.05em;white-space:nowrap">' + status + '</span>' +
+
+    // Right: count
+    '<div style="flex-shrink:0;text-align:right">' +
+      '<p style="font-size:18px;font-weight:800;color:#EB001B;line-height:1">' + count + '</p>' +
+      '<p style="font-size:10px;color:#aaa">registered</p>' +
+    '</div>' +
+
+    // Arrow
+    '<span style="flex-shrink:0;margin-left:12px;color:#ccc;font-size:18px">›</span>' +
   '</div>';
 }
 
@@ -1466,11 +1473,13 @@ async function loadEvents() {
     return;
   }
 
-  let html = '';
-  events.forEach(e => {
+  let html = '<div style="border-radius:12px;overflow:hidden;border:1px solid #eee;box-shadow:0 1px 6px rgba(0,0,0,0.06)">';
+  events.forEach((e, i) => {
     const count = countMap[e.id] || 0;
-    html += renderEventCard(e, count);
+    html += renderEventCard(e, count, i);
   });
+  html += '</div>';
+  if (!events.length) html = '<div class="empty" style="padding:2rem;text-align:center;color:#aaa">No events yet. Create your first event.</div>';
   document.getElementById('events-list').innerHTML = html;
 }
 
