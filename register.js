@@ -35,6 +35,8 @@ async function init() {
   initSig('sign-canvas', 'sign');
   initSig('new-canvas', 'new');
   showScreen('find');
+  setScreenLabel('Participant Registration Form');
+  setHeaderBtn('← Back to Event Admin Panel', exitRegistration);
   setTimeout(() => { const i = document.getElementById('code-input'); if(i) i.focus(); }, 400);
 }
 
@@ -169,8 +171,8 @@ function showScreen(name) {
 
 function showFind() {
   document.getElementById('stats-row').style.display = 'flex';
-  const btn = document.getElementById('header-action-btn');
-  if (btn) { btn.textContent = '← Back to Event Admin Panel'; btn.onclick = exitRegistration; }
+  setHeaderBtn('← Back to Event Admin Panel', exitRegistration);
+  setScreenLabel('Participant Registration Form');
   selectedParticipant = null; selectedDay = null;
   document.getElementById('code-input').value = '';
   document.getElementById('name-input').value = '';
@@ -268,8 +270,8 @@ function selectResult(id) {
 
 function openSignScreen(p) {
   document.getElementById('stats-row').style.display = 'none';
-  const btn = document.getElementById('header-action-btn');
-  if (btn) { btn.textContent = '← Back to Participant Registration Form'; btn.onclick = showFind; }
+  setHeaderBtn('← Back to Participant Registration Form', showFind);
+  setScreenLabel('Sign Attendance Form');
   selectedParticipant = p;
   document.getElementById('sign-code').textContent = p.code || '';
   document.getElementById('sign-name').textContent = p.name || '';
@@ -322,8 +324,8 @@ async function confirmAttendance() {
 // ── New registration ──
 function showNewRegistration() {
   document.getElementById('stats-row').style.display = 'none';
-  const btn = document.getElementById('header-action-btn');
-  if (btn) { btn.textContent = '← Back to Participant Registration Form'; btn.onclick = showFind; }
+  setHeaderBtn('← Back to Participant Registration Form', showFind);
+  setScreenLabel('New Participant Registration');
   selectedDay = null; selectedSex = null;
   ['new-name','new-org','new-prog','new-position','new-email','new-phone'].forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
   document.getElementById('sex-male').classList.remove('active');
@@ -437,6 +439,18 @@ async function sendEmail(toEmail, participantName, code, eventName, eventDate, s
       body: JSON.stringify({ to: toEmail, subject: 'Registration Confirmed — ' + eventName + ' [' + code + ']', html })
     });
   } catch(e) { console.warn('Email failed:', e.message); }
+}
+
+function setHeaderBtn(text, action) {
+  const btn = document.getElementById('header-action-btn');
+  if (btn) { btn.textContent = text; btn.onclick = action; }
+}
+
+function setScreenLabel(text) {
+  const lbl = document.getElementById('screen-name-label');
+  if (lbl) lbl.textContent = text;
+  const formLbl = document.getElementById('screen-form-label');
+  if (formLbl) formLbl.textContent = text;
 }
 
 function esc(s) {

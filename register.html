@@ -29,7 +29,7 @@
     .app-header .label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: rgba(255,255,255,0.85); margin-bottom: 4px; }
     .app-header h1 { font-size: 22px; font-weight: 800; color: white; line-height: 1.2; }
     .app-header .meta { font-size: 12px; color: rgba(255,255,255,0.85); margin-top: 4px; }
-    .exit-btn { position: absolute; top: 1rem; right: 1rem; background: rgba(255,255,255,0.25); border: none; color: white; font-size: 12px; font-weight: 700; padding: 5px 12px; border-radius: 16px; cursor: pointer; font-family: inherit; }
+
 
     /* ── Stats row ── */
     .stats-row { display: flex; gap: 10px; padding: 14px 14px 0; }
@@ -119,16 +119,15 @@
 
   <!-- ── Header ── -->
   <div class="app-header">
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;width:100%">
-      <div>
-        <div class="label">Participant Registration Form</div>
-        <h1 id="header-event-name">Loading...</h1>
-        <p class="meta" id="header-meta"></p>
-      </div>
-      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
-        <button class="exit-btn" id="header-action-btn" onclick="exitRegistration()">← Back to Event Admin Panel</button>
-      </div>
-    </div>
+    <div class="label" id="screen-form-label">Participant Registration Form</div>
+    <h1 id="header-event-name">Loading...</h1>
+    <p class="meta" id="header-meta"></p>
+  </div>
+
+  <!-- ── Sub-nav: back button below header ── -->
+  <div style="background:white;border-bottom:1px solid #e8e8e8;padding:10px 14px;display:flex;align-items:center;justify-content:space-between">
+    <span id="screen-name-label" style="font-size:12px;font-weight:700;color:#555"></span>
+    <button id="header-action-btn" onclick="exitRegistration()" style="font-size:12px;font-weight:700;color:#EB001B;background:none;border:1.5px solid #EB001B;border-radius:8px;padding:6px 12px;cursor:pointer;font-family:inherit">← Back to Event Admin Panel</button>
   </div>
 
   <!-- ── Stats ── -->
@@ -141,7 +140,7 @@
   <!-- ── SCREEN: Find ── -->
   <div id="screen-find">
     <div class="main-card">
-      <p class="card-title">Sign Attendance Form</p>
+      <p class="card-title">Find Participant</p>
 
       <div class="tab-row">
         <button class="tab-btn active" id="tab-code" onclick="switchTab('code')">By Code</button>
