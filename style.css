@@ -95,7 +95,7 @@ body {
 /* ── Nav bar ── */
 .reg-nav {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
   margin-bottom: 1.25rem;
   padding-bottom: 0.75rem;
@@ -437,7 +437,7 @@ tr[data-pid]:hover td:first-child {
 /* Nav bar polish */
 .reg-nav {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
   margin-bottom: 1.25rem;
   padding-bottom: 0.75rem;
