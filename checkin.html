@@ -27,7 +27,7 @@
     <div class="reg-body" style="max-width:420px">
       <div class="reg-nav">
         <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-muted);display:block;margin-bottom:2px">METSS LBG</span><span class="reg-form-title">Event Check-in Form</span>
-        <button class="reg-back-btn" id="refresh-btn" onclick="window.location.reload()">↻ Refresh</button>
+        <button class="reg-back-btn" onclick="history.back()">← Back to Event Admin Panel</button><button class="reg-back-btn" id="refresh-btn" onclick="window.location.reload()">↻ Refresh</button>
       </div>
 
       <!-- Error state -->
@@ -85,7 +85,7 @@
 
         <span id="found-err" class="err-msg" style="display:none"></span>
         <button class="btn-submit" id="sign-btn" onclick="submitFoundAttendance()">Sign Attendance</button>
-        <button class="btn-secondary" onclick="resetCheckin()" style="width:100%;margin-top:8px">← Try another code</button>
+        <button class="btn-secondary" onclick="resetCheckin()" style="width:100%;margin-top:8px">← Back to Search</button>
       </div>
 
       <!-- Success -->

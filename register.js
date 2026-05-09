@@ -170,7 +170,7 @@ function showScreen(name) {
 function showFind() {
   document.getElementById('stats-row').style.display = 'flex';
   const btn = document.getElementById('header-action-btn');
-  if (btn) { btn.textContent = 'Participants'; btn.onclick = exitRegistration; }
+  if (btn) { btn.textContent = '← Back to Event Admin Panel'; btn.onclick = exitRegistration; }
   selectedParticipant = null; selectedDay = null;
   document.getElementById('code-input').value = '';
   document.getElementById('name-input').value = '';
