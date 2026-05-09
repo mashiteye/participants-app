@@ -113,6 +113,71 @@ async function loadEvents() {
   document.getElementById('events-list').innerHTML = html;
 }
 
+
+function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function renderEventCard(e, count, index) {
+  const dateStr = e.event_date
+    ? new Date(e.event_date).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' })
+    : 'No date';
+  const prog = (e.program && e.program !== 'Other') ? e.program : '';
+  const meta = [prog, dateStr].filter(Boolean).join(' · ');
+  const name = esc(e.name);
+  const id   = e.id;
+  const bg   = index % 2 === 0 ? '#ffffff' : '#fffbf0';
+
+  return (
+    '<div data-eid="' + id + '" onclick="handleEventClick(this)" ' +
+    'style="display:flex;align-items:center;padding:12px 14px;background:' + bg + ';border-bottom:1px solid #eee;cursor:pointer;gap:8px">' +
+
+      '<div style="flex:1;min-width:0">' +
+        '<p style="font-size:14px;font-weight:800;color:#000;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + name + '</p>' +
+      '</div>' +
+
+      '<div style="flex-shrink:0;display:flex;align-items:center;gap:6px">' +
+        '<button data-editid="' + id + '" onclick="event.stopPropagation();promptEditFromList(this.dataset.editid)" ' +
+          'style="padding:6px 10px;background:white;border:1px solid #ccc;border-radius:6px;font-size:13px;cursor:pointer;font-family:inherit" title="Edit">&#9999;</button>' +
+        '<button data-delid="' + id + '" onclick="event.stopPropagation();promptDeleteFromList(this.dataset.delid)" ' +
+          'style="padding:6px 10px;background:white;border:1px solid #eee;border-radius:6px;font-size:13px;cursor:pointer;font-family:inherit;color:#EB001B" title="Delete">&#128465;</button>' +
+        '<p style="font-size:11px;color:#999;margin:0;white-space:nowrap">' + meta + '</p>' +
+      '</div>' +
+
+    '</div>'
+  );
+}
+
+function handleEventClick(el) {
+  const id = el.getAttribute('data-eid');
+  viewParticipants(id, '');
+}
+
+function promptEditFromList(eventId) {
+  const pwd = prompt('Enter admin password to edit this event:');
+  if (!pwd) return;
+  const encoder = new TextEncoder();
+  crypto.subtle.digest('SHA-256', encoder.encode(pwd.toUpperCase().trim())).then(buf => {
+    const hex = Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+    if (hex !== '3b33a25d09dbd7a9f00296a32852e0cb064eaaa76d4294c370b1b6da15ebb0bc') { alert('Incorrect password.'); return; }
+    window.location.href = BASE_URL + 'edit-event.html?event=' + eventId;
+  });
+}
+
+function promptDeleteFromList(eventId) {
+  const pwd = prompt('Enter admin password to delete this event:');
+  if (!pwd) return;
+  const encoder = new TextEncoder();
+  crypto.subtle.digest('SHA-256', encoder.encode(pwd.toUpperCase().trim())).then(buf => {
+    const hex = Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+    if (hex !== '3b33a25d09dbd7a9f00296a32852e0cb064eaaa76d4294c370b1b6da15ebb0bc') { alert('Incorrect password.'); return; }
+    if (!confirm('Delete this event and ALL its participants? This cannot be undone.')) return;
+    db.from('attendance').delete().eq('event_id', eventId).then(() =>
+      db.from('participants').delete().eq('event_id', eventId).then(() =>
+        db.from('events').delete().eq('id', eventId).then(() => loadEvents())
+      )
+    );
+  });
+}
+
 function copyEventLink(id, type, btn) {
   let url;
   if (type === 'view') url = BASE_URL + 'event.html?event=' + id;
