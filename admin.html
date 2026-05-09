@@ -8,12 +8,19 @@
 </head>
 <body>
   <div class="app-wrapper">
-    <header class="app-header" style="display:flex;justify-content:space-between;align-items:flex-start">
-      <div>
-        <h1 class="app-title">Event Registration</h1>
+    <div class="reg-header">
+      <img src="banner.jpg" alt="" class="reg-header-banner" />
+      <div class="reg-header-content">
+        <p class="reg-form-name">EVENT REGISTRATION</p>
+        <p class="reg-header-title" style="font-size:16px;margin-top:4px">Manage your events</p>
       </div>
-        <button class="btn-secondary" onclick="loadEvents()">↻ Refresh</button>
-    </header>
+    </div>
+
+    <!-- Sub-nav below header -->
+    <div style="background:white;border-bottom:1px solid #eee;padding:10px 16px;display:flex;align-items:center;justify-content:space-between">
+      <a href="dashboard.html" style="font-size:12px;font-weight:700;color:#000;text-decoration:none;border:1.5px solid #000;padding:6px 12px;border-radius:8px">MEL Dashboard</a>
+      <button onclick="loadEvents()" style="font-size:12px;font-weight:600;color:var(--text-muted);background:none;border:1px solid var(--border);padding:6px 12px;border-radius:8px;cursor:pointer;font-family:inherit">↻ Refresh</button>
+    </div>
 
     <!-- Create Event -->
     <div id="pane-create" style="display:none">
@@ -180,10 +187,14 @@
       </ol>
     </div>
     <div id="pane-events">
-      <div class="pane-title">Events</div>
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
-        <a href="dashboard.html" class="btn-sm" style="background:var(--black);color:white;border-color:var(--black);font-weight:600;text-decoration:none;padding:5px 12px;display:inline-block">Dashboard</a>
-        <button class="btn-action-orange" onclick="showPane('create')">+ New event</button>
+      <!-- Help button top right -->
+      <div style="display:flex;justify-content:flex-end;margin-bottom:0.5rem">
+        <button onclick="toggleGuide()" style="font-size:12px;font-weight:700;width:32px;height:32px;border-radius:50%;border:1.5px solid var(--border);background:white;cursor:pointer;font-family:inherit;color:var(--text-muted)">?</button>
+      </div>
+
+      <!-- Centered + New Event button -->
+      <div style="text-align:center;margin-bottom:1.25rem">
+        <button class="btn-action-orange" onclick="showPane('create')" style="padding:14px 40px;font-size:16px;font-weight:800;border-radius:12px">+ New Event</button>
       </div>
 
       <div id="events-loading" class="empty">Loading events...</div>
