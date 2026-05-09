@@ -19,6 +19,24 @@ let drawing = {};
 
 async function init() {
   if (!eventId) return;
+
+  // Show cached stats instantly if available
+  const cacheKey = 'stats_' + eventId;
+  const cached = sessionStorage.getItem(cacheKey);
+  if (cached) {
+    try {
+      const c = JSON.parse(cached);
+      document.getElementById('stat-registered').textContent = c.total ?? '—';
+      document.getElementById('stat-female').textContent = c.female ?? '—';
+      const daysBox = document.getElementById('stat-days-boxes');
+      if (daysBox && c.days) daysBox.innerHTML = c.days;
+      document.getElementById('stats-row').style.display = 'flex';
+    } catch(e) {}
+  } else {
+    // Show skeleton immediately
+    showStatsSkeleton();
+  }
+
   const { data: ev } = await db.from('events').select('*').eq('id', eventId).single();
   if (!ev) return;
   eventData = ev;
@@ -57,6 +75,13 @@ async function loadData() {
 }
 
 function buildStatsDays() {
+  const cached = sessionStorage.getItem('stats_' + eventId);
+  if (cached) {
+    try {
+      const c = JSON.parse(cached);
+      if (c.days) { document.getElementById('stat-days-boxes').innerHTML = c.days; return; }
+    } catch(e) {}
+  }
   const days = eventData.days || 1;
   const container = document.getElementById('stat-days-boxes');
   container.style.display = 'contents';
@@ -71,17 +96,35 @@ function buildStatsDays() {
   }
 }
 
+function showStatsSkeleton() {
+  document.getElementById('stat-registered').innerHTML = '<span class="skeleton skeleton-num" style="width:40px;height:24px;display:inline-block"></span>';
+  document.getElementById('stat-female').innerHTML = '<span class="skeleton skeleton-num" style="width:40px;height:24px;display:inline-block"></span>';
+  const daysBox = document.getElementById('stat-days-boxes');
+  if (daysBox) daysBox.innerHTML = '<div class="stat-box"><span class="skeleton skeleton-num" style="width:40px;height:24px;display:inline-block"></span><div class="stat-label">Day</div></div>';
+  document.getElementById('stats-row').style.display = 'flex';
+}
+
 function updateStats() {
   const days = eventData ? eventData.days || 1 : 1;
-  document.getElementById('stat-registered').textContent = allParticipants.length;
+  const total = allParticipants.length;
   const female = allParticipants.filter(p => (p.sex||'').toLowerCase() === 'female').length;
+  document.getElementById('stat-registered').textContent = total;
   document.getElementById('stat-female').textContent = female;
+
+  // Build day stats HTML and cache it
+  let daysHtml = '';
   for (let i = 1; i <= days; i++) {
     const d = 'Day ' + i;
     const count = Object.values(attendanceMap).filter(a => a[d]).length;
     const el = document.getElementById('stat-day-num-' + i);
     if (el) el.textContent = count;
+    daysHtml += '<div class="stat-box" style="border-top:3px solid var(--yellow)"><div class="stat-num orange" id="stat-day-num-' + i + '">' + count + '</div><div class="stat-label">' + d + '</div></div>';
   }
+
+  // Cache to sessionStorage for instant display on return
+  try {
+    sessionStorage.setItem('stats_' + eventId, JSON.stringify({ total, female, days: daysHtml }));
+  } catch(e) {}
 }
 
 function buildDayButtons(containerId) {
@@ -404,6 +447,7 @@ async function submitNew() {
         : '';
       sendEmail(email, name, ins.code, eventData.name, dateStr, signUrl);
     }
+    sessionStorage.removeItem('stats_' + eventId); // invalidate cache
     document.getElementById('success-name').textContent = name;
     document.getElementById('success-day').textContent = 'Registered and signed for ' + selectedDay;
     showScreen('success');
