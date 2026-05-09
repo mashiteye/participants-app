@@ -78,6 +78,7 @@ body {
   margin-top: 5px;
   line-height: 1.2;
   letter-spacing: -0.01em;
+  color: #2F7B6B;
 }
 .reg-header-meta {
   font-size: 12px;
@@ -326,9 +327,9 @@ tr:hover td { background: #fff8f4; }
 .app-wrapper { max-width: 820px; margin: 0 auto; padding: 2rem 1.5rem; }
 .app-header { margin-bottom: 1.5rem; }
 .app-subtitle { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
-.app-title { font-size: 22px; font-weight: 800; margin-top: 4px; color: var(--black); }
+.app-title { color: #2F7B6B; font-size: 22px; font-weight: 800; margin-top: 4px; color: var(--black); }
 
-.pane-title {
+.pane-title { color: #2F7B6B;
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
@@ -355,7 +356,7 @@ tr:hover td { background: #fff8f4; }
 
 /* ── Admin form elements ── */
 .section-card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1.5rem; margin-bottom: 1.5rem; }
-.section-title { font-size: 15px; font-weight: 700; margin-bottom: 1.25rem; color: var(--black); padding-bottom: 8px; border-bottom: 2px solid var(--yellow); }
+.section-title { color: #2F7B6B; font-size: 15px; font-weight: 700; margin-bottom: 1.25rem; color: var(--black); padding-bottom: 8px; border-bottom: 2px solid var(--yellow); }
 .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 .form-group { display: flex; flex-direction: column; gap: 5px; }
 .form-group.full { grid-column: 1 / -1; }
@@ -404,7 +405,7 @@ tr:hover td { background: #fff8f4; }
 .event-card-code { font-size: 12px; font-weight: 700; color: var(--black); background: var(--yellow); font-family: monospace; margin-top: 4px; display: inline-block; padding: 1px 8px; border-radius: 4px; }
 .event-card-meta { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
 .event-card-count { text-align: right; }
-.count-num { display: block; font-size: 26px; font-weight: 700; color: var(--red); }
+.count-num { color: #2F7B6B; display: block; font-size: 26px; font-weight: 700; color: var(--red); }
 .count-label { font-size: 11px; color: var(--text-muted); }
 .event-card-actions { display: flex; gap: 6px; border-top: 0.5px solid var(--border); padding-top: 1rem; flex-wrap: wrap; }
 
@@ -446,7 +447,7 @@ tr[data-pid]:hover td:first-child {
 }
 
 /* Stat cards in event view */
-.stat-card .stat-num { color: var(--orange); }
+.stat-card .stat-num { color: #2F7B6B; }
 
 /* event.html uses wider body for participant table */
 .event-body {
