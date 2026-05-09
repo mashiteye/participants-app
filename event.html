@@ -61,14 +61,14 @@
       </div>
 
       <!-- Password modal for admin actions -->
-      <div id="admin-pwd-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:200;align-items:center;justify-content:center;padding:1rem">
+      <div id="admin-pwd-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:200;align-items:flex-start;justify-content:center;padding:2rem 1rem">
         <div style="background:white;border-radius:16px;padding:2rem;max-width:320px;width:100%">
           <p style="font-size:15px;font-weight:700;margin-bottom:1rem" id="admin-pwd-title">Admin Action</p>
           <input type="password" id="admin-pwd-input" placeholder="Password" style="margin-bottom:0.75rem;width:100%" onkeydown="if(event.key==='Enter')checkAdminPwd()" />
           <p id="admin-pwd-err" style="font-size:12px;color:var(--red);display:none;margin-bottom:0.5rem">Incorrect password.</p>
           <div style="display:flex;gap:8px">
-            <button class="btn-primary" onclick="checkAdminPwd()" style="flex:1">Confirm</button>
-            <button class="btn-secondary" onclick="closeAdminPwd()" style="flex:1">Cancel</button>
+            <button onclick="checkAdminPwd()" style="flex:1;padding:12px;background:#EB001B;color:white;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">Confirm</button>
+            <button onclick="closeAdminPwd()" style="flex:1;padding:12px;background:white;border:1.5px solid #000;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">Cancel</button>
           </div>
         </div>
       </div>

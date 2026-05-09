@@ -200,23 +200,34 @@ function exitRegistration() {
 async function findByCode() {
   const raw = document.getElementById('code-input').value.trim().toUpperCase();
   if (!raw) return;
-  const rawNorm = raw.replace(/[\s\-().+]/g, '').replace(/^233/, '0');
-  // Match by code OR phone number
-  const p = allParticipants.find(x => {
+  const rawNorm = raw.replace(/[^0-9]/g, ''); // digits only for phone matching
+  // Find all matches — by code or partial phone
+  const matches = allParticipants.filter(x => {
     const c = (x.code || '').toUpperCase();
-    const phone = (x.phone || '').replace(/[\s\-().+]/g, '').replace(/^233/, '0');
-    return c === raw ||
-      c.endsWith('-' + raw) ||
-      c.endsWith('-' + raw.replace(/^0+/, '')) ||
-      (rawNorm.length >= 7 && phone === rawNorm);
+    const phone = (x.phone || '').replace(/[^0-9]/g, '');
+    const codeMatch = c === raw || c.endsWith('-' + raw) || c.endsWith('-' + raw.replace(/^0+/, ''));
+    const phoneMatch = rawNorm.length >= 3 && phone.includes(rawNorm);
+    return codeMatch || phoneMatch;
   });
-  if (!p) {
-    document.getElementById('find-err').textContent = 'No participant found with code or phone "' + raw + '"';
+  if (!matches.length) {
+    document.getElementById('find-err').textContent = 'No participant found. Try a different code or phone number.';
     document.getElementById('find-err').style.display = 'block';
     return;
   }
   document.getElementById('find-err').style.display = 'none';
-  openSignScreen(p);
+  if (matches.length === 1) {
+    openSignScreen(matches[0]);
+  } else {
+    // Show list if multiple phone matches
+    const container = document.getElementById('phone-results');
+    container.innerHTML = '<p style="font-size:12px;color:#888;margin-bottom:6px">' + matches.length + ' matches — select one:</p>' +
+      matches.slice(0,8).map(p =>
+        '<div class="result-item" onclick="selectResult('' + p.id + '')">' +
+          '<div class="result-name">' + esc(p.name) + '</div>' +
+          '<div class="result-meta">' + esc(p.code||'') + ' · ' + esc(p.phone||'') + '</div>' +
+        '</div>'
+      ).join('');
+  }
 }
 
 function findByName() {

@@ -581,48 +581,72 @@ function checkAdminPwd() {
 
 // ── Manage zone functions (admin only) ──
 async function editEvent() {
-  // Fetch event data then show inline edit modal
   const { data: ev } = await db.from('events').select('*').eq('id', eventId).single();
   if (!ev) { alert('Could not load event data.'); return; }
 
-  // Build simple edit modal inline
   const existing = document.getElementById('inline-edit-modal');
   if (existing) existing.remove();
 
   const days = ev.days || 1;
+
+  // Build days options
+  let daysOpts = '';
+  for (let d = 1; d <= 5; d++) {
+    daysOpts += '<option value="' + d + '"' + (d === days ? ' selected' : '') + '>' + d + ' day' + (d > 1 ? 's' : '') + '</option>';
+  }
+
   const modal = document.createElement('div');
   modal.id = 'inline-edit-modal';
-  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:300;display:flex;align-items:center;justify-content:center;padding:1rem;overflow-y:auto';
-  modal.innerHTML = `
-    <div style="background:white;border-radius:16px;padding:2rem;max-width:480px;width:100%;max-height:90vh;overflow-y:auto">
-      <p style="font-size:16px;font-weight:800;margin-bottom:1.25rem">Edit Event</p>
-      <div style="display:flex;flex-direction:column;gap:12px">
-        <div><label style="font-size:11px;font-weight:700;text-transform:uppercase;color:#666;display:block;margin-bottom:4px">Event Name *</label>
-          <input id="ie-name" value="${(ev.name||'').replace(/"/g,'&quot;')}" style="width:100%;padding:12px;border:1.5px solid #e0e0e0;border-radius:8px;font-size:15px;font-family:inherit" /></div>
-        <div><label style="font-size:11px;font-weight:700;text-transform:uppercase;color:#666;display:block;margin-bottom:4px">Organiser</label>
-          <input id="ie-organizer" value="${(ev.organizer||'').replace(/"/g,'&quot;')}" style="width:100%;padding:12px;border:1.5px solid #e0e0e0;border-radius:8px;font-size:15px;font-family:inherit" /></div>
-        <div><label style="font-size:11px;font-weight:700;text-transform:uppercase;color:#666;display:block;margin-bottom:4px">Event Date</label>
-          <input id="ie-date" type="date" value="${ev.event_date||''}" style="width:100%;padding:12px;border:1.5px solid #e0e0e0;border-radius:8px;font-size:15px;font-family:inherit" /></div>
-        <div><label style="font-size:11px;font-weight:700;text-transform:uppercase;color:#666;display:block;margin-bottom:4px">Number of Days</label>
-          <select id="ie-days" style="width:100%;padding:12px;border:1.5px solid #e0e0e0;border-radius:8px;font-size:15px;font-family:inherit">
-            ${[1,2,3,4,5].map(d => '<option value="'+d+'"'+(d===days?' selected':'')+'>'+d+' day'+(d>1?'s':'')+'</option>').join('')}
-          </select></div>
-        <div><label style="font-size:11px;font-weight:700;text-transform:uppercase;color:#666;display:block;margin-bottom:4px">Event Code</label>
-          <input id="ie-code" value="${(ev.event_code||'').replace(/"/g,'&quot;')}" style="width:100%;padding:12px;border:1.5px solid #e0e0e0;border-radius:8px;font-size:15px;font-family:inherit" /></div>
-        <div><label style="font-size:11px;font-weight:700;text-transform:uppercase;color:#666;display:block;margin-bottom:4px">Signatory Name</label>
-          <input id="ie-sig-name" value="${(ev.signatory_name||'').replace(/"/g,'&quot;')}" style="width:100%;padding:12px;border:1.5px solid #e0e0e0;border-radius:8px;font-size:15px;font-family:inherit" /></div>
-        <div><label style="font-size:11px;font-weight:700;text-transform:uppercase;color:#666;display:block;margin-bottom:4px">Signatory Title</label>
-          <input id="ie-sig-title" value="${(ev.signatory_title||'').replace(/"/g,'&quot;')}" style="width:100%;padding:12px;border:1.5px solid #e0e0e0;border-radius:8px;font-size:15px;font-family:inherit" /></div>
-      </div>
-      <p id="ie-err" style="color:#EB001B;font-size:13px;display:none;margin-top:0.75rem"></p>
-      <div style="display:flex;gap:8px;margin-top:1.5rem">
-        <button onclick="saveInlineEdit()" style="flex:1;padding:14px;background:#EB001B;color:white;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">Save Changes</button>
-        <button onclick="document.getElementById('inline-edit-modal').remove()" style="flex:1;padding:14px;background:white;border:1.5px solid #000;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">Cancel</button>
-      </div>
-    </div>
-  `;
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:300;display:flex;align-items:flex-start;justify-content:center;padding:1.5rem 1rem;overflow-y:auto';
+
+  const inner = document.createElement('div');
+  inner.style.cssText = 'background:white;border-radius:16px;padding:1.75rem;max-width:480px;width:100%';
+
+  const fields = [
+    { id: 'ie-name',      label: 'Event Name *',     val: ev.name || '',           type: 'text' },
+    { id: 'ie-organizer', label: 'Organiser',         val: ev.organizer || '',      type: 'text' },
+    { id: 'ie-date',      label: 'Event Date',        val: ev.event_date || '',     type: 'date' },
+    { id: 'ie-code',      label: 'Event Code',        val: ev.event_code || '',     type: 'text' },
+    { id: 'ie-sig-name',  label: 'Signatory Name',    val: ev.signatory_name || '', type: 'text' },
+    { id: 'ie-sig-title', label: 'Signatory Title',   val: ev.signatory_title || '', type: 'text' },
+  ];
+
+  inner.innerHTML = '<p style="font-size:16px;font-weight:800;margin-bottom:1.25rem;color:#000">Edit Event</p>';
+
+  fields.forEach(f => {
+    const wrap = document.createElement('div');
+    wrap.style.marginBottom = '12px';
+    const lbl = document.createElement('label');
+    lbl.style.cssText = 'font-size:11px;font-weight:700;text-transform:uppercase;color:#666;display:block;margin-bottom:4px';
+    lbl.textContent = f.label;
+    const inp = document.createElement('input');
+    inp.id = f.id; inp.type = f.type; inp.value = f.val;
+    inp.style.cssText = 'width:100%;padding:12px;border:1.5px solid #e0e0e0;border-radius:8px;font-size:15px;font-family:inherit;box-sizing:border-box';
+    wrap.appendChild(lbl); wrap.appendChild(inp);
+    inner.appendChild(wrap);
+  });
+
+  // Days select
+  const daysWrap = document.createElement('div');
+  daysWrap.style.marginBottom = '12px';
+  daysWrap.innerHTML = '<label style="font-size:11px;font-weight:700;text-transform:uppercase;color:#666;display:block;margin-bottom:4px">Number of Days</label>' +
+    '<select id="ie-days" style="width:100%;padding:12px;border:1.5px solid #e0e0e0;border-radius:8px;font-size:15px;font-family:inherit">' + daysOpts + '</select>';
+  inner.insertBefore(daysWrap, inner.children[4]); // after date
+
+  const err = document.createElement('p');
+  err.id = 'ie-err'; err.style.cssText = 'color:#EB001B;font-size:13px;display:none;margin-bottom:0.75rem';
+  inner.appendChild(err);
+
+  const btnRow = document.createElement('div');
+  btnRow.style.cssText = 'display:flex;gap:8px;margin-top:1.25rem';
+  btnRow.innerHTML = '<button onclick="saveInlineEdit()" style="flex:1;padding:14px;background:#EB001B;color:white;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">Save Changes</button>' +
+    '<button onclick="document.getElementById('inline-edit-modal').remove()" style="flex:1;padding:14px;background:white;border:1.5px solid #000;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">Cancel</button>';
+  inner.appendChild(btnRow);
+
+  modal.appendChild(inner);
   document.body.appendChild(modal);
 }
+
 
 async function saveInlineEdit() {
   const name = document.getElementById('ie-name').value.trim();
