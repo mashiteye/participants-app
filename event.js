@@ -579,12 +579,13 @@ async function checkAdminPwd() {
     setTimeout(() => { input.style.animation = ''; input.style.borderColor = ''; input.focus(); }, 500);
     return;
   }
+  const action = _adminAction; // save before closeAdminPwd clears it
   closeAdminPwd();
-  if (_adminAction === 'edit')      editEvent();
-  else if (_adminAction === 'delete')    deleteEventFromPage();
-  else if (_adminAction === 'back')      goBackToEvents();
-  else if (_adminAction === 'editparts') toggleParticipantList();
-  else if (_adminAction === 'certs')     generateEventCertificates();
+  if (action === 'edit')      editEvent();
+  else if (action === 'delete')    deleteEventFromPage();
+  else if (action === 'back')      goBackToEvents();
+  else if (action === 'editparts') toggleParticipantList();
+  else if (action === 'certs')     generateEventCertificates();
 }
 
 // ── Manage zone functions (admin only) ──
