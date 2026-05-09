@@ -45,20 +45,26 @@
         </button>
       </div>
 
-      <!-- Secondary buttons: 2-3 column grid -->
+      <!-- Secondary buttons: 2-3 column grid — ordered by type and importance -->
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1.5rem">
+
+        <!-- Row 1: Exports — most used during/after event -->
         <button id="export-pdf-btn" onclick="exportEventPDF()" style="padding:14px 8px;background:var(--black);color:white;border:none;border-radius:var(--radius-md);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;text-align:center">📄 Export PDF</button>
         <button onclick="exportEventQRSheet()" style="padding:14px 8px;background:white;border:1.5px solid var(--black);border-radius:var(--radius-md);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;text-align:center">🖨 Print QR Cards</button>
-        <button onclick="promptAdminAction('editparts')" id="edit-participants-btn" style="padding:14px 8px;background:var(--black);color:white;border:none;border-radius:var(--radius-md);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;text-align:center">✏ Edit Participants</button>
-        <button id="cert-btn" onclick="generateEventCertificates()" style="display:none;padding:14px 8px;background:var(--yellow);border:none;border-radius:var(--radius-md);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--black);text-align:center">🎓 Certificates</button>
-        <button id="share-prereg-btn" onclick="copyShareLink('prereg')" style="padding:14px 8px;background:white;border:1.5px solid var(--orange);border-radius:var(--radius-md);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--orange);text-align:center">📋 Pre-reg Link</button>
         <button onclick="showEventCheckinQR()" style="padding:14px 8px;background:var(--black);color:white;border:none;border-radius:var(--radius-md);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;text-align:center">📲 Scan &amp; Sign-in QR</button>
-        <!-- Admin only -->
+
+        <!-- Row 2: Certificates + Pre-reg link -->
+        <button id="cert-btn" onclick="promptAdminAction('certs')" style="display:none;padding:14px 8px;background:var(--yellow);border:none;border-radius:var(--radius-md);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--black);text-align:center">🎓 Certificates</button>
+        <button id="share-prereg-btn" onclick="copyShareLink('prereg')" style="padding:14px 8px;background:white;border:1.5px solid var(--orange);border-radius:var(--radius-md);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--orange);text-align:center">📋 Pre-reg Link</button>
+
+        <!-- Row 3: Admin actions (password protected) -->
         <button id="edit-event-btn" onclick="promptEditEvent()" style="display:none;padding:14px 8px;background:white;border:1.5px solid var(--black);border-radius:var(--radius-md);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;text-align:center">✏ Edit Event</button>
+        <button onclick="promptAdminAction('editparts')" id="edit-participants-btn" style="display:none;padding:14px 8px;background:var(--black);color:white;border:none;border-radius:var(--radius-md);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;text-align:center">✏ Edit Participants</button>
         <button id="import-csv-btn" onclick="importCSV()" style="display:none;padding:14px 8px;background:var(--yellow);border:none;border-radius:var(--radius-md);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--black);text-align:center">↑ Import CSV</button>
+
+        <!-- Row 4: Danger -->
         <button id="delete-event-btn" onclick="promptDeleteEvent()" style="display:none;padding:14px 8px;background:white;border:1.5px solid var(--red);border-radius:var(--radius-md);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--red);text-align:center">🗑 Delete Event</button>
       </div>
-
       <!-- Password modal for admin actions -->
       <div id="admin-pwd-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:200;align-items:flex-start;justify-content:center;padding:2rem 1rem">
         <div style="background:white;border-radius:16px;padding:2rem;max-width:320px;width:100%">

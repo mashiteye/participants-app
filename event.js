@@ -552,25 +552,8 @@ function promptAdminAction(action) {
   setTimeout(() => document.getElementById('admin-pwd-input').focus(), 100);
 }
 
-function promptEditEvent() {
-  promptAdminAction('edit'); return;
-  _adminAction = 'edit';
-  document.getElementById('admin-pwd-title').textContent = 'Enter admin password to edit event';
-  document.getElementById('admin-pwd-input').value = '';
-  document.getElementById('admin-pwd-err').style.display = 'none';
-  document.getElementById('admin-pwd-modal').style.display = 'flex';
-  setTimeout(() => document.getElementById('admin-pwd-input').focus(), 100);
-}
-
-function promptDeleteEvent() {
-  promptAdminAction('delete'); return;
-  _adminAction = 'delete';
-  document.getElementById('admin-pwd-title').textContent = 'Enter admin password to delete event';
-  document.getElementById('admin-pwd-input').value = '';
-  document.getElementById('admin-pwd-err').style.display = 'none';
-  document.getElementById('admin-pwd-modal').style.display = 'flex';
-  setTimeout(() => document.getElementById('admin-pwd-input').focus(), 100);
-}
+function promptEditEvent() { promptAdminAction('edit'); }
+function promptDeleteEvent() { promptAdminAction('delete'); }
 
 function closeAdminPwd() {
   document.getElementById('admin-pwd-modal').style.display = 'none';
@@ -592,10 +575,6 @@ async function checkAdminPwd() {
     input.style.borderColor = '#EB001B';
     input.style.animation = 'shake 0.4s ease';
     setTimeout(() => { input.style.animation = ''; input.style.borderColor = ''; input.focus(); }, 500);
-    // Shake animation
-    input.style.borderColor = '#EB001B';
-    input.style.animation = 'shake 0.4s ease';
-    setTimeout(() => { input.style.animation = ''; input.style.borderColor = ''; input.focus(); }, 500);
     return;
   }
   closeAdminPwd();
@@ -610,76 +589,6 @@ async function checkAdminPwd() {
 async function editEvent() {
   window.location.href = BASE_URL + 'edit-event.html?event=' + eventId;
 }
-
-async function editEvent_old() {
-  const { data: ev } = await db.from('events').select('*').eq('id', eventId).single();
-  if (!ev) { alert('Could not load event data.'); return; }
-
-  const existing = document.getElementById('inline-edit-modal');
-  if (existing) existing.remove();
-
-  const days = ev.days || 1;
-
-  // Build days options
-  let daysOpts = '';
-  for (let d = 1; d <= 5; d++) {
-    daysOpts += '<option value="' + d + '"' + (d === days ? ' selected' : '') + '>' + d + ' day' + (d > 1 ? 's' : '') + '</option>';
-  }
-
-  const modal = document.createElement('div');
-  modal.id = 'inline-edit-modal';
-  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:300;display:flex;align-items:flex-start;justify-content:center;padding:1.5rem 1rem;overflow-y:auto';
-
-  const inner = document.createElement('div');
-  inner.style.cssText = 'background:white;border-radius:16px;padding:1.75rem;max-width:480px;width:100%';
-
-  const fields = [
-    { id: 'ie-name',      label: 'Event Name *',     val: ev.name || '',           type: 'text' },
-    { id: 'ie-organizer', label: 'Organiser',         val: ev.organizer || '',      type: 'text' },
-    { id: 'ie-date',      label: 'Event Date',        val: ev.event_date || '',     type: 'date' },
-    { id: 'ie-code',      label: 'Event Code',        val: ev.event_code || '',     type: 'text' },
-    { id: 'ie-sig-name',  label: 'Signatory Name',    val: ev.signatory_name || '', type: 'text' },
-    { id: 'ie-sig-title', label: 'Signatory Title',   val: ev.signatory_title || '', type: 'text' },
-  ];
-
-  inner.innerHTML = '<p style="font-size:16px;font-weight:800;margin-bottom:1.25rem;color:#000">Edit Event</p>';
-
-  fields.forEach(f => {
-    const wrap = document.createElement('div');
-    wrap.style.marginBottom = '12px';
-    const lbl = document.createElement('label');
-    lbl.style.cssText = 'font-size:11px;font-weight:700;text-transform:uppercase;color:#666;display:block;margin-bottom:4px';
-    lbl.textContent = f.label;
-    const inp = document.createElement('input');
-    inp.id = f.id; inp.type = f.type; inp.value = f.val;
-    inp.style.cssText = 'width:100%;padding:12px;border:1.5px solid #e0e0e0;border-radius:8px;font-size:15px;font-family:inherit;box-sizing:border-box';
-    wrap.appendChild(lbl); wrap.appendChild(inp);
-    inner.appendChild(wrap);
-  });
-
-  // Days select
-  const daysWrap = document.createElement('div');
-  daysWrap.style.marginBottom = '12px';
-  daysWrap.innerHTML = '<label style="font-size:11px;font-weight:700;text-transform:uppercase;color:#666;display:block;margin-bottom:4px">Number of Days</label>' +
-    '<select id="ie-days" style="width:100%;padding:12px;border:1.5px solid #e0e0e0;border-radius:8px;font-size:15px;font-family:inherit">' + daysOpts + '</select>';
-  inner.insertBefore(daysWrap, inner.children[4]); // after date
-
-  const err = document.createElement('p');
-  err.id = 'ie-err'; err.style.cssText = 'color:#EB001B;font-size:13px;display:none;margin-bottom:0.75rem';
-  inner.appendChild(err);
-
-  const btnRow = document.createElement('div');
-  btnRow.style.cssText = 'display:flex;gap:8px;margin-top:1.25rem';
-  btnRow.innerHTML = '<button onclick="saveInlineEdit()" style="flex:1;padding:14px;background:#EB001B;color:white;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">Save Changes</button>' +
-    '<button onclick="closeInlineEdit()" style="flex:1;padding:14px;background:white;border:1.5px solid #000;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">Cancel</button>';
-  inner.appendChild(btnRow);
-
-  modal.appendChild(inner);
-  document.body.appendChild(modal);
-}
-
-
-function closeInlineEdit() { var m = document.getElementById('inline-edit-modal'); if (m) m.remove(); }
 
 async function saveInlineEdit() {
   const name = document.getElementById('ie-name').value.trim();
