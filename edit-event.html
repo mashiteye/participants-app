@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Edit Event Form</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="reg-header">
+    <img src="banner.jpg" alt="" class="reg-header-banner" />
+    <div class="reg-header-content">
+      <p class="reg-form-name">EDIT EVENT FORM</p>
+      <p class="reg-header-title" id="edit-event-name" style="font-size:18px;margin-top:4px">Loading...</p>
+    </div>
+  </div>
+
+  <div class="reg-nav" style="justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--border)">
+    <button class="reg-back-btn" onclick="goBack()">← Back to Event Admin Form</button>
+    <a href="help.html?from=event" style="width:36px;height:36px;border-radius:50%;border:2px solid var(--orange);background:white;color:var(--orange);font-size:16px;font-weight:800;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0">?</a>
+  </div>
+
+  <div class="reg-body">
+    <div class="section-card">
+      <p class="section-title">Edit event details</p>
+
+      <div class="form-grid">
+        <div class="form-group full"><label>Event Name *</label><input type="text" id="e-name" /></div>
+        <div class="form-group"><label>Organiser</label><input type="text" id="e-organizer" /></div>
+        <div class="form-group"><label>Program</label>
+          <select id="e-program">
+            <option value="">Select program</option>
+            <option>AYAW</option><option>BIA</option><option>FILMA</option>
+            <option>FIRST+II</option><option>Other</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Event Date</label><input type="date" id="e-date" /></div>
+        <div class="form-group"><label>Number of Days</label>
+          <select id="e-days">
+            <option value="1">1 day</option><option value="2">2 days</option>
+            <option value="3">3 days</option><option value="4">4 days</option>
+            <option value="5">5 days</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Event Code</label><input type="text" id="e-code" placeholder="e.g. MCF-2026" /></div>
+      </div>
+
+      <div class="form-group full" style="margin-top:1rem">
+        <label>Pre-reg comment or question for participants (optional)</label>
+        <input type="text" id="e-mel" oninput="toggleMelRequired()" />
+      </div>
+      <div class="form-group full" id="e-mel-required-group" style="display:none">
+        <label>Response required?</label>
+        <div class="toggle-group" style="max-width:260px">
+          <button class="toggle-btn active" id="e-mel-opt" onclick="setMelRequired(false)">Optional</button>
+          <button class="toggle-btn" id="e-mel-req" onclick="setMelRequired(true)">Mandatory</button>
+        </div>
+        <input type="hidden" id="e-mel-required" value="false" />
+      </div>
+
+      <div class="form-grid" style="margin-top:1rem">
+        <div class="form-group"><label>Signatory Name</label><input type="text" id="e-sig-name" placeholder="e.g. Dr. Ama Asante" /></div>
+        <div class="form-group"><label>Signatory Title</label><input type="text" id="e-sig-title" placeholder="e.g. Executive Director" /></div>
+        <div class="form-group full"><label>Signatory Signature</label>
+          <input type="file" id="e-sig-file" accept="image/*" onchange="previewSig(this)" />
+          <img id="e-sig-preview" src="" alt="" style="max-height:60px;margin-top:8px;display:none;border-radius:4px" />
+          <p id="e-sig-current" style="font-size:12px;color:var(--text-muted);margin-top:4px"></p>
+        </div>
+      </div>
+
+      <p id="e-err" style="color:var(--red);font-size:13px;display:none;margin-top:1rem"></p>
+      <div class="form-actions" style="margin-top:1.5rem">
+        <button class="btn-primary" onclick="saveEvent()">Save Changes</button>
+        <button class="btn-secondary" onclick="goBack()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script>
+    const SUPABASE_URL = 'https://cpqhljqwxjgscdoepant.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNwcWhsanF3eGpnc2Nkb2VwYW50Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyMTM1NTcsImV4cCI6MjA5Mzc4OTU1N30.XATDTbvL7iDrsn-Si0crJWZebw5FSx0weWRmmcL2Z7c';
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const params = new URLSearchParams(window.location.search);
+    const eventId = params.get('event');
+    const BASE_URL = window.location.origin + window.location.pathname.replace('edit-event.html','');
+    let currentSigUrl = null;
+
+    async function init() {
+      if (!eventId) { alert('No event specified.'); return; }
+      const { data: ev } = await db.from('events').select('*').eq('id', eventId).single();
+      if (!ev) { alert('Event not found.'); return; }
+
+      document.getElementById('edit-event-name').textContent = ev.name;
+      document.getElementById('e-name').value = ev.name || '';
+      document.getElementById('e-organizer').value = ev.organizer || '';
+      document.getElementById('e-date').value = ev.event_date || '';
+      document.getElementById('e-days').value = ev.days || 1;
+      document.getElementById('e-code').value = ev.event_code || '';
+      document.getElementById('e-mel').value = ev.mel_question || '';
+      document.getElementById('e-mel-required').value = ev.mel_question_required || 'false';
+      if (ev.program) document.getElementById('e-program').value = ev.program;
+      if (ev.mel_question) document.getElementById('e-mel-required-group').style.display = 'block';
+      if (ev.mel_question_required === 'true') setMelRequired(true);
+      if (ev.signatory_name) document.getElementById('e-sig-name').value = ev.signatory_name;
+      if (ev.signatory_title) document.getElementById('e-sig-title').value = ev.signatory_title;
+      if (ev.signatory_signature_url) {
+        currentSigUrl = ev.signatory_signature_url;
+        document.getElementById('e-sig-current').textContent = 'Current signature on file ✓';
+        const p = document.getElementById('e-sig-preview');
+        p.src = currentSigUrl; p.style.display = 'block';
+      }
+    }
+
+    function toggleMelRequired() {
+      const q = document.getElementById('e-mel').value.trim();
+      document.getElementById('e-mel-required-group').style.display = q ? 'block' : 'none';
+    }
+    function setMelRequired(req) {
+      document.getElementById('e-mel-required').value = req;
+      document.getElementById('e-mel-opt').classList.toggle('active', !req);
+      document.getElementById('e-mel-req').classList.toggle('active', req);
+    }
+    function previewSig(input) {
+      const file = input.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => { const p = document.getElementById('e-sig-preview'); p.src = e.target.result; p.style.display = 'block'; };
+      reader.readAsDataURL(file);
+    }
+
+    async function saveEvent() {
+      const name = document.getElementById('e-name').value.trim();
+      if (!name) { showErr('Event name is required.'); return; }
+      const btn = document.querySelector('.btn-primary');
+      btn.textContent = 'Saving...'; btn.disabled = true;
+
+      try {
+        let sigUrl = currentSigUrl;
+        const file = document.getElementById('e-sig-file').files[0];
+        if (file) {
+          const path = 'signatures/signatory-' + eventId + '-' + Date.now() + '.' + file.name.split('.').pop();
+          const { error: upErr } = await db.storage.from('signatures').upload(path, file, { contentType: file.type });
+          if (!upErr) { const { data: { publicUrl } } = db.storage.from('signatures').getPublicUrl(path); sigUrl = publicUrl; }
+        }
+
+        const { error } = await db.from('events').update({
+          name,
+          organizer: document.getElementById('e-organizer').value.trim() || null,
+          program: document.getElementById('e-program').value || null,
+          event_date: document.getElementById('e-date').value || null,
+          days: parseInt(document.getElementById('e-days').value) || 1,
+          event_code: document.getElementById('e-code').value.trim() || null,
+          mel_question: document.getElementById('e-mel').value.trim() || null,
+          mel_question_required: document.getElementById('e-mel-required').value,
+          signatory_name: document.getElementById('e-sig-name').value.trim() || null,
+          signatory_title: document.getElementById('e-sig-title').value.trim() || null,
+          signatory_signature_url: sigUrl,
+        }).eq('id', eventId);
+
+        if (error) throw new Error(error.message);
+        goBack();
+      } catch(e) {
+        showErr('Save failed: ' + e.message);
+      } finally {
+        btn.textContent = 'Save Changes'; btn.disabled = false;
+      }
+    }
+
+    function showErr(msg) {
+      const el = document.getElementById('e-err');
+      el.textContent = msg; el.style.display = 'block';
+    }
+    function goBack() {
+      window.location.href = BASE_URL + 'event.html?event=' + eventId + '&from=admin';
+    }
+
+    init();
+  </script>
+</body>
+</html>

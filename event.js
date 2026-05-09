@@ -584,6 +584,10 @@ async function checkAdminPwd() {
 
 // ── Manage zone functions (admin only) ──
 async function editEvent() {
+  window.location.href = BASE_URL + 'edit-event.html?event=' + eventId;
+}
+
+async function editEvent_old() {
   const { data: ev } = await db.from('events').select('*').eq('id', eventId).single();
   if (!ev) { alert('Could not load event data.'); return; }
 
