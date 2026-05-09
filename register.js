@@ -269,7 +269,7 @@ function selectResult(id) {
 function openSignScreen(p) {
   document.getElementById('stats-row').style.display = 'none';
   const btn = document.getElementById('header-action-btn');
-  if (btn) { btn.textContent = '← Back to Search'; btn.onclick = showFind; }
+  if (btn) { btn.textContent = '← Back to Participant Registration Form'; btn.onclick = showFind; }
   selectedParticipant = p;
   document.getElementById('sign-code').textContent = p.code || '';
   document.getElementById('sign-name').textContent = p.name || '';
@@ -323,7 +323,7 @@ async function confirmAttendance() {
 function showNewRegistration() {
   document.getElementById('stats-row').style.display = 'none';
   const btn = document.getElementById('header-action-btn');
-  if (btn) { btn.textContent = '← Back to Search'; btn.onclick = showFind; }
+  if (btn) { btn.textContent = '← Back to Participant Registration Form'; btn.onclick = showFind; }
   selectedDay = null; selectedSex = null;
   ['new-name','new-org','new-prog','new-position','new-email','new-phone'].forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
   document.getElementById('sex-male').classList.remove('active');
