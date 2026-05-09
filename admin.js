@@ -1464,14 +1464,14 @@ function renderEventCard(e, count, index) {
 
       '</div>' +
 
-      // ── Bottom row: actions ──
-      '<div style="display:flex;gap:6px;justify-content:flex-end" onclick="event.stopPropagation()">' +
+      // ── Bottom row: 3-column action buttons ──
+      '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px" onclick="event.stopPropagation()">' +
         '<button data-openid="' + id + '" data-openname="' + name + '" onclick="viewParticipants(this.dataset.openid,this.dataset.openname)" ' +
-          'style="padding:5px 14px;background:#EB001B;border:none;border-radius:6px;font-size:11px;font-weight:700;color:white;cursor:pointer;font-family:inherit">Open</button>' +
+          'style="padding:10px;background:#EB001B;border:none;border-radius:8px;font-size:13px;font-weight:700;color:white;cursor:pointer;font-family:inherit">Open</button>' +
         '<button data-editid="' + id + '" onclick="promptEditFromList(this.dataset.editid)" ' +
-          'style="padding:5px 10px;background:white;border:1px solid #ccc;border-radius:6px;font-size:12px;cursor:pointer;font-family:inherit" title="Edit event">✏</button>' +
+          'style="padding:10px;background:white;border:1.5px solid #000;border-radius:8px;font-size:13px;font-weight:700;color:#000;cursor:pointer;font-family:inherit">✏ Edit</button>' +
         '<button data-delid="' + id + '" onclick="promptDeleteFromList(this.dataset.delid)" ' +
-          'style="padding:5px 10px;background:white;border:1px solid #eee;border-radius:6px;font-size:12px;cursor:pointer;font-family:inherit;color:#EB001B" title="Delete event">🗑</button>' +
+          'style="padding:10px;background:white;border:1.5px solid #EB001B;border-radius:8px;font-size:13px;font-weight:700;color:#EB001B;cursor:pointer;font-family:inherit">🗑 Delete</button>' +
       '</div>' +
 
     '</div>'
