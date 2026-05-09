@@ -36,7 +36,7 @@ async function init() {
   initSig('new-canvas', 'new');
   showScreen('find');
   setScreenLabel('Participant Reg Form');
-  setHeaderBtn('← Back to Event Admin Panel', exitRegistration);
+  setHeaderBtn('← Back to Event Admin Form', exitRegistration);
   setTimeout(() => { const i = document.getElementById('code-input'); if(i) i.focus(); }, 400);
 }
 
@@ -171,7 +171,7 @@ function showScreen(name) {
 
 function showFind() {
   document.getElementById('stats-row').style.display = 'flex';
-  setHeaderBtn('← Back to Event Admin Panel', exitRegistration);
+  setHeaderBtn('← Back to Event Admin Form', exitRegistration);
   setScreenLabel('Participant Reg Form');
   selectedParticipant = null; selectedDay = null;
   document.getElementById('code-input').value = '';
