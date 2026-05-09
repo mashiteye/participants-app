@@ -571,7 +571,7 @@ let _adminAction = null;
 function promptAdminAction(action) {
   _adminAction = action;
   const titles = {
-    back:      'Enter password to return to Event Reg Form',
+    back:      'Enter password to return to All Events Dashboard Form',
     editparts: 'Enter password to edit participants',
     certs:     'Enter password to generate certificates',
     edit:      'Enter password to edit event',
