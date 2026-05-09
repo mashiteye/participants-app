@@ -1443,7 +1443,7 @@ function renderEventCard(e, count, index) {
     // Entire card clickable
     '<div data-eid="' + id + '" onclick="handleEventClick(this)" ' +
       'style="background:' + bg + ';border-bottom:1px solid #eee;cursor:pointer;padding:12px 14px;" ' +
-      'onmouseover="this.style.background='#fff5ef'" onmouseout="this.style.background='' + bg + ''">' +
+      '>' +
 
       // ── Top row: identity left, metrics right ──
       '<div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:8px">' +
