@@ -126,11 +126,12 @@ async function init() {
   const fromAdmin = new URLSearchParams(window.location.search).get('from') === 'admin';
   if (fromAdmin) {
     document.getElementById('back-to-events-btn').style.display = 'inline-block'; // always visible
-    document.getElementById('edit-participants-btn').style.display = 'block';
-    document.getElementById('cert-btn').style.display = 'block';
-    document.getElementById('edit-event-btn').style.display = 'block';
-    document.getElementById('import-csv-btn').style.display = 'block';
-    document.getElementById('delete-event-btn').style.display = 'block';
+    const showEl = id => { const el = document.getElementById(id); if (el) el.style.display = 'block'; };
+    showEl('edit-participants-btn');
+    showEl('cert-btn');
+    showEl('edit-event-btn');
+    showEl('import-csv-btn');
+    showEl('delete-event-btn');
   }
   if (!eventId) { document.getElementById('no-event').style.display = 'block'; return; }
 
