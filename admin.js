@@ -127,7 +127,7 @@ async function deleteEvent(id) {
 
 
 async function viewParticipants(eventId, eventName) {
-  window.open(BASE_URL + 'event.html?event=' + eventId + '&from=admin', '_blank');
+  window.location.href = BASE_URL + 'event.html?event=' + eventId + '&from=admin';
   return;
   currentEventId = eventId;
   document.getElementById('view-event-name').textContent = eventName;
@@ -224,7 +224,7 @@ function filterParticipants() {
     tbody.addEventListener('click', e => {
       const row = e.target.closest('tr[data-pid]');
       if (row) {
-        window.open(BASE_URL + 'sign.html?participant=' + row.dataset.pid + '&event=' + currentEventId, '_blank');
+        window.location.href = BASE_URL + 'sign.html?participant=' + row.dataset.pid + '&event=' + currentEventId;
       }
     });
   }
@@ -370,15 +370,15 @@ async function fetchAndEdit(id) {
 }
 
 function openRegLink() {
-  window.open(BASE_URL + 'index.html?event=' + currentEventId, '_blank');
+  window.location.href = BASE_URL + 'index.html?event=' + currentEventId;
 }
 
 function openWalkinLink() {
-  window.open(BASE_URL + 'index.html?event=' + currentEventId + '&walkin=1', '_blank');
+  window.location.href = BASE_URL + 'index.html?event=' + currentEventId + '&walkin=1';
 }
 
 function openViewLink() {
-  window.open(BASE_URL + 'event.html?event=' + currentEventId, '_blank');
+  window.location.href = BASE_URL + 'event.html?event=' + currentEventId;
 }
 
 function toggleGuide() {
@@ -1520,7 +1520,7 @@ async function deleteEvent(id) {
 
 
 async function viewParticipants(eventId, eventName) {
-  window.open(BASE_URL + 'event.html?event=' + eventId + '&from=admin', '_blank');
+  window.location.href = BASE_URL + 'event.html?event=' + eventId + '&from=admin';
   return;
   currentEventId = eventId;
   document.getElementById('view-event-name').textContent = eventName;
@@ -1617,7 +1617,7 @@ function filterParticipants() {
     tbody.addEventListener('click', e => {
       const row = e.target.closest('tr[data-pid]');
       if (row) {
-        window.open(BASE_URL + 'sign.html?participant=' + row.dataset.pid + '&event=' + currentEventId, '_blank');
+        window.location.href = BASE_URL + 'sign.html?participant=' + row.dataset.pid + '&event=' + currentEventId;
       }
     });
   }
@@ -1754,15 +1754,15 @@ async function fetchAndEdit(id) {
 }
 
 function openRegLink() {
-  window.open(BASE_URL + 'index.html?event=' + currentEventId, '_blank');
+  window.location.href = BASE_URL + 'index.html?event=' + currentEventId;
 }
 
 function openWalkinLink() {
-  window.open(BASE_URL + 'index.html?event=' + currentEventId + '&walkin=1', '_blank');
+  window.location.href = BASE_URL + 'index.html?event=' + currentEventId + '&walkin=1';
 }
 
 function openViewLink() {
-  window.open(BASE_URL + 'event.html?event=' + currentEventId, '_blank');
+  window.location.href = BASE_URL + 'event.html?event=' + currentEventId;
 }
 
 function toggleGuide() {

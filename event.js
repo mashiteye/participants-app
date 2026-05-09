@@ -293,7 +293,7 @@ function filterParticipants() {
 
 
 function openSignForm(participantId) {
-  window.open(BASE_URL + 'sign.html?participant=' + participantId + '&event=' + eventId, '_blank');
+  window.location.href = BASE_URL + 'sign.html?participant=' + participantId + '&event=' + eventId;
 }
 
 function esc(str) {
@@ -455,7 +455,7 @@ async function exportEventPDF() {
 }
 
 function openUnsigned() {
-  window.open(BASE_URL + 'unsigned.html?event=' + eventId, '_blank');
+  window.location.href = BASE_URL + 'unsigned.html?event=' + eventId;
 }
 
 async function exportEventQRSheet() {
@@ -671,7 +671,7 @@ async function saveInlineEdit() {
 function importCSV() {
   // Open admin panel and trigger import for this event
   const adminUrl = BASE_URL + 'admin.html?importEvent=' + eventId;
-  window.open(adminUrl, '_blank');
+  window.location.href = adminUrl;
 }
 
 function copyShareLink(type) {

@@ -141,7 +141,7 @@ function renderList() {
   if (tbody) {
     tbody.addEventListener('click', e => {
       const row = e.target.closest('tr[data-pid]');
-      if (row) window.open(BASE_URL + 'sign.html?participant=' + row.dataset.pid + '&event=' + eventId + '&day=' + encodeURIComponent(selectedDay) + '&from=unsigned', '_blank');
+      if (row) window.location.href = BASE_URL + 'sign.html?participant=' + row.dataset.pid + '&event=' + eventId + '&day=' + encodeURIComponent(selectedDay) + '&from=unsigned';
     });
   }
 }
