@@ -217,6 +217,7 @@ function showScreen(name) {
 function showFind() {
   document.getElementById('stats-row').style.display = 'flex';
   setHeaderBtn('← Back to Event Admin Form', exitRegistration);
+  const _ub = document.getElementById('unsigned-btn'); if (_ub) _ub.style.display = 'block';
   setScreenLabel('Participant Reg Form');
   selectedParticipant = null; selectedDay = null;
   document.getElementById('code-input').value = '';
@@ -319,6 +320,7 @@ function selectResult(id) {
 
 function openSignScreen(p) {
   document.getElementById('stats-row').style.display = 'none';
+  const _ub = document.getElementById('unsigned-btn'); if (_ub) _ub.style.display = 'none';
   setHeaderBtn('← Back to Participant Reg Form', showFind);
   setScreenLabel('Sign Attendance Form');
   selectedParticipant = p;
@@ -362,6 +364,7 @@ async function confirmAttendance() {
     if (error) throw new Error(error.message);
     document.getElementById('success-name').textContent = selectedParticipant.name;
     document.getElementById('success-day').textContent = 'Attendance recorded for ' + selectedDay;
+  const _ub = document.getElementById('unsigned-btn'); if (_ub) _ub.style.display = 'none';
     showScreen('success');
   } catch(e) {
     errEl.textContent = 'Error: ' + e.message; errEl.style.display = 'block';
@@ -373,6 +376,7 @@ async function confirmAttendance() {
 // ── New registration ──
 function showNewRegistration() {
   document.getElementById('stats-row').style.display = 'none';
+  const _ub = document.getElementById('unsigned-btn'); if (_ub) _ub.style.display = 'none';
   setHeaderBtn('← Back to Participant Reg Form', showFind);
   setScreenLabel('Walk-in Participant Reg Form');
   selectedDay = null; selectedSex = null;
@@ -450,6 +454,7 @@ async function submitNew() {
     sessionStorage.removeItem('stats_' + eventId); // invalidate cache
     document.getElementById('success-name').textContent = name;
     document.getElementById('success-day').textContent = 'Registered and signed for ' + selectedDay;
+  const _ub = document.getElementById('unsigned-btn'); if (_ub) _ub.style.display = 'none';
     showScreen('success');
   } catch(e) {
     errEl.textContent = 'Error: ' + e.message; errEl.style.display = 'block';
