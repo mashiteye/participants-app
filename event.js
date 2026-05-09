@@ -536,7 +536,24 @@ async function exportEventQRSheet() {
 // ── Admin password modal ──
 let _adminAction = null;
 
+function promptAdminAction(action) {
+  _adminAction = action;
+  const titles = {
+    back:      'Enter password to return to Event Reg Form',
+    editparts: 'Enter password to edit participants',
+    certs:     'Enter password to generate certificates',
+    edit:      'Enter password to edit event',
+    delete:    'Enter password to delete event',
+  };
+  document.getElementById('admin-pwd-title').textContent = titles[action] || 'Enter admin password';
+  document.getElementById('admin-pwd-input').value = '';
+  document.getElementById('admin-pwd-err').style.display = 'none';
+  document.getElementById('admin-pwd-modal').style.display = 'flex';
+  setTimeout(() => document.getElementById('admin-pwd-input').focus(), 100);
+}
+
 function promptEditEvent() {
+  promptAdminAction('edit'); return;
   _adminAction = 'edit';
   document.getElementById('admin-pwd-title').textContent = 'Enter admin password to edit event';
   document.getElementById('admin-pwd-input').value = '';
@@ -546,6 +563,7 @@ function promptEditEvent() {
 }
 
 function promptDeleteEvent() {
+  promptAdminAction('delete'); return;
   _adminAction = 'delete';
   document.getElementById('admin-pwd-title').textContent = 'Enter admin password to delete event';
   document.getElementById('admin-pwd-input').value = '';
@@ -578,8 +596,11 @@ async function checkAdminPwd() {
     return;
   }
   closeAdminPwd();
-  if (_adminAction === 'edit') editEvent();
-  else if (_adminAction === 'delete') deleteEventFromPage();
+  if (_adminAction === 'edit')      editEvent();
+  else if (_adminAction === 'delete')    deleteEventFromPage();
+  else if (_adminAction === 'back')      goBackToEvents();
+  else if (_adminAction === 'editparts') toggleParticipantList();
+  else if (_adminAction === 'certs')     generateEventCertificates();
 }
 
 // ── Manage zone functions (admin only) ──
