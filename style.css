@@ -551,3 +551,13 @@ tr[data-pid]:hover td:first-child {
 }
 .skeleton-text { height: 14px; width: 60%; margin: 4px auto; }
 .skeleton-num  { height: 28px; width: 40%; margin: 0 auto 4px; }
+
+/* ── KPI cards (event admin + participant reg) ── */
+.kpi-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; }
+@media (min-width:400px) { .kpi-grid { grid-template-columns:repeat(5,1fr); } }
+.kpi-card { background:#f8f8f8; border:1.5px solid #e8e8e8; border-radius:8px; padding:8px 4px; text-align:center; }
+.kpi-num { font-size:18px; font-weight:800; line-height:1; color:#333; }
+.kpi-num.orange { color:var(--orange); }
+.kpi-num.green  { color:var(--green); }
+.kpi-num.red    { color:var(--red); }
+.kpi-lbl { font-size:9px; color:#999; margin-top:2px; text-transform:uppercase; letter-spacing:0.04em; }
