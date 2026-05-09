@@ -429,7 +429,7 @@ async function sendEmail(toEmail, participantName, code, eventName, eventDate, s
       '</div>' +
     '</div>' +
     '<div style="background:#000;padding:14px 28px;text-align:center">' +
-      '<p style="color:#F79E1B;font-size:11px;font-weight:700;margin:0">Participant Registration App</p>' +
+      '<p style="color:#F79E1B;font-size:11px;font-weight:700;margin:0">Participant Reg App</p>' +
     '</div>' +
   '</div>';
   try {

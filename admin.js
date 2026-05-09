@@ -564,7 +564,7 @@ async function exportPDF() {
       doc.setPage(i);
       doc.setFontSize(7);
       doc.setTextColor(150);
-      doc.text('Page ' + i + ' of ' + pageCount + '  ·  Participant Registration App', 14, doc.internal.pageSize.height - 5);
+      doc.text('Page ' + i + ' of ' + pageCount + '  ·  Participant Reg App', 14, doc.internal.pageSize.height - 5);
     }
 
     doc.save('attendance-register-' + eventName.replace(/\s+/g, '-') + '-' + new Date().toISOString().slice(0,10) + '.pdf');
@@ -729,7 +729,7 @@ async function exportPDF() {
     for (let i = 1; i <= pages; i++) {
       doc.setPage(i);
       doc.setFontSize(7); doc.setTextColor(160, 160, 160); doc.setFont('helvetica', 'normal');
-      doc.text('Page ' + i + ' of ' + pages + '  ·  ' + eventName + '  ·  Participant Registration App', MARGIN, pageH - 14);
+      doc.text('Page ' + i + ' of ' + pages + '  ·  ' + eventName + '  ·  Participant Reg App', MARGIN, pageH - 14);
     }
 
     doc.save('attendance-' + eventName.replace(/\s+/g, '-') + '-' + new Date().toISOString().slice(0,10) + '.pdf');
@@ -1096,7 +1096,7 @@ async function exportQRSheet() {
     for (let i = 1; i <= pages; i++) {
       doc.setPage(i);
       doc.setFontSize(6.5); doc.setTextColor(160, 160, 160);
-      doc.text('Page ' + i + ' of ' + pages + '  ·  ' + eventName + '  ·  Participant Registration App', MARGIN, pageH - 10);
+      doc.text('Page ' + i + ' of ' + pages + '  ·  ' + eventName + '  ·  Participant Reg App', MARGIN, pageH - 10);
     }
 
     doc.save('qr-codes-' + eventName.replace(/\s+/g, '-') + '-' + new Date().toISOString().slice(0,10) + '.pdf');
@@ -1939,7 +1939,7 @@ async function exportPDF() {
       doc.setPage(i);
       doc.setFontSize(7);
       doc.setTextColor(150);
-      doc.text('Page ' + i + ' of ' + pageCount + '  ·  Participant Registration App', 14, doc.internal.pageSize.height - 5);
+      doc.text('Page ' + i + ' of ' + pageCount + '  ·  Participant Reg App', 14, doc.internal.pageSize.height - 5);
     }
 
     doc.save('attendance-register-' + eventName.replace(/\s+/g, '-') + '-' + new Date().toISOString().slice(0,10) + '.pdf');
@@ -2104,7 +2104,7 @@ async function exportPDF() {
     for (let i = 1; i <= pages; i++) {
       doc.setPage(i);
       doc.setFontSize(7); doc.setTextColor(160, 160, 160); doc.setFont('helvetica', 'normal');
-      doc.text('Page ' + i + ' of ' + pages + '  ·  ' + eventName + '  ·  Participant Registration App', MARGIN, pageH - 14);
+      doc.text('Page ' + i + ' of ' + pages + '  ·  ' + eventName + '  ·  Participant Reg App', MARGIN, pageH - 14);
     }
 
     doc.save('attendance-' + eventName.replace(/\s+/g, '-') + '-' + new Date().toISOString().slice(0,10) + '.pdf');

@@ -60,7 +60,7 @@ async function init() {
   }
 
   if (isWalkin) {
-    document.getElementById('form-type-label').textContent = 'Walk-in Registration Form';
+    document.getElementById('form-type-label').textContent = 'Walk-in Reg Form';
     document.getElementById('walkin-fields').style.display = 'block';
     document.getElementById('submit-btn').textContent = 'Submit & Sign';
 
@@ -80,7 +80,7 @@ async function init() {
     }
     initSignature();
   } else {
-    document.getElementById('form-type-label').textContent = 'Pre-Registration Form';
+    document.getElementById('form-type-label').textContent = 'Pre-Reg Form';
     document.getElementById('f-day').value = '';
   }
 }
@@ -173,7 +173,7 @@ async function registerParticipant() {
   // Validate MEL question if mandatory
   if (!isWalkin && window._melRequired) {
     const melVal = fval('f-mel');
-    if (!melVal) { errEl.textContent = 'Please answer the pre-registration question.'; errEl.style.display = 'block'; return; }
+    if (!melVal) { errEl.textContent = 'Please answer the pre-reg question.'; errEl.style.display = 'block'; return; }
   }
   const emailCheck = validateEmail(email);
   if (!emailCheck.valid) { errEl.textContent = emailCheck.msg; errEl.style.display = 'block'; return; }
@@ -357,7 +357,7 @@ async function sendConfirmationEmail(toEmail, participantName, code, eventName, 
             <!-- Footer -->
             <tr>
               <td style="background:#000;padding:16px 32px;text-align:center">
-                <p style="margin:0;color:#F79E1B;font-size:11px;font-weight:700">Participant Registration App</p>
+                <p style="margin:0;color:#F79E1B;font-size:11px;font-weight:700">Participant Reg App</p>
               </td>
             </tr>
 

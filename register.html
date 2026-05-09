@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
-  <title>Participant Registration Form</title>
+  <title>Participant Reg Form</title>
   <style>
     :root {
       --red:    #EB001B;
@@ -128,7 +128,7 @@
   <!-- ── Sub-nav: back button below header ── -->
   <div style="background:white;border-bottom:1px solid #e8e8e8;padding:10px 14px;display:flex;align-items:center;justify-content:space-between">
     
-    <button id="header-action-btn" onclick="exitRegistration()" style="font-size:12px;font-weight:700;color:#EB001B;background:none;border:1.5px solid #EB001B;border-radius:8px;padding:6px 12px;cursor:pointer;font-family:inherit">← Back to Event Admin Panel</button>
+    <button id="header-action-btn" onclick="exitRegistration()" class="reg-back-btn" style="cursor:pointer;font-family:inherit">← Back to Event Admin Panel</button>
     <a href="help.html?from=register" style="width:36px;height:36px;border-radius:50%;border:2px solid var(--orange);background:white;color:var(--orange);font-size:16px;font-weight:800;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0">?</a>
   </div>
 
@@ -202,7 +202,7 @@
   <!-- ── SCREEN: New Registration ── -->
   <div id="screen-new" style="display:none">
     <div class="main-card">
-      <p class="card-title">Walk-in Participant Registration</p>
+      <p class="card-title">Walk-in Participant Reg</p>
 
       <div class="form-row">
         <label>Full Name *</label>

@@ -38,7 +38,7 @@
     const guides = {
       admin: {
         name: 'EVENT REG FORM',
-        title: 'Event Registration',
+        title: 'Event Reg',
         back: 'admin.html',
         backLabel: '← Back to Event Reg',
         sections: [
@@ -53,7 +53,7 @@
         back: 'javascript:history.back()',
         backLabel: '← Back to Event Admin Panel',
         sections: [
-          { title: 'Participant Registration Form', body: 'The primary form for event day. Opens a focused registration surface where staff can find existing participants by code, phone, name, org, or program — or register new walk-in participants. Attendance is recorded and signatures captured here.', tip: 'Use this on a tablet at the entrance on event day.' },
+          { title: 'Participant Reg Form', body: 'The primary form for event day. Opens a focused registration surface where staff can find existing participants by code, phone, name, org, or program — or register new walk-in participants. Attendance is recorded and signatures captured here.', tip: 'Use this on a tablet at the entrance on event day.' },
           { title: 'Not Yet Signed', body: 'Shows all participants who have not yet signed for a given day. Select the day using the buttons at the top. Tap any participant to go directly to their sign form.' },
           { title: 'Export PDF', body: 'Downloads a PDF attendance sheet for this event with all participants and their signed days.' },
           { title: 'QR Sheet', body: 'Generates a PDF with one QR code per participant. Print and cut for use as badges or desk cards — scanning a code goes directly to that participant\'s sign form.' },
@@ -67,14 +67,14 @@
       },
       register: {
         name: 'PARTICIPANT REG FORM',
-        title: 'Participant Registration Form',
+        title: 'Participant Reg Form',
         back: 'javascript:history.back()',
         backLabel: '← Back to Participant Reg Form',
         sections: [
           { title: 'By Code', body: 'Enter the participant\'s 3-digit code (e.g. 001) or their phone number. Even a partial phone number (3+ digits) will show matching results.' },
           { title: 'By Name', body: 'Search by name, organisation, or program. Fuzzy matching handles typos — "Amaa" will still find "Ama".' },
           { title: 'Finding a participant', body: 'Once found, the participant\'s details appear with day buttons. Already-signed days are marked ✓ in green. Select the correct day and sign.' },
-          { title: 'Walk-in Participant Registration', body: 'For participants not in the system. Fill in their details, select the day, and sign. A code is auto-generated and a confirmation email is sent if an email address is provided.' },
+          { title: 'Walk-in Participant Reg', body: 'For participants not in the system. Fill in their details, select the day, and sign. A code is auto-generated and a confirmation email is sent if an email address is provided.' },
           { title: 'Navigation', body: 'The button at the top right changes based on where you are. On the find screen it takes you back to the Event Admin Panel. On the sign or registration screens it returns you to the find screen.' },
         ]
       },
@@ -124,13 +124,13 @@
       },
       index: {
         name: 'PRE-REG FORM',
-        title: 'Pre-Registration Form',
+        title: 'Pre-Reg Form',
         back: 'javascript:history.back()',
         backLabel: '← Back to Pre-Reg Form',
         sections: [
           { title: 'What this form is for', body: 'Participants fill this in before the event. They enter their name, organisation, program, position, email, and phone. A unique code is assigned and sent by email.' },
           { title: 'The code', body: 'The participant code in the confirmation email is used at the event to find them quickly in the system. Encourage participants to keep it.' },
-          { title: 'On event day', body: 'Pre-registered participants arrive and search by their code or name in the Participant Registration Form. They do not need to fill in their details again — just select the day and sign.' },
+          { title: 'On event day', body: 'Pre-registered participants arrive and search by their code or name in the Participant Reg Form. They do not need to fill in their details again — just select the day and sign.' },
         ]
       },
     };

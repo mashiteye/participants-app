@@ -28,7 +28,7 @@
       <!-- Header row -->
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap;gap:8px">
         <div style="display:flex;align-items:center;gap:10px">
-          <button class="reg-back-btn" id="back-to-events-btn" style="display:none" onclick="goBackToEvents()">← Back to Event Reg</button>
+          <button class="reg-back-btn" id="back-to-events-btn" style="display:none;color:var(--red);border-color:var(--red)" onclick="goBackToEvents()">← Back to Event Reg</button>
         </div>
         <a href="help.html?from=event" style="width:36px;height:36px;border-radius:50%;border:2px solid var(--orange);background:white;color:var(--orange);font-size:16px;font-weight:800;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0">?</a>
       </div>
@@ -38,10 +38,10 @@
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(80px,1fr));gap:8px" id="stat-days"></div>
       </div>
 
-      <!-- Participant Registration Form — hero button -->
+      <!-- Participant Reg Form — hero button -->
       <div style="margin-bottom:1.25rem">
         <button onclick="openRegistration()" style="width:100%;padding:20px;background:linear-gradient(90deg,var(--red) 0%,var(--orange) 100%);color:white;border:none;border-radius:var(--radius-lg);font-size:18px;font-weight:800;cursor:pointer;font-family:inherit;box-shadow:0 4px 16px rgba(235,0,27,0.35);letter-spacing:0.01em">
-          Participant Registration Form →
+          Participant Reg Form →
         </button>
       </div>
 
