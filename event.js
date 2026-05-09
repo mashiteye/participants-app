@@ -142,7 +142,7 @@ async function init() {
     else { badge.textContent = 'Ended'; badge.style.background='var(--black)'; badge.style.color='white'; }
   }
   const evDisplayProg = (ev.program && ev.program !== 'Other') ? ev.program : null;
-  document.getElementById('event-code-prog').textContent = [ev.event_code, evDisplayProg].filter(Boolean).join(' · ') || 'Participant View';
+  document.getElementById('event-code-prog').textContent = [ev.event_code, evDisplayProg].filter(Boolean).join(' · ');
   document.getElementById('event-meta').textContent = [
     ev.organizer,
     ev.event_date ? new Date(ev.event_date).toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' }) : null,

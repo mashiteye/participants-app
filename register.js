@@ -450,7 +450,7 @@ function setScreenLabel(text) {
   const lbl = document.getElementById('screen-name-label');
   if (lbl) lbl.textContent = text;
   const formLbl = document.getElementById('screen-form-label');
-  if (formLbl) formLbl.textContent = text;
+  if (formLbl) formLbl.textContent = text.toUpperCase();
 }
 
 function esc(s) {
