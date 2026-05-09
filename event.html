@@ -77,6 +77,21 @@
 
     </div>
 
+      <!-- Participant List — hidden by default, toggled by Edit Participants button -->
+      <div id="participant-list-zone" style="display:none;background:white;border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.25rem;margin-top:0.5rem">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+          <p style="font-size:13px;font-weight:700;color:var(--black)">Participants <span id="list-count-label" style="font-size:12px;font-weight:400;color:var(--text-muted)"></span></p>
+          <button onclick="loadParticipants()" style="font-size:11px;padding:4px 10px;border:1px solid var(--border);border-radius:6px;background:white;cursor:pointer;font-family:inherit;color:var(--text-muted)">↻ Refresh</button>
+        </div>
+        <input type="text" id="p-search" placeholder="Search name, code, org, program..."
+          oninput="filterParticipants()" style="width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-size:14px;font-family:inherit;margin-bottom:1rem;box-sizing:border-box" />
+        <div id="participants-list">
+          <div style="padding:2rem;text-align:center;color:var(--text-muted);font-size:13px">Loading...</div>
+        </div>
+      </div>
+
+    </div>
+
   <!-- Check-in QR Modal -->
   <div id="checkin-qr-modal-ev" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:200;align-items:center;justify-content:center;padding:1rem">
     <div style="background:white;border-radius:20px;padding:2rem;max-width:340px;width:100%;text-align:center">
