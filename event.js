@@ -262,7 +262,8 @@ function filterParticipants() {
     const regTypeBadge = p.reg_type === 'Walk-in'
       ? '<span style="background:#fff3e8;color:var(--orange);font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px">Walk-in</span>'
       : '<span style="background:#f0f9f4;color:#005c2a;font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px">Pre-reg</span>';
-    html += `<tr data-pid="${p.id}" style="cursor:pointer">
+    const sigUrl = BASE_URL + 'sign.html?participant=' + p.id + '&event=' + eventId + (new URLSearchParams(window.location.search).get('from') === 'admin' ? '&from=admin' : '');
+    html += `<tr data-pid="${p.id}" data-url="${sigUrl}" style="cursor:pointer">
       <td style="font-weight:700;font-family:monospace;color:var(--orange)">${esc(p.code) || '&mdash;'}</td>
       <td style="font-weight:500">${esc(p.name)}</td>
       <td>${esc(p.sex) || '&mdash;'}</td>

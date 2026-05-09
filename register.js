@@ -265,6 +265,7 @@ function selectResult(id) {
 }
 
 function openSignScreen(p) {
+  document.getElementById('stats-row').style.display = 'none';
   selectedParticipant = p;
   document.getElementById('sign-code').textContent = p.code || '';
   document.getElementById('sign-name').textContent = p.name || '';
@@ -358,7 +359,7 @@ async function submitNew() {
     const nums = allParticipants.map(p => { const m = (p.code||'').match(/(\d+)$/); return m ? parseInt(m[1]) : 0; });
     const next = nums.length ? Math.max(...nums) + 1 : 1;
     const prefix = eventData.event_code || 'P';
-    const code = prefix + '-' + String(next).padStart(3, '0');
+    const code = String(next).padStart(3, '0');
 
     const { data: ins, error } = await db.from('participants').insert([{
       name, sex: selectedSex, org, prog, position_title: pos,
