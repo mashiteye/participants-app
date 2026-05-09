@@ -200,12 +200,18 @@ function exitRegistration() {
 async function findByCode() {
   const raw = document.getElementById('code-input').value.trim().toUpperCase();
   if (!raw) return;
+  const rawNorm = raw.replace(/[\s\-().+]/g, '').replace(/^233/, '0');
+  // Match by code OR phone number
   const p = allParticipants.find(x => {
     const c = (x.code || '').toUpperCase();
-    return c === raw || c.endsWith('-' + raw) || c.endsWith('-' + raw.replace(/^0+/, ''));
+    const phone = (x.phone || '').replace(/[\s\-().+]/g, '').replace(/^233/, '0');
+    return c === raw ||
+      c.endsWith('-' + raw) ||
+      c.endsWith('-' + raw.replace(/^0+/, '')) ||
+      (rawNorm.length >= 7 && phone === rawNorm);
   });
   if (!p) {
-    document.getElementById('find-err').textContent = 'No participant found with code "' + raw + '"';
+    document.getElementById('find-err').textContent = 'No participant found with code or phone "' + raw + '"';
     document.getElementById('find-err').style.display = 'block';
     return;
   }
@@ -217,7 +223,9 @@ function findByName() {
   const q = document.getElementById('name-input').value.trim().toLowerCase();
   if (!q) return;
   const results = allParticipants.filter(p =>
-    (p.name||'').toLowerCase().includes(q) || (p.org||'').toLowerCase().includes(q)
+    (p.name||'').toLowerCase().includes(q) ||
+    (p.org||'').toLowerCase().includes(q) ||
+    (p.prog||'').toLowerCase().includes(q)
   ).slice(0, 10);
   const container = document.getElementById('name-results');
   if (!results.length) {

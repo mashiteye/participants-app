@@ -144,8 +144,8 @@
 
       <!-- By Code -->
       <div id="find-by-code">
-        <span class="field-label">Participant Code (e.g. 1, 01, or MCF-001)</span>
-        <input type="text" id="code-input" class="big-input" placeholder="001"
+        <span class="field-label">Participant Code or Phone Number</span>
+        <input type="text" id="code-input" class="big-input" placeholder="MCF-001 or 0244..."
           oninput="this.value=this.value.toUpperCase()"
           onkeydown="if(event.key==='Enter')findByCode()" />
         <button class="btn-primary" onclick="findByCode()">Find Me</button>
@@ -153,7 +153,7 @@
 
       <!-- By Name -->
       <div id="find-by-name" style="display:none">
-        <span class="field-label">Search by name or organisation</span>
+        <span class="field-label">Search by name, organisation or program</span>
         <input type="text" id="name-input" class="name-input" placeholder="e.g. Ama Boateng"
           onkeydown="if(event.key==='Enter')findByName()" />
         <button class="btn-primary" onclick="findByName()">Search</button>

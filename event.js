@@ -563,8 +563,15 @@ function closeAdminPwd() {
 function checkAdminPwd() {
   const pwd = document.getElementById('admin-pwd-input').value;
   if (pwd !== 'METSSLBG') {
-    document.getElementById('admin-pwd-err').style.display = 'block';
-    document.getElementById('admin-pwd-input').value = '';
+    const errEl = document.getElementById('admin-pwd-err');
+    const input = document.getElementById('admin-pwd-input');
+    errEl.textContent = 'Incorrect password. Try again.';
+    errEl.style.display = 'block';
+    input.value = '';
+    // Shake animation
+    input.style.borderColor = '#EB001B';
+    input.style.animation = 'shake 0.4s ease';
+    setTimeout(() => { input.style.animation = ''; input.style.borderColor = ''; input.focus(); }, 500);
     return;
   }
   closeAdminPwd();
@@ -573,8 +580,67 @@ function checkAdminPwd() {
 }
 
 // ── Manage zone functions (admin only) ──
-function editEvent() {
-  window.open(BASE_URL + 'admin.html#edit-' + eventId, '_blank');
+async function editEvent() {
+  // Fetch event data then show inline edit modal
+  const { data: ev } = await db.from('events').select('*').eq('id', eventId).single();
+  if (!ev) { alert('Could not load event data.'); return; }
+
+  // Build simple edit modal inline
+  const existing = document.getElementById('inline-edit-modal');
+  if (existing) existing.remove();
+
+  const days = ev.days || 1;
+  const modal = document.createElement('div');
+  modal.id = 'inline-edit-modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:300;display:flex;align-items:center;justify-content:center;padding:1rem;overflow-y:auto';
+  modal.innerHTML = `
+    <div style="background:white;border-radius:16px;padding:2rem;max-width:480px;width:100%;max-height:90vh;overflow-y:auto">
+      <p style="font-size:16px;font-weight:800;margin-bottom:1.25rem">Edit Event</p>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div><label style="font-size:11px;font-weight:700;text-transform:uppercase;color:#666;display:block;margin-bottom:4px">Event Name *</label>
+          <input id="ie-name" value="${(ev.name||'').replace(/"/g,'&quot;')}" style="width:100%;padding:12px;border:1.5px solid #e0e0e0;border-radius:8px;font-size:15px;font-family:inherit" /></div>
+        <div><label style="font-size:11px;font-weight:700;text-transform:uppercase;color:#666;display:block;margin-bottom:4px">Organiser</label>
+          <input id="ie-organizer" value="${(ev.organizer||'').replace(/"/g,'&quot;')}" style="width:100%;padding:12px;border:1.5px solid #e0e0e0;border-radius:8px;font-size:15px;font-family:inherit" /></div>
+        <div><label style="font-size:11px;font-weight:700;text-transform:uppercase;color:#666;display:block;margin-bottom:4px">Event Date</label>
+          <input id="ie-date" type="date" value="${ev.event_date||''}" style="width:100%;padding:12px;border:1.5px solid #e0e0e0;border-radius:8px;font-size:15px;font-family:inherit" /></div>
+        <div><label style="font-size:11px;font-weight:700;text-transform:uppercase;color:#666;display:block;margin-bottom:4px">Number of Days</label>
+          <select id="ie-days" style="width:100%;padding:12px;border:1.5px solid #e0e0e0;border-radius:8px;font-size:15px;font-family:inherit">
+            ${[1,2,3,4,5].map(d => '<option value="'+d+'"'+(d===days?' selected':'')+'>'+d+' day'+(d>1?'s':'')+'</option>').join('')}
+          </select></div>
+        <div><label style="font-size:11px;font-weight:700;text-transform:uppercase;color:#666;display:block;margin-bottom:4px">Event Code</label>
+          <input id="ie-code" value="${(ev.event_code||'').replace(/"/g,'&quot;')}" style="width:100%;padding:12px;border:1.5px solid #e0e0e0;border-radius:8px;font-size:15px;font-family:inherit" /></div>
+        <div><label style="font-size:11px;font-weight:700;text-transform:uppercase;color:#666;display:block;margin-bottom:4px">Signatory Name</label>
+          <input id="ie-sig-name" value="${(ev.signatory_name||'').replace(/"/g,'&quot;')}" style="width:100%;padding:12px;border:1.5px solid #e0e0e0;border-radius:8px;font-size:15px;font-family:inherit" /></div>
+        <div><label style="font-size:11px;font-weight:700;text-transform:uppercase;color:#666;display:block;margin-bottom:4px">Signatory Title</label>
+          <input id="ie-sig-title" value="${(ev.signatory_title||'').replace(/"/g,'&quot;')}" style="width:100%;padding:12px;border:1.5px solid #e0e0e0;border-radius:8px;font-size:15px;font-family:inherit" /></div>
+      </div>
+      <p id="ie-err" style="color:#EB001B;font-size:13px;display:none;margin-top:0.75rem"></p>
+      <div style="display:flex;gap:8px;margin-top:1.5rem">
+        <button onclick="saveInlineEdit()" style="flex:1;padding:14px;background:#EB001B;color:white;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">Save Changes</button>
+        <button onclick="document.getElementById('inline-edit-modal').remove()" style="flex:1;padding:14px;background:white;border:1.5px solid #000;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">Cancel</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+}
+
+async function saveInlineEdit() {
+  const name = document.getElementById('ie-name').value.trim();
+  if (!name) { document.getElementById('ie-err').textContent = 'Event name required.'; document.getElementById('ie-err').style.display = 'block'; return; }
+  const btn = document.querySelector('#inline-edit-modal button');
+  btn.textContent = 'Saving...'; btn.disabled = true;
+  const { error } = await db.from('events').update({
+    name,
+    organizer: document.getElementById('ie-organizer').value.trim() || null,
+    event_date: document.getElementById('ie-date').value || null,
+    days: parseInt(document.getElementById('ie-days').value) || 1,
+    event_code: document.getElementById('ie-code').value.trim() || null,
+    signatory_name: document.getElementById('ie-sig-name').value.trim() || null,
+    signatory_title: document.getElementById('ie-sig-title').value.trim() || null,
+  }).eq('id', eventId);
+  if (error) { document.getElementById('ie-err').textContent = 'Error: ' + error.message; document.getElementById('ie-err').style.display = 'block'; btn.textContent = 'Save Changes'; btn.disabled = false; return; }
+  document.getElementById('inline-edit-modal').remove();
+  init(); // reload page data
 }
 
 function importCSV() {
