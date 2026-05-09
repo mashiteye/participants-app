@@ -106,7 +106,7 @@ async function generateEventCertificates(previewOnly = false) {
       doc.text(p.code||'',CX+45,H-100-0.5,{align:'center'});
     });
 
-    doc.save((previewOnly ? 'PREVIEW-certificate-' : 'certificates-')'+evName.replace(/\s+/g,'-')+'-'+new Date().toISOString().slice(0,10)+'.pdf');
+    doc.save((previewOnly ? 'PREVIEW-certificate-' : 'certificates-') + evName.replace(/\s+/g,'-') + '-' + new Date().toISOString().slice(0,10) + '.pdf');
   } catch(e) { alert('Certificate generation failed: '+e.message); console.error(e); }
   finally { if(btn){btn.textContent='🎓 Certificates';btn.disabled=false;} }
 }
