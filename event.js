@@ -589,6 +589,9 @@ async function checkAdminPwd() {
     errEl.textContent = 'Incorrect password. Try again.';
     errEl.style.display = 'block';
     input.value = '';
+    input.style.borderColor = '#EB001B';
+    input.style.animation = 'shake 0.4s ease';
+    setTimeout(() => { input.style.animation = ''; input.style.borderColor = ''; input.focus(); }, 500);
     // Shake animation
     input.style.borderColor = '#EB001B';
     input.style.animation = 'shake 0.4s ease';
