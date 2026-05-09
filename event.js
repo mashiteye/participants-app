@@ -110,6 +110,16 @@ async function generateEventCertificates() {
   finally { if(btn){btn.textContent='🎓 Certificates';btn.disabled=false;} }
 }
 
+function showSkeletonStats() {
+  const container = document.getElementById('stat-days');
+  if (!container) return;
+  container.innerHTML = Array(3).fill(
+    '<div class="stat-card" style="border-top:3px solid #e0e0e0">' +
+    '<div class="skeleton skeleton-num"></div>' +
+    '<div class="skeleton skeleton-text"></div></div>'
+  ).join('');
+}
+
 async function init() {
   // Show Back to Events button if opened from admin
   const fromAdmin = new URLSearchParams(window.location.search).get('from') === 'admin';
@@ -559,9 +569,13 @@ function closeAdminPwd() {
   _adminAction = null;
 }
 
-function checkAdminPwd() {
+async function checkAdminPwd() {
   const pwd = document.getElementById('admin-pwd-input').value;
-  if (pwd !== 'METSSLBG') {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(pwd.toUpperCase().trim());
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashHex = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2,'0')).join('');
+  if (hashHex !== '3b33a25d09dbd7a9f00296a32852e0cb064eaaa76d4294c370b1b6da15ebb0bc') {
     const errEl = document.getElementById('admin-pwd-err');
     const input = document.getElementById('admin-pwd-input');
     errEl.textContent = 'Incorrect password. Try again.';

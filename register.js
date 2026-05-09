@@ -450,7 +450,11 @@ function setScreenLabel(text) {
   const lbl = document.getElementById('screen-name-label');
   if (lbl) lbl.textContent = text;
   const formLbl = document.getElementById('screen-form-label');
-  if (formLbl) formLbl.textContent = text.toUpperCase();
+  if (!formLbl) return;
+  const upper = text.toUpperCase();
+  formLbl.textContent = upper;
+  // Shrink font for long names to prevent overflow
+  formLbl.style.fontSize = upper.length > 35 ? '8px' : upper.length > 25 ? '9px' : '10px';
 }
 
 function esc(s) {
