@@ -27,11 +27,7 @@ async function init() {
     try {
       const c = JSON.parse(cached);
       const el = id => document.getElementById(id);
-      if (el('stat-registered'))    el('stat-registered').textContent    = c.total ?? '—';
-      if (el('stat-female'))        el('stat-female').textContent        = c.female ?? '—';
-      if (el('stat-male'))          el('stat-male').textContent          = c.male ?? '—';
-      if (el('stat-signed-today'))  el('stat-signed-today').textContent  = c.signedToday ?? '—';
-      if (el('stat-unsigned-today'))el('stat-unsigned-today').textContent= c.unsignedToday ?? '—';
+      // Day stats only — restored from cache via daysHtml below
       const daysBox = document.getElementById('stat-days-boxes');
       if (daysBox && c.days) daysBox.innerHTML = c.days;
       document.getElementById('stats-row').style.display = 'block';
@@ -102,10 +98,6 @@ function buildStatsDays() {
 }
 
 function showStatsSkeleton() {
-  ['stat-registered','stat-female','stat-male','stat-signed-today','stat-unsigned-today'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.innerHTML = '<span class="skeleton" style="width:22px;height:16px;display:inline-block;border-radius:4px"></span>';
-  });
   document.getElementById('stats-row').style.display = 'block';
 }
 
@@ -242,7 +234,7 @@ function showScreen(name) {
 }
 
 function showFind() {
-  document.getElementById('stats-row').style.display = 'flex';
+  document.getElementById('stats-row').style.display = 'block';
   setHeaderBtn('← Back to Event Admin Form', exitRegistration);
   const _ub = document.getElementById('unsigned-btn'); if (_ub) _ub.style.display = 'block';
   setScreenLabel('Participant Reg Form');
