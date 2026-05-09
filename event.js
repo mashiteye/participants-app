@@ -124,7 +124,7 @@ async function init() {
   // Show Back to Events button if opened from admin
   const fromAdmin = new URLSearchParams(window.location.search).get('from') === 'admin';
   if (fromAdmin) {
-    document.getElementById('back-to-events-btn').style.display = 'inline-block';
+    document.getElementById('back-to-events-btn').style.display = 'inline-block'; // always visible
     document.getElementById('edit-participants-btn').style.display = 'block';
     document.getElementById('cert-btn').style.display = 'block';
     document.getElementById('edit-event-btn').style.display = 'block';
@@ -141,6 +141,7 @@ async function init() {
   window._eventDays = eventDays;
   document.getElementById('event-ui').style.display = 'block';
   document.getElementById('event-name').textContent = ev.name;
+  document.getElementById('back-to-events-btn').style.display = 'inline-block';
   // Status badge removed
   const evDisplayProg = (ev.program && ev.program !== 'Other') ? ev.program : null;
   document.getElementById('event-code-prog').textContent = [ev.event_code, evDisplayProg].filter(Boolean).join(' · ');
