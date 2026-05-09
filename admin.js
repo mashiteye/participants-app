@@ -1358,6 +1358,27 @@ async function generateCertificates() {
   }
 }
 
+function promptDeleteFromList(eventId) {
+  const pwd = prompt('Enter admin password to delete this event:');
+  if (!pwd) return;
+  // Hash and verify
+  const encoder = new TextEncoder();
+  const data = encoder.encode(pwd.toUpperCase().trim());
+  crypto.subtle.digest('SHA-256', data).then(hashBuffer => {
+    const hashHex = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2,'0')).join('');
+    if (hashHex !== '3b33a25d09dbd7a9f00296a32852e0cb064eaaa76d4294c370b1b6da15ebb0bc') {
+      alert('Incorrect password.');
+      return;
+    }
+    if (!confirm('Delete this event and ALL its participants? This cannot be undone.')) return;
+    db.from('attendance').delete().eq('event_id', eventId).then(() =>
+      db.from('participants').delete().eq('event_id', eventId).then(() =>
+        db.from('events').delete().eq('id', eventId).then(() => loadEvents())
+      )
+    );
+  });
+}
+
 function handleEventClick(el) {
   const id = el.getAttribute('data-eid');
   const name = el.querySelector('p').textContent;
@@ -1396,8 +1417,10 @@ function renderEventCard(e, count, index) {
       '<p style="font-size:10px;color:#aaa">registered</p>' +
     '</div>' +
 
-    // Arrow
-    '<span style="flex-shrink:0;margin-left:12px;color:#ccc;font-size:18px">›</span>' +
+    // Delete button (password protected) + Arrow
+    '<button data-delid="' + id + '" onclick="event.stopPropagation();promptDeleteFromList(this.dataset.delid)" ' +
+      'style="flex-shrink:0;margin-left:8px;padding:5px 10px;background:white;border:1.5px solid #EB001B;border-radius:6px;font-size:11px;font-weight:700;color:#EB001B;cursor:pointer;font-family:inherit">🗑</button>' +
+    '<span style="flex-shrink:0;margin-left:8px;color:#ccc;font-size:18px">›</span>' +
   '</div>';
 }
 
