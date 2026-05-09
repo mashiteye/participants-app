@@ -140,17 +140,7 @@ async function init() {
   window._eventDays = eventDays;
   document.getElementById('event-ui').style.display = 'block';
   document.getElementById('event-name').textContent = ev.name;
-  // Set status badge
-  const badge = document.getElementById('event-status-badge');
-  if (badge && ev.event_date) {
-    const start = new Date(ev.event_date);
-    const end = new Date(ev.event_date);
-    end.setDate(end.getDate() + (ev.days||1) - 1);
-    const today = new Date(); today.setHours(0,0,0,0);
-    if (today < start) { badge.textContent = 'Before Event'; badge.style.background='#f0f0f0'; badge.style.color='var(--black)'; }
-    else if (today <= end) { badge.textContent = 'Live'; badge.style.background='var(--red)'; badge.style.color='white'; }
-    else { badge.textContent = 'Ended'; badge.style.background='var(--black)'; badge.style.color='white'; }
-  }
+  // Status badge removed
   const evDisplayProg = (ev.program && ev.program !== 'Other') ? ev.program : null;
   document.getElementById('event-code-prog').textContent = [ev.event_code, evDisplayProg].filter(Boolean).join(' · ');
   document.getElementById('event-meta').textContent = [

@@ -1357,15 +1357,7 @@ function handleEventClick(el) {
 }
 
 function renderEventCard(e, count, index) {
-  let status = 'Before Event', statusColor = '#555', statusBg = '#f0f0f0';
-  if (e.event_date) {
-    const start = new Date(e.event_date);
-    const end = new Date(e.event_date);
-    end.setDate(end.getDate() + (e.days || 1) - 1);
-    const today = new Date(); today.setHours(0,0,0,0);
-    if (today >= start && today <= end) { status = 'Live'; statusColor = 'white'; statusBg = '#EB001B'; }
-    else if (today > end) { status = 'Ended'; statusColor = 'white'; statusBg = '#000'; }
-  }
+  // Status badge removed
   const dateStr = e.event_date
     ? new Date(e.event_date).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' })
     : 'No date';
@@ -1388,8 +1380,7 @@ function renderEventCard(e, count, index) {
       '<p style="font-size:12px;color:#888">' + meta + '</p>' +
     '</div>' +
 
-    // Middle: status badge
-    '<span style="flex-shrink:0;margin:0 12px;background:' + statusBg + ';color:' + statusColor + ';font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;text-transform:uppercase;letter-spacing:0.05em;white-space:nowrap">' + status + '</span>' +
+
 
     // Right: count
     '<div style="flex-shrink:0;text-align:right">' +
