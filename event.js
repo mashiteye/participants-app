@@ -15,6 +15,9 @@ function goBackToEvents() {
   window.location.href = BASE_URL + 'admin.html';
 }
 
+function openRegistration() {
+  window.location.href = BASE_URL + 'register.html?event=' + eventId + '&return=' + encodeURIComponent('event.html?event=' + eventId);
+}
 function openPreReg() { window.open(BASE_URL + 'index.html?event=' + eventId, '_blank'); }
 function openWalkin() { window.open(BASE_URL + 'index.html?event=' + eventId + '&walkin=1', '_blank'); }
 
