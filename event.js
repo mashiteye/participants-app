@@ -705,15 +705,7 @@ async function deleteEventFromPage() {
 
 // ── Participant list toggle ──
 function toggleParticipantList() {
-  const zone = document.getElementById('participant-list-zone');
-  const btn = document.getElementById('edit-participants-btn');
-  const visible = zone.style.display !== 'none';
-  zone.style.display = visible ? 'none' : 'block';
-  btn.textContent = visible ? '✏ Edit Participants' : '✕ Close List';
-  btn.style.background = visible ? 'var(--black)' : 'var(--red)';
-  if (!visible) {
-    zone.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
+  window.location.href = BASE_URL + 'edit-participants.html?event=' + eventId;
 }
 
 // ── Check-in QR on Participants page ──

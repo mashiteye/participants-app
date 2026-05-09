@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Edit Participants Form</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="reg-header">
+    <img src="banner.jpg" alt="" class="reg-header-banner" />
+    <div class="reg-header-content">
+      <p class="reg-form-name">EDIT PARTICIPANTS FORM</p>
+      <p class="reg-header-title" id="event-name-label" style="font-size:18px;margin-top:4px">Loading...</p>
+    </div>
+  </div>
+
+  <div class="reg-nav" style="justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--border)">
+    <button class="reg-back-btn" onclick="goBack()">← Back to Event Admin Form</button>
+    <a href="help.html?from=event" style="width:36px;height:36px;border-radius:50%;border:2px solid var(--orange);background:white;color:var(--orange);font-size:16px;font-weight:800;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0">?</a>
+  </div>
+
+  <div class="reg-body">
+    <div class="section-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+        <p class="section-title" style="margin:0">Participants <span id="count-label" style="font-size:12px;font-weight:400;color:var(--text-muted)"></span></p>
+      </div>
+      <input type="text" id="p-search" placeholder="Search name, code, org, program..."
+        oninput="filterList()" class="search-input" style="margin-bottom:1rem" />
+      <div id="p-list"><div class="empty">Loading participants...</div></div>
+    </div>
+  </div>
+
+  <!-- Edit modal -->
+  <div id="edit-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:200;align-items:flex-start;justify-content:center;padding:1.5rem 1rem;overflow-y:auto">
+    <div style="background:white;border-radius:16px;padding:1.75rem;max-width:480px;width:100%">
+      <p style="font-size:15px;font-weight:800;margin-bottom:1.25rem">Edit Participant</p>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div><label class="form-label">Full Name *</label><input id="ed-name" type="text" class="form-input" /></div>
+        <div><label class="form-label">Sex</label>
+          <div style="display:flex;gap:8px">
+            <button id="ed-male" onclick="edSex('Male')" style="flex:1;padding:10px;border:2px solid #e0e0e0;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">Male</button>
+            <button id="ed-female" onclick="edSex('Female')" style="flex:1;padding:10px;border:2px solid #e0e0e0;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">Female</button>
+          </div>
+        </div>
+        <div><label class="form-label">Organisation *</label><input id="ed-org" type="text" class="form-input" /></div>
+        <div><label class="form-label">Program</label><input id="ed-prog" type="text" class="form-input" /></div>
+        <div><label class="form-label">Position</label><input id="ed-position" type="text" class="form-input" /></div>
+        <div><label class="form-label">Email</label><input id="ed-email" type="email" class="form-input" /></div>
+        <div><label class="form-label">Phone</label><input id="ed-phone" type="tel" class="form-input" /></div>
+      </div>
+      <p id="ed-err" style="color:var(--red);font-size:13px;display:none;margin-top:10px"></p>
+      <div style="display:flex;gap:8px;margin-top:1.25rem">
+        <button onclick="saveParticipant()" style="flex:1;padding:13px;background:var(--red);color:white;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">Save</button>
+        <button onclick="closeEdit()" style="flex:1;padding:13px;background:white;border:1.5px solid #000;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script>
+    const SUPABASE_URL = 'https://cpqhljqwxjgscdoepant.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNwcWhsanF3eGpnc2Nkb2VwYW50Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyMTM1NTcsImV4cCI6MjA5Mzc4OTU1N30.XATDTbvL7iDrsn-Si0crJWZebw5FSx0weWRmmcL2Z7c';
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const params = new URLSearchParams(window.location.search);
+    const eventId = params.get('event');
+    const BASE_URL = window.location.origin + window.location.pathname.replace('edit-participants.html','');
+    let allParticipants = [];
+    let editingId = null;
+    let editingSex = null;
+
+    async function init() {
+      const { data: ev } = await db.from('events').select('name').eq('id', eventId).single();
+      if (ev) document.getElementById('event-name-label').textContent = ev.name;
+      await loadParticipants();
+    }
+
+    async function loadParticipants() {
+      const { data } = await db.from('participants').select('*').eq('event_id', eventId).order('code', { ascending: true });
+      allParticipants = data || [];
+      document.getElementById('count-label').textContent = '— ' + allParticipants.length + ' participants';
+      renderList(allParticipants);
+    }
+
+    function renderList(list) {
+      const container = document.getElementById('p-list');
+      if (!list.length) { container.innerHTML = '<div class="empty">No participants found.</div>'; return; }
+      container.innerHTML = '<table class="participants-table"><thead><tr>' +
+        '<th>Code</th><th>Name</th><th>Sex</th><th>Org</th><th>Program</th><th>Position</th>' +
+        '</tr></thead><tbody>' +
+        list.map(p => '<tr style="cursor:pointer" onclick="openEdit(\'' + p.id + '\')">' +
+          '<td><span style="font-family:monospace;font-size:11px;font-weight:700;background:var(--yellow);padding:1px 6px;border-radius:3px">' + esc(p.code||'') + '</span></td>' +
+          '<td style="font-weight:600">' + esc(p.name||'') + '</td>' +
+          '<td>' + esc(p.sex||'') + '</td>' +
+          '<td>' + esc(p.org||'') + '</td>' +
+          '<td>' + esc(p.prog||'') + '</td>' +
+          '<td>' + esc(p.position_title||'') + '</td>' +
+        '</tr>').join('') +
+        '</tbody></table>';
+    }
+
+    function filterList() {
+      const q = document.getElementById('p-search').value.trim().toLowerCase();
+      if (!q) { renderList(allParticipants); return; }
+      renderList(allParticipants.filter(p =>
+        (p.name||'').toLowerCase().includes(q) ||
+        (p.code||'').toLowerCase().includes(q) ||
+        (p.org||'').toLowerCase().includes(q) ||
+        (p.prog||'').toLowerCase().includes(q) ||
+        (p.position_title||'').toLowerCase().includes(q)
+      ));
+    }
+
+    function openEdit(id) {
+      const p = allParticipants.find(x => x.id === id);
+      if (!p) return;
+      editingId = id;
+      document.getElementById('ed-name').value = p.name || '';
+      document.getElementById('ed-org').value = p.org || '';
+      document.getElementById('ed-prog').value = p.prog || '';
+      document.getElementById('ed-position').value = p.position_title || '';
+      document.getElementById('ed-email').value = p.email || '';
+      document.getElementById('ed-phone').value = p.phone || '';
+      edSex(p.sex);
+      document.getElementById('ed-err').style.display = 'none';
+      document.getElementById('edit-modal').style.display = 'flex';
+    }
+
+    function edSex(sex) {
+      editingSex = sex;
+      ['Male','Female'].forEach(s => {
+        const btn = document.getElementById('ed-' + s.toLowerCase());
+        btn.style.borderColor = s === sex ? 'var(--red)' : '#e0e0e0';
+        btn.style.background  = s === sex ? 'var(--red)' : 'white';
+        btn.style.color       = s === sex ? 'white' : '#666';
+      });
+    }
+
+    function closeEdit() {
+      document.getElementById('edit-modal').style.display = 'none';
+      editingId = null;
+    }
+
+    async function saveParticipant() {
+      const name = document.getElementById('ed-name').value.trim();
+      const org  = document.getElementById('ed-org').value.trim();
+      if (!name) { showEdErr('Name is required.'); return; }
+      if (!org)  { showEdErr('Organisation is required.'); return; }
+
+      const saveBtn = document.querySelector('#edit-modal button');
+      saveBtn.textContent = 'Saving...'; saveBtn.disabled = true;
+      const { error } = await db.from('participants').update({
+        name,
+        sex: editingSex,
+        org,
+        prog: document.getElementById('ed-prog').value.trim() || null,
+        position_title: document.getElementById('ed-position').value.trim() || null,
+        email: document.getElementById('ed-email').value.trim() || null,
+        phone: document.getElementById('ed-phone').value.trim() || null,
+      }).eq('id', editingId);
+
+      saveBtn.textContent = 'Save'; saveBtn.disabled = false;
+      if (error) { showEdErr('Save failed: ' + error.message); return; }
+      closeEdit();
+      await loadParticipants();
+    }
+
+    function showEdErr(msg) {
+      const el = document.getElementById('ed-err');
+      el.textContent = msg; el.style.display = 'block';
+    }
+
+    function goBack() {
+      window.location.href = BASE_URL + 'event.html?event=' + eventId + '&from=admin';
+    }
+
+    function esc(s) {
+      return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    init();
+  </script>
+</body>
+</html>
