@@ -111,7 +111,6 @@ async function loadEvents() {
   html += '</div>';
   if (!events.length) html = '<div class="empty" style="padding:2rem;text-align:center;color:#aaa">No events yet. Create your first event.</div>';
   document.getElementById('events-list').innerHTML = html;
-  loadSignRates(events);
 }
 
 function copyEventLink(id, type, btn) {
