@@ -104,6 +104,7 @@ async function loadEvents() {
   let html = '<div style="border-radius:12px;overflow:hidden;border:1px solid #eee;box-shadow:0 1px 6px rgba(0,0,0,0.06)">';
   events.forEach((e, i) => {
     const count = countMap[e.id] || 0;
+    e._count = count;
     html += renderEventCard(e, count, i);
   });
   html += '</div>';
@@ -1401,46 +1402,80 @@ function handleEventClick(el) {
   viewParticipants(id, name);
 }
 
+async function loadSignRates(events) {
+  for (const e of events) {
+    try {
+      const { count } = await db.from('attendance')
+        .select('*', { count: 'exact', head: true })
+        .eq('event_id', e.id);
+      const total = e._count || 0;
+      const el = document.getElementById('signed-' + e.id);
+      if (el && count > 0) {
+        const rate = total > 0 ? Math.round(count / total * 100) : 0;
+        el.textContent = count + ' signed · ' + rate + '%';
+      }
+    } catch(err) {}
+  }
+}
+
+function getEventStatus(eventDate, days) {
+  if (!eventDate) return { label: 'No Date', color: '#aaa', bg: '#f5f5f5' };
+  const start = new Date(eventDate);
+  const end   = new Date(eventDate); end.setDate(end.getDate() + (days || 1) - 1);
+  const today = new Date(); today.setHours(0,0,0,0);
+  start.setHours(0,0,0,0); end.setHours(0,0,0,0);
+  if (today < start) return { label: 'Upcoming', color: '#2F7B6B', bg: '#e8f5f2' };
+  if (today <= end)  return { label: 'Live',     color: '#FF5F00', bg: '#fff3ec' };
+  return               { label: 'Completed', color: '#888',    bg: '#f5f5f5' };
+}
+
 function renderEventCard(e, count, index) {
-  // Status badge removed
   const dateStr = e.event_date
     ? new Date(e.event_date).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' })
     : 'No date';
-  const prog = (e.program && e.program !== 'Other') ? e.program : '';
-  const meta = [prog, dateStr].filter(Boolean).join(' · ');
-  const name = esc(e.name);
-  const id = e.id;
+  const prog   = (e.program && e.program !== 'Other') ? e.program : '';
+  const name   = esc(e.name);
+  const id     = e.id;
+  const status = getEventStatus(e.event_date, e.days);
+  const bg     = index % 2 === 0 ? '#ffffff' : '#fffbf0';
 
-  // Alternate row colours — white and light yellow
-  const bg = index % 2 === 0 ? '#ffffff' : '#fffbf0';
+  return (
+    // Entire card clickable
+    '<div data-eid="' + id + '" onclick="handleEventClick(this)" ' +
+      'style="background:' + bg + ';border-bottom:1px solid #eee;cursor:pointer;padding:12px 14px;" ' +
+      'onmouseover="this.style.background='#fff5ef'" onmouseout="this.style.background='' + bg + ''">' +
 
-  return '<div data-eid="' + id + '" style="display:flex;align-items:center;padding:14px 16px;background:' + bg + ';border-bottom:1px solid #eee;cursor:pointer" ' +
-    'onclick="handleEventClick(this)" ' +
-    'onmouseover="this.style.background=\'#fff5ef\'" ' +
-    'onmouseout="this.style.background=\'' + bg + '\'">' +
+      // ── Top row: identity left, metrics right ──
+      '<div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:8px">' +
 
-    // Left: name and meta
-    '<div style="flex:1;min-width:0">' +
-      '<p style="font-size:15px;font-weight:700;color:#000;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + name + '</p>' +
-      '<p style="font-size:12px;color:#888">' + meta + '</p>' +
-    '</div>' +
+        // Left: status + name + meta
+        '<div style="flex:1;min-width:0">' +
+          '<span style="display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:' + status.bg + ';color:' + status.color + ';letter-spacing:0.04em;margin-bottom:4px">' + status.label + '</span>' +
+          '<p style="font-size:15px;font-weight:800;color:#000;margin:0 0 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + name + '</p>' +
+          '<p style="font-size:11px;color:#999;margin:0">' + [prog, dateStr].filter(Boolean).join(' · ') + '</p>' +
+        '</div>' +
 
+        // Right: registered count
+        '<div style="flex-shrink:0;text-align:right">' +
+          '<p style="font-size:20px;font-weight:800;color:#EB001B;line-height:1;margin:0">' + count + '</p>' +
+          '<p style="font-size:10px;color:#aaa;margin:0">registered</p>' +
+          '<p id="signed-' + id + '" style="font-size:10px;color:#2F7B6B;margin:2px 0 0;font-weight:600"></p>' +
+        '</div>' +
 
+      '</div>' +
 
-    // Right: count
-    '<div style="flex-shrink:0;text-align:right">' +
-      '<p style="font-size:18px;font-weight:800;color:#EB001B;line-height:1">' + count + '</p>' +
-      '<p style="font-size:10px;color:#aaa">registered</p>' +
-    '</div>' +
+      // ── Bottom row: actions ──
+      '<div style="display:flex;gap:6px;justify-content:flex-end" onclick="event.stopPropagation()">' +
+        '<button data-openid="' + id + '" data-openname="' + name + '" onclick="viewParticipants(this.dataset.openid,this.dataset.openname)" ' +
+          'style="padding:5px 14px;background:#EB001B;border:none;border-radius:6px;font-size:11px;font-weight:700;color:white;cursor:pointer;font-family:inherit">Open</button>' +
+        '<button data-editid="' + id + '" onclick="promptEditFromList(this.dataset.editid)" ' +
+          'style="padding:5px 10px;background:white;border:1px solid #ccc;border-radius:6px;font-size:12px;cursor:pointer;font-family:inherit" title="Edit event">✏</button>' +
+        '<button data-delid="' + id + '" onclick="promptDeleteFromList(this.dataset.delid)" ' +
+          'style="padding:5px 10px;background:white;border:1px solid #eee;border-radius:6px;font-size:12px;cursor:pointer;font-family:inherit;color:#EB001B" title="Delete event">🗑</button>' +
+      '</div>' +
 
-    // Open + Edit + Delete buttons
-    '<button data-openid="' + id + '" data-openname="' + name + '" onclick="event.stopPropagation();viewParticipants(this.dataset.openid,this.dataset.openname)" ' +
-      'style="flex-shrink:0;margin-left:8px;padding:5px 10px;background:#EB001B;border:none;border-radius:6px;font-size:11px;font-weight:700;color:white;cursor:pointer;font-family:inherit">Open</button>' +
-    '<button data-editid="' + id + '" onclick="event.stopPropagation();promptEditFromList(this.dataset.editid)" ' +
-      'style="flex-shrink:0;margin-left:4px;padding:5px 10px;background:white;border:1.5px solid #000;border-radius:6px;font-size:11px;font-weight:700;color:#000;cursor:pointer;font-family:inherit">✏</button>' +
-    '<button data-delid="' + id + '" onclick="event.stopPropagation();promptDeleteFromList(this.dataset.delid)" ' +
-      'style="flex-shrink:0;margin-left:4px;padding:5px 10px;background:white;border:1.5px solid #EB001B;border-radius:6px;font-size:11px;font-weight:700;color:#EB001B;cursor:pointer;font-family:inherit">🗑</button>' +
-  '</div>';
+    '</div>'
+  );
 }
 
 
