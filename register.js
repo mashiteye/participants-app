@@ -37,6 +37,8 @@ async function init() {
   showScreen('find');
   setScreenLabel('Participant Reg Form');
   setHeaderBtn('← Back to Event Admin Form', exitRegistration);
+  const ub = document.getElementById('unsigned-btn');
+  if (ub) ub.style.display = 'block';
   setTimeout(() => { const i = document.getElementById('code-input'); if(i) i.focus(); }, 400);
 }
 
@@ -194,6 +196,10 @@ function switchTab(tab) {
   document.getElementById('find-by-name').style.display = tab === 'name' ? 'block' : 'none';
   document.getElementById('find-err').style.display = 'none';
   setTimeout(() => document.getElementById(tab === 'code' ? 'code-input' : 'name-input').focus(), 100);
+}
+
+function openUnsigned() {
+  window.location.href = BASE_URL + 'unsigned.html?event=' + eventId;
 }
 
 function exitRegistration() {
