@@ -118,6 +118,8 @@
     .section-lbl { font-size: 12px; font-weight: 700; color: #555; margin-bottom: 6px; display: block; }
 
     /* ── KPI cards ── */
+    .kpi-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin-bottom:6px; }
+    @media (min-width:400px) { .kpi-grid { grid-template-columns:repeat(5,1fr); } }
     .kpi-card { background:#f8f8f8; border-radius:8px; padding:6px 4px; text-align:center; }
     .kpi-card.red-card { background:#fff5f5; }
     .kpi-num { font-size:18px; font-weight:800; line-height:1; }
@@ -162,7 +164,7 @@
   <!-- ── Stats: compact KPI grid ── -->
   <div id="stats-row" style="display:none;background:#fff;border-bottom:1px solid #eee;padding:10px 12px 8px">
     <!-- Row 1: Core KPIs -->
-    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:6px">
+    <div class="kpi-grid">
       <div class="kpi-card"><div class="kpi-num orange" id="stat-registered">—</div><div class="kpi-lbl">Total</div></div>
       <div class="kpi-card"><div class="kpi-num green" id="stat-female">—</div><div class="kpi-lbl">Female</div></div>
       <div class="kpi-card"><div class="kpi-num" id="stat-male">—</div><div class="kpi-lbl">Male</div></div>
