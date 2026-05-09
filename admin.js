@@ -148,7 +148,8 @@ function renderEventCard(e, count, index) {
 
 function handleEventClick(el) {
   const id = el.getAttribute('data-eid');
-  viewParticipants(id, '');
+  if (!id) return;
+  window.location.href = BASE_URL + 'event.html?event=' + id + '&from=admin';
 }
 
 function promptEditFromList(eventId) {
