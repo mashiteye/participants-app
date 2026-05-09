@@ -1433,12 +1433,13 @@ function renderEventCard(e, count, index) {
       '<p style="font-size:10px;color:#aaa">registered</p>' +
     '</div>' +
 
-    // Edit + Delete buttons (password protected) + Arrow
+    // Open + Edit + Delete buttons
+    '<button data-openid="' + id + '" data-openname="' + name + '" onclick="event.stopPropagation();viewParticipants(this.dataset.openid,this.dataset.openname)" ' +
+      'style="flex-shrink:0;margin-left:8px;padding:5px 10px;background:#EB001B;border:none;border-radius:6px;font-size:11px;font-weight:700;color:white;cursor:pointer;font-family:inherit">Open</button>' +
     '<button data-editid="' + id + '" onclick="event.stopPropagation();promptEditFromList(this.dataset.editid)" ' +
-      'style="flex-shrink:0;margin-left:8px;padding:5px 10px;background:white;border:1.5px solid #000;border-radius:6px;font-size:11px;font-weight:700;color:#000;cursor:pointer;font-family:inherit">✏</button>' +
+      'style="flex-shrink:0;margin-left:4px;padding:5px 10px;background:white;border:1.5px solid #000;border-radius:6px;font-size:11px;font-weight:700;color:#000;cursor:pointer;font-family:inherit">✏</button>' +
     '<button data-delid="' + id + '" onclick="event.stopPropagation();promptDeleteFromList(this.dataset.delid)" ' +
       'style="flex-shrink:0;margin-left:4px;padding:5px 10px;background:white;border:1.5px solid #EB001B;border-radius:6px;font-size:11px;font-weight:700;color:#EB001B;cursor:pointer;font-family:inherit">🗑</button>' +
-    '<span style="flex-shrink:0;margin-left:8px;color:#ccc;font-size:18px">›</span>' +
   '</div>';
 }
 
