@@ -121,6 +121,25 @@ function showSkeletonStats() {
   ).join('');
 }
 
+async function loadEventStats() {
+  try {
+    const { data: parts } = await db.from('participants').select('reg_type, sex').eq('event_id', eventId);
+    if (!parts) return;
+    const total   = parts.length;
+    const prereg  = parts.filter(p => (p.reg_type||'').toLowerCase().includes('pre')).length;
+    const walkin  = parts.filter(p => (p.reg_type||'').toLowerCase().includes('walk')).length;
+    const female  = parts.filter(p => (p.sex||'').toLowerCase() === 'female').length;
+    const { count: signed } = await db.from('attendance').select('*', { count: 'exact', head: true }).eq('event_id', eventId);
+    const set = id => { const el = document.getElementById(id); if (el) el.textContent = ''; };
+    const s = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+    s('es-total',  total);
+    s('es-prereg', prereg);
+    s('es-walkin', walkin);
+    s('es-female', female);
+    s('es-signed', signed || 0);
+  } catch(e) {}
+}
+
 async function init() {
   // Show Back to Events button if opened from admin
   const fromAdmin = new URLSearchParams(window.location.search).get('from') === 'admin';
