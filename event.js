@@ -640,7 +640,7 @@ async function editEvent() {
   const btnRow = document.createElement('div');
   btnRow.style.cssText = 'display:flex;gap:8px;margin-top:1.25rem';
   btnRow.innerHTML = '<button onclick="saveInlineEdit()" style="flex:1;padding:14px;background:#EB001B;color:white;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">Save Changes</button>' +
-    '<button onclick="document.getElementById('inline-edit-modal').remove()" style="flex:1;padding:14px;background:white;border:1.5px solid #000;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">Cancel</button>';
+    '<button onclick="var m=document.getElementById('inline-edit-modal');if(m)m.remove()" style="flex:1;padding:14px;background:white;border:1.5px solid #000;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">Cancel</button>';
   inner.appendChild(btnRow);
 
   modal.appendChild(inner);

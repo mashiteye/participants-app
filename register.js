@@ -222,7 +222,7 @@ async function findByCode() {
     const container = document.getElementById('phone-results');
     container.innerHTML = '<p style="font-size:12px;color:#888;margin-bottom:6px">' + matches.length + ' matches — select one:</p>' +
       matches.slice(0,8).map(p =>
-        '<div class="result-item" onclick="selectResult('' + p.id + '')">' +
+        '<div class="result-item" onclick="selectResult(\'' + p.id + '\')">' +
           '<div class="result-name">' + esc(p.name) + '</div>' +
           '<div class="result-meta">' + esc(p.code||'') + ' · ' + esc(p.phone||'') + '</div>' +
         '</div>'
