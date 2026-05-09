@@ -2,227 +2,259 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
   <title>Participant Registration</title>
-  <link rel="stylesheet" href="style.css" />
   <style>
-    body { background: #f5f5f3; }
-    .reg-surface { max-width: 480px; margin: 0 auto; padding: 0; min-height: 100vh; display: flex; flex-direction: column; }
-
-    /* Header */
-    .reg-surface-header {
-      background: linear-gradient(135deg, var(--red) 0%, var(--orange) 100%);
-      padding: 1.25rem 1.5rem 1rem;
-      display: flex; align-items: center; justify-content: space-between;
+    :root {
+      --red:    #EB001B;
+      --orange: #FF5F00;
+      --yellow: #F79E1B;
+      --black:  #000000;
+      --green:  #00A86B;
+      --bg:     #f0ede8;
+      --card:   #ffffff;
+      --border: #e0ddd8;
+      --muted:  #888;
     }
-    .reg-surface-header h1 { color: white; font-size: 18px; font-weight: 800; margin: 0; }
-    .reg-surface-header p { color: rgba(255,255,255,0.85); font-size: 12px; margin: 2px 0 0; }
-    .exit-btn { background: rgba(255,255,255,0.2); border: none; color: white; font-size: 13px; font-weight: 600; padding: 6px 14px; border-radius: 20px; cursor: pointer; font-family: inherit; }
-    .exit-btn:hover { background: rgba(255,255,255,0.35); }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); min-height: 100vh; }
 
-    /* Tab toggle */
-    .tab-group { display: flex; background: #eee; border-radius: 10px; padding: 3px; margin-bottom: 1.25rem; }
-    .tab-btn { flex: 1; padding: 10px; border: none; background: transparent; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; color: #888; transition: all 0.2s; }
-    .tab-btn.active { background: white; color: var(--orange); box-shadow: 0 1px 4px rgba(0,0,0,0.12); }
+    /* ── Header ── */
+    .app-header {
+      background: var(--orange);
+      padding: 1rem 1.25rem 1rem;
+      position: relative;
+    }
+    .app-header .label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.8); margin-bottom: 3px; }
+    .app-header h1 { font-size: 22px; font-weight: 800; color: white; line-height: 1.2; }
+    .app-header .meta { font-size: 12px; color: rgba(255,255,255,0.85); margin-top: 4px; }
+    .exit-btn { position: absolute; top: 1rem; right: 1rem; background: rgba(255,255,255,0.25); border: none; color: white; font-size: 12px; font-weight: 700; padding: 5px 12px; border-radius: 16px; cursor: pointer; font-family: inherit; }
 
-    /* Card */
-    .surface-card { background: white; border-radius: 16px; padding: 1.5rem; margin: 1rem; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+    /* ── Stats row ── */
+    .stats-row { display: flex; gap: 10px; padding: 14px 14px 0; }
+    .stat-box { flex: 1; background: var(--card); border-radius: 12px; padding: 12px 8px; text-align: center; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+    .stat-num { font-size: 26px; font-weight: 800; line-height: 1; }
+    .stat-num.orange { color: var(--orange); }
+    .stat-num.green  { color: var(--green); }
+    .stat-num.red    { color: var(--red); }
+    .stat-label { font-size: 11px; color: var(--muted); margin-top: 3px; font-weight: 500; }
 
-    /* Find input */
-    .find-input { font-size: 20px; font-weight: 700; text-align: center; letter-spacing: 0.06em; padding: 16px; border-radius: 12px; border: 2px solid #e0e0e0; width: 100%; box-sizing: border-box; margin-bottom: 12px; font-family: inherit; }
-    .find-input:focus { border-color: var(--orange); outline: none; }
+    /* ── Main card ── */
+    .main-card { background: var(--card); border-radius: 16px; margin: 14px; padding: 1.25rem; box-shadow: 0 2px 10px rgba(0,0,0,0.07); }
+    .card-title { font-size: 18px; font-weight: 800; color: var(--black); margin-bottom: 1.1rem; }
 
-    /* Big buttons */
-    .btn-find { width: 100%; padding: 16px; background: var(--orange); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 800; cursor: pointer; font-family: inherit; margin-bottom: 12px; }
-    .btn-new { width: 100%; padding: 16px; background: var(--black); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; font-family: inherit; }
-    .btn-confirm { width: 100%; padding: 16px; background: var(--red); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 800; cursor: pointer; font-family: inherit; margin-top: 12px; }
-    .btn-submit-sign { width: 100%; padding: 16px; background: linear-gradient(90deg, var(--red), var(--orange)); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 800; cursor: pointer; font-family: inherit; margin-top: 12px; }
-    .or-divider { text-align: center; color: #aaa; font-size: 13px; margin: 10px 0; font-weight: 600; }
+    /* ── Tab toggle ── */
+    .tab-row { display: flex; gap: 8px; margin-bottom: 1.1rem; }
+    .tab-btn { flex: 1; padding: 11px 8px; border-radius: 10px; border: 2px solid var(--border); background: white; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; color: var(--muted); transition: all 0.15s; }
+    .tab-btn.active { border-color: var(--orange); background: #fff5ef; color: var(--orange); }
 
-    /* Result list */
-    .result-item { padding: 14px 16px; border: 1.5px solid #eee; border-radius: 10px; margin-bottom: 8px; cursor: pointer; transition: all 0.15s; }
-    .result-item:hover, .result-item:active { border-color: var(--orange); background: #fff8f4; }
-    .result-item strong { font-size: 15px; display: block; margin-bottom: 2px; }
-    .result-item span { font-size: 12px; color: #888; }
+    /* ── Input ── */
+    .field-label { font-size: 12px; color: var(--muted); margin-bottom: 6px; display: block; }
+    .big-input { width: 100%; padding: 16px; font-size: 22px; font-weight: 700; text-align: center; letter-spacing: 0.08em; border: 2px solid var(--border); border-radius: 12px; font-family: inherit; margin-bottom: 12px; background: #fafafa; }
+    .big-input:focus { border-color: var(--orange); outline: none; background: white; }
+    .name-input { width: 100%; padding: 14px; font-size: 16px; border: 2px solid var(--border); border-radius: 12px; font-family: inherit; margin-bottom: 12px; background: #fafafa; }
+    .name-input:focus { border-color: var(--orange); outline: none; background: white; }
 
-    /* Participant card */
-    .found-card { background: #fff8f4; border: 2px solid var(--orange); border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 1rem; }
-    .found-card .code { font-size: 13px; font-weight: 800; color: var(--orange); font-family: monospace; }
-    .found-card .name { font-size: 20px; font-weight: 800; margin: 4px 0; }
-    .found-card .detail { font-size: 12px; color: #888; }
+    /* ── Buttons ── */
+    .btn-primary { width: 100%; padding: 16px; background: var(--orange); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 800; cursor: pointer; font-family: inherit; margin-bottom: 10px; }
+    .btn-green { width: 100%; padding: 16px; background: var(--green); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; font-family: inherit; }
+    .btn-red { width: 100%; padding: 16px; background: var(--red); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 800; cursor: pointer; font-family: inherit; margin-top: 12px; }
+    .btn-gradient { width: 100%; padding: 16px; background: linear-gradient(90deg, var(--red), var(--orange)); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 800; cursor: pointer; font-family: inherit; margin-top: 12px; }
+    .btn-ghost { width: 100%; padding: 12px; background: none; border: none; color: var(--muted); font-size: 13px; cursor: pointer; font-family: inherit; margin-top: 6px; }
+    .btn-black { width: 100%; padding: 16px; background: var(--black); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 800; cursor: pointer; font-family: inherit; }
 
-    /* Day buttons */
-    .day-group { display: flex; gap: 8px; margin-bottom: 1rem; flex-wrap: wrap; }
-    .day-btn { flex: 1; min-width: 80px; padding: 14px 8px; border: 2px solid #e0e0e0; border-radius: 10px; background: white; font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; color: #666; transition: all 0.15s; text-align: center; }
+    /* ── Or divider ── */
+    .or-row { text-align: center; color: var(--muted); font-size: 13px; font-weight: 600; margin: 12px 0; }
+
+    /* ── Result list ── */
+    .result-item { padding: 13px 14px; border: 1.5px solid var(--border); border-radius: 10px; margin-bottom: 8px; cursor: pointer; transition: all 0.12s; }
+    .result-item:active, .result-item:hover { border-color: var(--orange); background: #fff5ef; }
+    .result-name { font-size: 15px; font-weight: 700; color: var(--black); margin-bottom: 2px; }
+    .result-meta { font-size: 12px; color: var(--muted); }
+
+    /* ── Found participant card ── */
+    .found-card { background: #fff5ef; border: 2px solid var(--orange); border-radius: 12px; padding: 1rem 1.1rem; margin-bottom: 1rem; }
+    .found-card .p-code { font-size: 13px; font-weight: 800; color: var(--orange); font-family: monospace; margin-bottom: 3px; }
+    .found-card .p-name { font-size: 20px; font-weight: 800; color: var(--black); margin-bottom: 3px; }
+    .found-card .p-org  { font-size: 13px; color: var(--muted); }
+    .found-card .p-pos  { font-size: 12px; color: var(--muted); }
+
+    /* ── Day buttons ── */
+    .day-row { display: flex; gap: 8px; margin-bottom: 1rem; }
+    .day-btn { flex: 1; padding: 14px 6px; border: 2px solid var(--border); border-radius: 10px; background: white; font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; color: #555; text-align: center; transition: all 0.15s; }
     .day-btn.active { border-color: var(--orange); background: var(--orange); color: white; }
-    .day-btn.signed { border-color: #ccc; background: #f5f5f5; color: #aaa; font-size: 12px; }
+    .day-btn.done { border-color: var(--green); background: #f0fff8; color: var(--green); font-size: 12px; }
 
-    /* Signature */
-    .sig-box { border: 2px solid #e0e0e0; border-radius: 12px; background: #fafafa; position: relative; overflow: hidden; margin-bottom: 8px; }
-    .sig-box canvas { display: block; width: 100%; touch-action: none; }
-    .sig-hint-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); color: #ccc; font-size: 14px; pointer-events: none; }
-    .btn-clear-small { font-size: 12px; color: #888; background: none; border: 1px solid #ddd; padding: 4px 12px; border-radius: 6px; cursor: pointer; font-family: inherit; }
+    /* ── Signature ── */
+    .sig-wrap { border: 2px solid var(--border); border-radius: 12px; background: #fafafa; position: relative; overflow: hidden; margin-bottom: 8px; }
+    .sig-wrap canvas { display: block; width: 100%; touch-action: none; }
+    .sig-placeholder { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); color: #ccc; font-size: 14px; pointer-events: none; }
+    .btn-clear { font-size: 12px; color: var(--muted); background: none; border: 1px solid var(--border); padding: 5px 14px; border-radius: 8px; cursor: pointer; font-family: inherit; margin-bottom: 8px; }
 
-    /* Success */
-    .success-screen { text-align: center; padding: 2rem 1rem; }
-    .success-icon { font-size: 60px; margin-bottom: 1rem; }
-    .success-name { font-size: 22px; font-weight: 800; color: var(--black); margin-bottom: 4px; }
-    .success-day { font-size: 15px; color: var(--orange); font-weight: 700; margin-bottom: 1.5rem; }
-    .btn-next { width: 100%; padding: 16px; background: var(--black); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 800; cursor: pointer; font-family: inherit; }
-
-    /* Form fields */
-    .form-field { margin-bottom: 1rem; }
-    .form-field label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #666; display: block; margin-bottom: 5px; }
-    .form-field input, .form-field textarea { width: 100%; padding: 13px 14px; border: 1.5px solid #e0e0e0; border-radius: 10px; font-size: 15px; font-family: inherit; box-sizing: border-box; }
-    .form-field input:focus, .form-field textarea:focus { border-color: var(--orange); outline: none; }
-    .sex-group { display: flex; gap: 8px; }
-    .sex-btn { flex: 1; padding: 13px; border: 2px solid #e0e0e0; border-radius: 10px; background: white; font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; color: #666; }
+    /* ── Form fields ── */
+    .form-row { margin-bottom: 14px; }
+    .form-row label { font-size: 12px; font-weight: 600; color: #555; display: block; margin-bottom: 5px; }
+    .form-row input, .form-row textarea { width: 100%; padding: 13px 14px; border: 1.5px solid var(--border); border-radius: 10px; font-size: 15px; font-family: inherit; }
+    .form-row input:focus { border-color: var(--orange); outline: none; }
+    .sex-row { display: flex; gap: 8px; }
+    .sex-btn { flex: 1; padding: 13px; border: 2px solid var(--border); border-radius: 10px; background: white; font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; color: #666; }
     .sex-btn.active { border-color: var(--orange); background: var(--orange); color: white; }
 
-    label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #444; }
+    /* ── Success ── */
+    .success-wrap { text-align: center; padding: 2.5rem 1rem; }
+    .success-icon { font-size: 64px; margin-bottom: 1rem; }
+    .success-title { font-size: 22px; font-weight: 800; color: var(--green); margin-bottom: 6px; }
+    .success-sub { font-size: 15px; color: var(--muted); margin-bottom: 1.5rem; }
+
+    /* ── Error ── */
+    .err-msg { color: var(--red); font-size: 13px; margin: 8px 0; display: none; }
+
+    /* ── Section label ── */
+    .section-lbl { font-size: 12px; font-weight: 700; color: #555; margin-bottom: 6px; display: block; }
   </style>
 </head>
 <body>
-  <div class="reg-surface">
 
-    <!-- Header -->
-    <div class="reg-surface-header">
-      <div>
-        <h1 id="reg-event-name">Participant Registration</h1>
-        <p id="reg-event-meta"></p>
+  <!-- ── Header ── -->
+  <div class="app-header">
+    <div class="label" id="header-label">PARTICIPANT REGISTRATION</div>
+    <h1 id="header-event-name">Loading...</h1>
+    <p class="meta" id="header-meta"></p>
+    <button class="exit-btn" onclick="exitRegistration()">✕ Exit</button>
+  </div>
+
+  <!-- ── Stats ── -->
+  <div class="stats-row" id="stats-row">
+    <div class="stat-box"><div class="stat-num orange" id="stat-registered">—</div><div class="stat-label">Registered</div></div>
+    <div id="stat-days-boxes"></div>
+    <div class="stat-box"><div class="stat-num green" id="stat-walkin">—</div><div class="stat-label">Walk-ins</div></div>
+  </div>
+
+  <!-- ── SCREEN: Find ── -->
+  <div id="screen-find">
+    <div class="main-card">
+      <p class="card-title">Sign Attendance</p>
+
+      <div class="tab-row">
+        <button class="tab-btn active" id="tab-code" onclick="switchTab('code')">By Code</button>
+        <button class="tab-btn" id="tab-name" onclick="switchTab('name')">By Name</button>
       </div>
-      <button class="exit-btn" onclick="exitRegistration()">✕ Exit</button>
-    </div>
 
-    <!-- Loading -->
-    <div id="screen-loading" class="surface-card" style="margin:1rem;text-align:center;padding:2rem;color:#aaa">
-      Loading event...
-    </div>
-
-    <!-- Screen: Find participant -->
-    <div id="screen-find" style="display:none">
-      <div class="surface-card">
-        <div class="tab-group">
-          <button class="tab-btn active" id="tab-code" onclick="switchTab('code')">By Code</button>
-          <button class="tab-btn" id="tab-name" onclick="switchTab('name')">By Name</button>
-        </div>
-
-        <!-- By code -->
-        <div id="find-by-code">
-          <label style="font-size:12px;color:#888;margin-bottom:6px;display:block">Participant Code (e.g. MCF-001)</label>
-          <input type="text" id="code-input" class="find-input" placeholder="001"
-            oninput="this.value=this.value.toUpperCase()"
-            onkeydown="if(event.key==='Enter')findByCode()" />
-          <button class="btn-find" onclick="findByCode()">Find Me</button>
-        </div>
-
-        <!-- By name -->
-        <div id="find-by-name" style="display:none">
-          <label style="font-size:12px;color:#888;margin-bottom:6px;display:block">Search by name or organisation</label>
-          <input type="text" id="name-input" class="find-input" placeholder="e.g. Ama Boateng"
-            onkeydown="if(event.key==='Enter')findByName()" style="font-size:16px;letter-spacing:0" />
-          <button class="btn-find" onclick="findByName()">Search</button>
-          <div id="name-results" style="margin-top:8px"></div>
-        </div>
-
-        <p id="find-err" style="color:var(--red);font-size:13px;text-align:center;display:none;margin:8px 0"></p>
-
-        <div class="or-divider">or</div>
-        <button class="btn-new" onclick="showNewRegistration()">New Registration</button>
+      <!-- By Code -->
+      <div id="find-by-code">
+        <span class="field-label">Participant Code (e.g. 1, 01, or MCF-001)</span>
+        <input type="text" id="code-input" class="big-input" placeholder="001"
+          oninput="this.value=this.value.toUpperCase()"
+          onkeydown="if(event.key==='Enter')findByCode()" />
+        <button class="btn-primary" onclick="findByCode()">Find Me</button>
       </div>
-    </div>
 
-    <!-- Screen: Sign (found participant) -->
-    <div id="screen-sign" style="display:none">
-      <div class="surface-card">
-        <div class="found-card">
-          <p class="code" id="sign-code"></p>
-          <p class="name" id="sign-name"></p>
-          <p class="detail" id="sign-detail"></p>
-        </div>
-
-        <label>Select Day *</label>
-        <div class="day-group" id="sign-day-group"></div>
-
-        <label>Signature *</label>
-        <div class="sig-box" style="height:140px">
-          <canvas id="sign-canvas"></canvas>
-          <span class="sig-hint-text" id="sign-hint">Sign here</span>
-        </div>
-        <button class="btn-clear-small" onclick="clearSig('sign')">Clear</button>
-
-        <p id="sign-err" style="color:var(--red);font-size:13px;display:none;margin-top:8px"></p>
-        <button class="btn-confirm" id="btn-confirm" onclick="confirmAttendance()">Confirm Attendance</button>
-        <button onclick="showFind()" style="width:100%;margin-top:10px;padding:12px;background:none;border:none;color:#aaa;font-size:13px;cursor:pointer;font-family:inherit">← Back to search</button>
+      <!-- By Name -->
+      <div id="find-by-name" style="display:none">
+        <span class="field-label">Search by name or organisation</span>
+        <input type="text" id="name-input" class="name-input" placeholder="e.g. Ama Boateng"
+          onkeydown="if(event.key==='Enter')findByName()" />
+        <button class="btn-primary" onclick="findByName()">Search</button>
+        <div id="name-results" style="margin-top:8px"></div>
       </div>
+
+      <p class="err-msg" id="find-err"></p>
+
+      <div class="or-row">or</div>
+      <button class="btn-green" onclick="showNewRegistration()">New Participant (Walk-in)</button>
     </div>
+  </div>
 
-    <!-- Screen: New Registration -->
-    <div id="screen-new" style="display:none">
-      <div class="surface-card">
-        <p style="font-size:17px;font-weight:800;margin-bottom:1.25rem;color:var(--black)">New Registration</p>
-
-        <div class="form-field">
-          <label>Full Name *</label>
-          <input type="text" id="new-name" placeholder="Full name" />
-        </div>
-        <div class="form-field">
-          <label>Sex *</label>
-          <div class="sex-group">
-            <button class="sex-btn" id="sex-male" onclick="setSex('Male')">Male</button>
-            <button class="sex-btn" id="sex-female" onclick="setSex('Female')">Female</button>
-          </div>
-        </div>
-        <div class="form-field">
-          <label>Organisation *</label>
-          <input type="text" id="new-org" placeholder="Organisation" />
-        </div>
-        <div class="form-field">
-          <label>Program *</label>
-          <input type="text" id="new-prog" placeholder="Program name" />
-        </div>
-        <div class="form-field">
-          <label>Position *</label>
-          <input type="text" id="new-position" placeholder="Job title / role" />
-        </div>
-        <div class="form-field">
-          <label>Email</label>
-          <input type="email" id="new-email" placeholder="email@example.com" />
-        </div>
-        <div class="form-field">
-          <label>Phone</label>
-          <input type="tel" id="new-phone" placeholder="0244000000" />
-        </div>
-
-        <label>Day *</label>
-        <div class="day-group" id="new-day-group" style="margin-bottom:1rem"></div>
-
-        <label>Signature *</label>
-        <div class="sig-box" style="height:140px">
-          <canvas id="new-canvas"></canvas>
-          <span class="sig-hint-text" id="new-hint">Sign here</span>
-        </div>
-        <button class="btn-clear-small" onclick="clearSig('new')">Clear</button>
-
-        <p id="new-err" style="color:var(--red);font-size:13px;display:none;margin-top:8px"></p>
-        <button class="btn-submit-sign" id="btn-submit-new" onclick="submitNew()">Submit & Sign</button>
-        <button onclick="showFind()" style="width:100%;margin-top:10px;padding:12px;background:none;border:none;color:#aaa;font-size:13px;cursor:pointer;font-family:inherit">← Back to search</button>
+  <!-- ── SCREEN: Sign ── -->
+  <div id="screen-sign" style="display:none">
+    <div class="main-card">
+      <div class="found-card">
+        <p class="p-code" id="sign-code"></p>
+        <p class="p-name" id="sign-name"></p>
+        <p class="p-org"  id="sign-org"></p>
+        <p class="p-pos"  id="sign-pos"></p>
       </div>
-    </div>
 
-    <!-- Screen: Success -->
-    <div id="screen-success" style="display:none">
-      <div class="surface-card">
-        <div class="success-screen">
-          <div class="success-icon">✓</div>
-          <p class="success-name" id="success-name"></p>
-          <p class="success-day" id="success-day"></p>
-          <p style="font-size:13px;color:#aaa;margin-bottom:1.5rem">Attendance recorded</p>
-          <button class="btn-next" onclick="showFind()">Done — Next participant</button>
+      <span class="section-lbl">Select Day *</span>
+      <div class="day-row" id="sign-day-row"></div>
+
+      <span class="section-lbl">Sign to confirm attendance *</span>
+      <div class="sig-wrap" style="height:150px">
+        <canvas id="sign-canvas"></canvas>
+        <span class="sig-placeholder" id="sign-hint">Sign here</span>
+      </div>
+      <button class="btn-clear" onclick="clearSig('sign')">Clear</button>
+
+      <p class="err-msg" id="sign-err"></p>
+      <button class="btn-red" id="btn-confirm" onclick="confirmAttendance()">Confirm Attendance</button>
+      <button class="btn-ghost" onclick="showFind()">← Back to search</button>
+    </div>
+  </div>
+
+  <!-- ── SCREEN: New Registration ── -->
+  <div id="screen-new" style="display:none">
+    <div class="main-card">
+      <p class="card-title">New Participant</p>
+
+      <div class="form-row">
+        <label>Full Name *</label>
+        <input type="text" id="new-name" placeholder="Full name" />
+      </div>
+      <div class="form-row">
+        <label>Sex *</label>
+        <div class="sex-row">
+          <button class="sex-btn" id="sex-male" onclick="setSex('Male')">Male</button>
+          <button class="sex-btn" id="sex-female" onclick="setSex('Female')">Female</button>
         </div>
       </div>
-    </div>
+      <div class="form-row">
+        <label>Organisation *</label>
+        <input type="text" id="new-org" placeholder="Organisation" />
+      </div>
+      <div class="form-row">
+        <label>Program *</label>
+        <input type="text" id="new-prog" placeholder="Program name" />
+      </div>
+      <div class="form-row">
+        <label>Position *</label>
+        <input type="text" id="new-position" placeholder="Job title / role" />
+      </div>
+      <div class="form-row">
+        <label>Email</label>
+        <input type="email" id="new-email" placeholder="email@example.com" />
+      </div>
+      <div class="form-row">
+        <label>Phone</label>
+        <input type="tel" id="new-phone" placeholder="0244000000" />
+      </div>
 
+      <span class="section-lbl">Day *</span>
+      <div class="day-row" id="new-day-row" style="margin-bottom:1rem"></div>
+
+      <span class="section-lbl">Signature *</span>
+      <div class="sig-wrap" style="height:150px">
+        <canvas id="new-canvas"></canvas>
+        <span class="sig-placeholder" id="new-hint">Sign here</span>
+      </div>
+      <button class="btn-clear" onclick="clearSig('new')">Clear</button>
+
+      <p class="err-msg" id="new-err"></p>
+      <button class="btn-gradient" id="btn-submit-new" onclick="submitNew()">Submit &amp; Sign</button>
+      <button class="btn-ghost" onclick="showFind()">← Back to search</button>
+    </div>
+  </div>
+
+  <!-- ── SCREEN: Success ── -->
+  <div id="screen-success" style="display:none">
+    <div class="main-card">
+      <div class="success-wrap">
+        <div class="success-icon">✓</div>
+        <p class="success-title" id="success-name"></p>
+        <p class="success-sub" id="success-day"></p>
+        <button class="btn-black" onclick="showFind()">Done — Next participant</button>
+      </div>
+    </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
