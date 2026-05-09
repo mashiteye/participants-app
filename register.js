@@ -325,7 +325,7 @@ async function confirmAttendance() {
 function showNewRegistration() {
   document.getElementById('stats-row').style.display = 'none';
   setHeaderBtn('← Back to Participant Registration Form', showFind);
-  setScreenLabel('New Participant Registration');
+  setScreenLabel('Walk-in Participant Registration Form');
   selectedDay = null; selectedSex = null;
   ['new-name','new-org','new-prog','new-position','new-email','new-phone'].forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
   document.getElementById('sex-male').classList.remove('active');
