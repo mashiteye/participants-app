@@ -196,7 +196,7 @@ function resetCheckin() {
 }
 
 function openWalkin() {
-  window.open(BASE_URL + 'index.html?event=' + eventId + '&walkin=1', '_blank');
+  window.location.href = BASE_URL + 'index.html?event=' + eventId + '&walkin=1';
 }
 
 init();
