@@ -119,10 +119,17 @@
 
   <!-- ── Header ── -->
   <div class="app-header">
-    <div class="label">METSS LBG</div>
-    <h1 id="header-event-name">Loading...</h1>
-    <p class="meta" id="header-meta"></p>
-    <button class="exit-btn" onclick="exitRegistration()">← Participants</button>
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;width:100%">
+      <div>
+        <div class="label">METSS LBG</div>
+        <h1 id="header-event-name">Loading...</h1>
+        <p class="meta" id="header-meta"></p>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+        <button class="exit-btn" onclick="exitRegistration()">Participants</button>
+        <button class="exit-btn" id="back-search-btn" style="display:none;background:rgba(255,255,255,0.15)" onclick="showFind()">← Back to Search</button>
+      </div>
+    </div>
   </div>
 
   <!-- ── Stats ── -->

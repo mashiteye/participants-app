@@ -169,6 +169,8 @@ function showScreen(name) {
 
 function showFind() {
   document.getElementById('stats-row').style.display = 'flex';
+  const bsBtn = document.getElementById('back-search-btn');
+  if (bsBtn) bsBtn.style.display = 'none';
   selectedParticipant = null; selectedDay = null;
   document.getElementById('code-input').value = '';
   document.getElementById('name-input').value = '';
@@ -266,6 +268,8 @@ function selectResult(id) {
 
 function openSignScreen(p) {
   document.getElementById('stats-row').style.display = 'none';
+  const bsBtn = document.getElementById('back-search-btn');
+  if (bsBtn) bsBtn.style.display = 'block';
   selectedParticipant = p;
   document.getElementById('sign-code').textContent = p.code || '';
   document.getElementById('sign-name').textContent = p.name || '';
@@ -318,6 +322,8 @@ async function confirmAttendance() {
 // ── New registration ──
 function showNewRegistration() {
   document.getElementById('stats-row').style.display = 'none';
+  const bsBtn = document.getElementById('back-search-btn');
+  if (bsBtn) bsBtn.style.display = 'block';
   selectedDay = null; selectedSex = null;
   ['new-name','new-org','new-prog','new-position','new-email','new-phone'].forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
   document.getElementById('sex-male').classList.remove('active');

@@ -695,6 +695,19 @@ async function deleteEventFromPage() {
   else alert('Delete failed: ' + error.message);
 }
 
+// ── Participant list toggle ──
+function toggleParticipantList() {
+  const zone = document.getElementById('participant-list-zone');
+  const btn = document.getElementById('edit-participants-btn');
+  const visible = zone.style.display !== 'none';
+  zone.style.display = visible ? 'none' : 'block';
+  btn.textContent = visible ? '✏ Edit Participants' : '✕ Close List';
+  btn.style.background = visible ? 'var(--black)' : 'var(--red)';
+  if (!visible) {
+    zone.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+
 // ── Check-in QR on Participants page ──
 function showEventCheckinQR() {
   const evName = document.getElementById('event-name').textContent;
