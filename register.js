@@ -70,8 +70,8 @@ function buildStatsDays() {
 function updateStats() {
   const days = eventData ? eventData.days || 1 : 1;
   document.getElementById('stat-registered').textContent = allParticipants.length;
-  const walkins = allParticipants.filter(p => p.reg_type === 'Walk-in').length;
-  document.getElementById('stat-walkin').textContent = walkins;
+  const female = allParticipants.filter(p => (p.sex||'').toLowerCase() === 'female').length;
+  document.getElementById('stat-female').textContent = female;
   for (let i = 1; i <= days; i++) {
     const d = 'Day ' + i;
     const count = Object.values(attendanceMap).filter(a => a[d]).length;
@@ -168,6 +168,7 @@ function showScreen(name) {
 }
 
 function showFind() {
+  document.getElementById('stats-row').style.display = 'flex';
   selectedParticipant = null; selectedDay = null;
   document.getElementById('code-input').value = '';
   document.getElementById('name-input').value = '';
@@ -288,6 +289,7 @@ async function confirmAttendance() {
 
 // ── New registration ──
 function showNewRegistration() {
+  document.getElementById('stats-row').style.display = 'none';
   selectedDay = null; selectedSex = null;
   ['new-name','new-org','new-prog','new-position','new-email','new-phone'].forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
   document.getElementById('sex-male').classList.remove('active');

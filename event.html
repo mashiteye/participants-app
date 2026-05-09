@@ -73,17 +73,7 @@
         </div>
       </div>
 
-      <!-- Participants table zone -->
-      <div style="background:white;border:1px solid var(--border);border-radius:var(--radius-lg);padding:1rem">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
-          <p style="font-size:13px;font-weight:700;color:var(--black)">Participants List <span id="list-count-label" style="font-weight:400;color:var(--text-muted);font-size:12px"></span></p>
-        </div>
-        <input type="text" id="p-search" placeholder="Search name, org, position, code..."
-          oninput="filterParticipants()" class="search-input" style="margin-bottom:1rem" />
-        <div id="participants-list"></div>
-      </div>
     </div>
-  </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
