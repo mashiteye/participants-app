@@ -35,7 +35,7 @@ async function init() {
   initSig('sign-canvas', 'sign');
   initSig('new-canvas', 'new');
   showScreen('find');
-  setScreenLabel('Participant Registration Form');
+  setScreenLabel('Participant Reg Form');
   setHeaderBtn('← Back to Event Admin Panel', exitRegistration);
   setTimeout(() => { const i = document.getElementById('code-input'); if(i) i.focus(); }, 400);
 }
@@ -172,7 +172,7 @@ function showScreen(name) {
 function showFind() {
   document.getElementById('stats-row').style.display = 'flex';
   setHeaderBtn('← Back to Event Admin Panel', exitRegistration);
-  setScreenLabel('Participant Registration Form');
+  setScreenLabel('Participant Reg Form');
   selectedParticipant = null; selectedDay = null;
   document.getElementById('code-input').value = '';
   document.getElementById('name-input').value = '';
@@ -270,7 +270,7 @@ function selectResult(id) {
 
 function openSignScreen(p) {
   document.getElementById('stats-row').style.display = 'none';
-  setHeaderBtn('← Back to Participant Registration Form', showFind);
+  setHeaderBtn('← Back to Participant Reg Form', showFind);
   setScreenLabel('Sign Attendance Form');
   selectedParticipant = p;
   document.getElementById('sign-code').textContent = p.code || '';
@@ -324,8 +324,8 @@ async function confirmAttendance() {
 // ── New registration ──
 function showNewRegistration() {
   document.getElementById('stats-row').style.display = 'none';
-  setHeaderBtn('← Back to Participant Registration Form', showFind);
-  setScreenLabel('Walk-in Participant Registration Form');
+  setHeaderBtn('← Back to Participant Reg Form', showFind);
+  setScreenLabel('Walk-in Participant Reg Form');
   selectedDay = null; selectedSex = null;
   ['new-name','new-org','new-prog','new-position','new-email','new-phone'].forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
   document.getElementById('sex-male').classList.remove('active');
@@ -453,8 +453,7 @@ function setScreenLabel(text) {
   if (!formLbl) return;
   const upper = text.toUpperCase();
   formLbl.textContent = upper;
-  // Shrink font for long names to prevent overflow
-  formLbl.style.fontSize = upper.length > 35 ? '8px' : upper.length > 25 ? '9px' : '10px';
+  formLbl.style.fontSize = '';
 }
 
 function esc(s) {
