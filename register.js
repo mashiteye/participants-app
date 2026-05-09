@@ -230,7 +230,7 @@ function showFind() {
   buildDayButtons('new-day-row');
   showScreen('find');
   loadData();
-  setTimeout(() => { const i = document.getElementById(activeTab === 'code' ? 'code-input' : 'name-input'); if(i) i.focus(); }, 200);
+  setTimeout(() => { const i = document.getElementById(activeTab === 'code' ? 'code-input' : 'name-input'); if(i) { i.focus(); i.select(); } }, 300);
 }
 
 function switchTab(tab) {
@@ -409,6 +409,7 @@ async function submitNew() {
 
   if (!name) { errEl.textContent = 'Full name required.'; errEl.style.display = 'block'; return; }
   if (!selectedSex) { errEl.textContent = 'Please select sex.'; errEl.style.display = 'block'; return; }
+  if (phone && !/^0\d{9}$/.test(phone.replace(/\s/g,''))) { errEl.textContent = 'Phone must be 10 digits starting with 0 (e.g. 0244123456).'; errEl.style.display = 'block'; return; }
   if (!org) { errEl.textContent = 'Organisation required.'; errEl.style.display = 'block'; return; }
   if (!prog) { errEl.textContent = 'Program required.'; errEl.style.display = 'block'; return; }
   if (!pos) { errEl.textContent = 'Position required.'; errEl.style.display = 'block'; return; }

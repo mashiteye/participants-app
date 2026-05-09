@@ -54,6 +54,7 @@
         <button onclick="saveParticipant()" style="flex:1;padding:13px;background:var(--red);color:white;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">Save</button>
         <button onclick="closeEdit()" style="flex:1;padding:13px;background:white;border:1.5px solid #000;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">Cancel</button>
       </div>
+      <button onclick="deleteParticipant()" style="width:100%;margin-top:8px;padding:11px;background:white;border:1.5px solid var(--red);border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--red)">🗑 Delete Participant</button>
     </div>
   </div>
 
@@ -168,6 +169,15 @@
     function showEdErr(msg) {
       const el = document.getElementById('ed-err');
       el.textContent = msg; el.style.display = 'block';
+    }
+
+    async function deleteParticipant() {
+      if (!confirm('Delete this participant? This cannot be undone.')) return;
+      await db.from('attendance').delete().eq('participant_id', editingId);
+      const { error } = await db.from('participants').delete().eq('id', editingId);
+      if (error) { alert('Delete failed: ' + error.message); return; }
+      closeEdit();
+      await loadParticipants();
     }
 
     function goBack() {

@@ -267,7 +267,7 @@
         <div class="success-icon">✓</div>
         <p class="success-title" id="success-name"></p>
         <p class="success-sub" id="success-day"></p>
-        <button class="btn-black" onclick="showFind()">Done — Next participant</button>
+        <button class="btn-black" onclick="if(window._autoAdvanceTimer)clearTimeout(window._autoAdvanceTimer);showFind()">Done — Next participant</button>
       </div>
     </div>
   </div>

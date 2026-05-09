@@ -40,6 +40,7 @@ async function loadDashboard() {
 function getFiltered() {
   const prog = document.getElementById('filter-program').value;
   const year = document.getElementById('filter-year').value;
+  const quarter = document.getElementById('filter-quarter').value;
 
   let events = allEvents;
   if (prog) events = events.filter(e => e.program === prog);

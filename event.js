@@ -29,7 +29,7 @@ async function viewSig(participantId, day, e) {
   if (att?.signature_url) window.open(att.signature_url, '_blank');
 }
 
-async function generateEventCertificates() {
+async function generateEventCertificates(previewOnly = false) {
   const btn = document.getElementById('cert-btn');
   if (btn) { btn.textContent = 'Building...'; btn.disabled = true; }
 
@@ -44,6 +44,7 @@ async function generateEventCertificates() {
     const eligible = allParticipants.filter(p => signedIds.has(p.id));
 
     if (!eligible.length) { alert('No participants have signed attendance yet.'); return; }
+    if (previewOnly) { eligible.splice(1); } // preview: first participant only
 
     async function loadImg(url) {
       try {
@@ -105,7 +106,7 @@ async function generateEventCertificates() {
       doc.text(p.code||'',CX+45,H-100-0.5,{align:'center'});
     });
 
-    doc.save('certificates-'+evName.replace(/\s+/g,'-')+'-'+new Date().toISOString().slice(0,10)+'.pdf');
+    doc.save((previewOnly ? 'PREVIEW-certificate-' : 'certificates-')'+evName.replace(/\s+/g,'-')+'-'+new Date().toISOString().slice(0,10)+'.pdf');
   } catch(e) { alert('Certificate generation failed: '+e.message); console.error(e); }
   finally { if(btn){btn.textContent='🎓 Certificates';btn.disabled=false;} }
 }
@@ -168,6 +169,28 @@ async function loadParticipants() {
   });
   renderStats();
   // Data loaded — exports now have allParticipants available
+}
+
+async function updateUnsignedCount() {
+  try {
+    const today = new Date();
+    const days = Array.from({ length: eventDays }, (_, i) => 'Day ' + (i + 1));
+    // Find which day is today based on event date
+    const { data: ev } = await db.from('events').select('event_date,days').eq('id', eventId).single();
+    let currentDay = null;
+    if (ev && ev.event_date) {
+      const start = new Date(ev.event_date);
+      for (let i = 0; i < (ev.days || 1); i++) {
+        const d = new Date(start); d.setDate(d.getDate() + i);
+        if (d.toDateString() === today.toDateString()) { currentDay = 'Day ' + (i + 1); break; }
+      }
+    }
+    if (!currentDay) currentDay = days[0];
+    const signed = new Set((await db.from('attendance').select('participant_id').eq('event_id', eventId).eq('day', currentDay)).data?.map(a => a.participant_id) || []);
+    const unsigned = allParticipants.filter(p => !signed.has(p.id)).length;
+    const btn = document.querySelector('button[onclick="openUnsigned()"]');
+    if (btn && unsigned > 0) btn.textContent = '⚠ Not Yet Signed (' + unsigned + ')';
+  } catch(e) {}
 }
 
 function renderStats() {
@@ -593,6 +616,7 @@ async function checkAdminPwd() {
   else if (action === 'back')      goBackToEvents();
   else if (action === 'editparts') toggleParticipantList();
   else if (action === 'certs')     generateEventCertificates();
+  else if (action === 'cert-preview') generateEventCertificates(true);
 }
 
 // ── Manage zone functions (admin only) ──
