@@ -379,7 +379,9 @@ async function confirmAttendance() {
     const { error: upErr } = await db.storage.from('signatures').upload(path, blob, { contentType: 'image/png' });
     if (upErr) throw new Error(upErr.message);
     const { data: { publicUrl } } = db.storage.from('signatures').getPublicUrl(path);
-    const { error } = await db.from('attendance').insert([{ participant_id: selectedParticipant.id, event_id: eventId, day: selectedDay, signature_url: publicUrl }]);
+    const { error } = await db.from('attendance').upsert([{
+      participant_id: selectedParticipant.id, event_id: eventId, day: selectedDay, signature_url: publicUrl
+    }], { onConflict: 'event_id,participant_id,day', ignoreDuplicates: false });
     if (error) throw new Error(error.message);
     document.getElementById('success-name').textContent = selectedParticipant.name;
     document.getElementById('success-day').textContent = 'Attendance recorded for ' + selectedDay;
@@ -437,10 +439,17 @@ async function submitNew() {
   const btn = document.getElementById('btn-submit-new');
   btn.textContent = 'Saving...'; btn.disabled = true;
   try {
-    const nums = allParticipants.map(p => { const m = (p.code||'').match(/(\d+)$/); return m ? parseInt(m[1]) : 0; });
-    const next = nums.length ? Math.max(...nums) + 1 : 1;
-    const prefix = eventData.event_code || 'P';
-    const code = String(next).padStart(3, '0');
+    // Atomic code generation via Supabase function (safe under concurrent submissions)
+    let code;
+    try {
+      const { data: rpcCode, error: rpcErr } = await db.rpc('get_next_participant_code', { p_event_id: eventId });
+      if (!rpcErr && rpcCode) { code = rpcCode; }
+    } catch(e) {}
+    if (!code) {
+      // Fallback if RPC not deployed yet
+      const nums = allParticipants.map(p => { const m = (p.code||'').match(/(\d+)$/); return m ? parseInt(m[1]) : 0; });
+      code = String((nums.length ? Math.max(...nums) + 1 : 1)).padStart(3, '0');
+    }
 
     const { data: ins, error } = await db.from('participants').insert([{
       name, sex: selectedSex, org, prog, position_title: pos,
@@ -449,18 +458,28 @@ async function submitNew() {
     }]).select().single();
     if (error) throw new Error(error.message);
 
-    // Upload signature
-    const { canvas } = sigs['new'];
-    const b64 = canvas.toDataURL('image/png').split(',')[1];
-    const bin = atob(b64);
-    const bytes = new Uint8Array(bin.length);
-    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-    const sigBlob = new Blob([bytes], { type: 'image/png' });
-    const path = eventId + '/' + ins.id + '/' + selectedDay.replace(' ','_') + '_' + Date.now() + '.png';
-    const { error: upErr } = await db.storage.from('signatures').upload(path, sigBlob, { contentType: 'image/png' });
-    if (!upErr) {
-      const { data: { publicUrl } } = db.storage.from('signatures').getPublicUrl(path);
-      await db.from('attendance').insert([{ participant_id: ins.id, event_id: eventId, day: selectedDay, signature_url: publicUrl }]);
+    // Upload signature + insert attendance atomically (rollback participant on failure)
+    try {
+      const { canvas } = sigs['new'];
+      const b64 = canvas.toDataURL('image/png').split(',')[1];
+      const bin = atob(b64);
+      const bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      const sigBlob = new Blob([bytes], { type: 'image/png' });
+      const path = eventId + '/' + ins.id + '/' + selectedDay.replace(' ','_') + '_' + Date.now() + '.png';
+      let publicUrl = null;
+      const { error: upErr } = await db.storage.from('signatures').upload(path, sigBlob, { contentType: 'image/png' });
+      if (!upErr) {
+        const { data: { publicUrl: url } } = db.storage.from('signatures').getPublicUrl(path);
+        publicUrl = url;
+      }
+      const { error: attErr } = await db.from('attendance').upsert([{
+        participant_id: ins.id, event_id: eventId, day: selectedDay, signature_url: publicUrl
+      }], { onConflict: 'event_id,participant_id,day', ignoreDuplicates: false });
+      if (attErr) throw new Error(attErr.message);
+    } catch(stepErr) {
+      await db.from('participants').delete().eq('id', ins.id);
+      throw new Error('Registration incomplete — rolled back. Try again.');
     }
     allParticipants.push(ins);
     // Send email confirmation if email provided
