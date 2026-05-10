@@ -262,9 +262,8 @@ async function exportCSV() {
     const lastSigUrl = (att.filter(a => a.signature_url).slice(-1)[0] || {}).signature_url || '';
     const allUrls = att.filter(a => a.signature_url).map(a => a.signature_url).join('; ');
 
-    // =IMAGE() is a Sheets formula — must NOT be wrapped in quotes or the quotes inside escape incorrectly
-    // Output as bare formula cell; CSV parsers treat unquoted cells starting with = as formulas in Sheets
-    const imageCell = lastSigUrl ? '=IMAGE("' + lastSigUrl + '")' : '';
+    // Quoted formula cell — Google Sheets reads =IMAGE("url") and renders signature inline
+    const imageCell = lastSigUrl ? '"=IMAGE(\""' + lastSigUrl + '\"")"' : '""';
 
     return [
       q(p.code), q(p.name), q(p.sex), q(p.org), q(p.prog), q(p.position_title),
@@ -1695,9 +1694,8 @@ async function exportCSV() {
     const lastSigUrl = (att.filter(a => a.signature_url).slice(-1)[0] || {}).signature_url || '';
     const allUrls = att.filter(a => a.signature_url).map(a => a.signature_url).join('; ');
 
-    // =IMAGE() is a Sheets formula — must NOT be wrapped in quotes or the quotes inside escape incorrectly
-    // Output as bare formula cell; CSV parsers treat unquoted cells starting with = as formulas in Sheets
-    const imageCell = lastSigUrl ? '=IMAGE("' + lastSigUrl + '")' : '';
+    // Quoted formula cell — Google Sheets reads =IMAGE("url") and renders signature inline
+    const imageCell = lastSigUrl ? '"=IMAGE(\""' + lastSigUrl + '\"")"' : '""';
 
     return [
       q(p.code), q(p.name), q(p.sex), q(p.org), q(p.prog), q(p.position_title),
