@@ -60,6 +60,65 @@ function openCertPicker(previewMode) {
   modal.style.display = 'flex';
 }
 
+function showCertPreviewImage(doc, templateName) {
+  // Convert first page of PDF to image using jsPDF's output as data URI
+  // Use canvas to render the PDF page as an image
+  const pdfDataUri = doc.output('datauristring');
+  // Open the preview modal with PDF embedded as iframe (renders consistently as image-like view)
+  let modal = document.getElementById('cert-preview-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'cert-preview-modal';
+    modal.style.cssText = 'display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:10000;align-items:center;justify-content:center;padding:1rem;flex-direction:column';
+    modal.innerHTML = '<div style="background:white;border-radius:12px;max-width:95vw;max-height:90vh;width:100%;display:flex;flex-direction:column;overflow:hidden">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:var(--red);color:white">' +
+          '<div><div style="font-size:11px;opacity:0.85;letter-spacing:1px">PREVIEW</div><div id="cpm-name" style="font-size:15px;font-weight:800"></div></div>' +
+          '<button onclick="document.getElementById(\'cert-preview-modal\').style.display=\'none\'" style="background:rgba(255,255,255,0.2);color:white;border:none;width:36px;height:36px;border-radius:50%;font-size:20px;cursor:pointer;font-weight:bold">×</button>' +
+        '</div>' +
+        '<div style="flex:1;overflow:auto;background:#222;padding:16px;text-align:center">' +
+          '<img id="cpm-img" alt="Certificate preview" style="max-width:100%;height:auto;background:white;box-shadow:0 8px 32px rgba(0,0,0,0.4)" />' +
+        '</div>' +
+        '<div style="padding:10px 16px;background:#f5f5f5;text-align:center;font-size:11px;color:#666">This is a preview only — no file has been downloaded. Close to pick another template.</div>' +
+      '</div>';
+    document.body.appendChild(modal);
+  }
+  document.getElementById('cpm-name').textContent = templateName;
+  // Convert PDF to image using PDF.js via embedded canvas rendering trick
+  // Simpler: use the PDF's first page as image by converting via canvas
+  renderPdfToImage(doc).then(imgUrl => {
+    document.getElementById('cpm-img').src = imgUrl;
+    modal.style.display = 'flex';
+  });
+}
+
+async function renderPdfToImage(doc) {
+  // Use PDF.js if available, otherwise fall back to embedding as iframe
+  // For reliability, render the certificate to a high-res canvas directly using the same template
+  // Best approach: get the PDF as blob, use canvas via FileReader + image
+  const pdfBlob = doc.output('blob');
+  const url = URL.createObjectURL(pdfBlob);
+  // Try PDF.js (loaded as needed)
+  if (!window.pdfjsLib) {
+    await new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+      s.onload = () => { window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'; resolve(); };
+      s.onerror = reject;
+      document.head.appendChild(s);
+    });
+  }
+  const pdf = await window.pdfjsLib.getDocument(url).promise;
+  const page = await pdf.getPage(1);
+  const viewport = page.getViewport({ scale: 2 });
+  const canvas = document.createElement('canvas');
+  canvas.width = viewport.width;
+  canvas.height = viewport.height;
+  const ctx = canvas.getContext('2d');
+  await page.render({ canvasContext: ctx, viewport }).promise;
+  URL.revokeObjectURL(url);
+  return canvas.toDataURL('image/png');
+}
+
 function closeCertPicker() {
   const modal = document.getElementById('cert-picker-modal');
   if (modal) modal.style.display = 'none';
@@ -104,8 +163,13 @@ async function generateEventCertificates(templateKey, previewOnly) {
       tpl.render({ doc, p, ev, evName, dateStr, sigB64, W, H });
     });
 
-    const safeName = evName.replace(/\s+/g, '-');
-    doc.save((previewOnly ? 'PREVIEW-' : '') + 'certificates-' + templateKey + '-' + safeName + '-' + new Date().toISOString().slice(0,10) + '.pdf');
+    if (previewOnly) {
+      // Render PDF to image and show in modal — no download
+      showCertPreviewImage(doc, tpl.name);
+    } else {
+      const safeName = evName.replace(/\s+/g, '-');
+      doc.save('certificates-' + templateKey + '-' + safeName + '-' + new Date().toISOString().slice(0,10) + '.pdf');
+    }
   } catch(e) { alert('Certificate generation failed: '+e.message); console.error(e); }
   finally { if(btn){btn.textContent='🎓 Certificates';btn.disabled=false;} }
 }
