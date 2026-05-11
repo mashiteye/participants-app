@@ -101,6 +101,20 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+  <script src="certificate-templates.js"></script>
   <script src="event.js" defer></script>
+
+  <!-- Certificate Template Picker Modal -->
+  <div id="cert-picker-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:9999;align-items:center;justify-content:center;padding:1rem">
+    <div style="background:white;border-radius:14px;max-width:680px;width:100%;max-height:85vh;overflow-y:auto;padding:1.25rem">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+        <h2 style="margin:0;font-size:18px;color:var(--red)">Choose Certificate Template</h2>
+        <button onclick="closeCertPicker()" style="background:none;border:none;font-size:24px;cursor:pointer;color:#888">×</button>
+      </div>
+      <p style="font-size:12px;color:#888;margin:0 0 1rem 0">Tap a template to preview or generate certificates for all signed participants.</p>
+      <div id="cert-template-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px"></div>
+    </div>
+  </div>
+
 </body>
 </html>

@@ -29,11 +29,50 @@ async function viewSig(participantId, day, e) {
   if (att?.signature_url) window.open(att.signature_url, '_blank');
 }
 
-async function generateEventCertificates(previewOnly = false) {
+// Show template picker modal
+function openCertPicker(previewMode) {
+  const modal = document.getElementById('cert-picker-modal');
+  const grid = document.getElementById('cert-template-grid');
+  if (!modal || !grid || !window.CERT_TEMPLATES) return;
+  grid.innerHTML = '';
+  Object.entries(window.CERT_TEMPLATES).forEach(([key, tpl]) => {
+    const card = document.createElement('div');
+    card.style.cssText = 'border:1.5px solid #e0e0e0;border-radius:10px;padding:12px;cursor:pointer;transition:all 0.15s;background:white';
+    card.onmouseover = () => { card.style.borderColor = 'var(--red)'; card.style.transform = 'translateY(-2px)'; card.style.boxShadow = '0 4px 12px rgba(235,0,27,0.15)'; };
+    card.onmouseout  = () => { card.style.borderColor = '#e0e0e0'; card.style.transform = 'none'; card.style.boxShadow = 'none'; };
+    card.innerHTML = '<div style="font-weight:800;font-size:13px;color:var(--red);margin-bottom:4px">' + tpl.name + '</div>' +
+                     '<div style="font-size:11px;color:#666;line-height:1.4">' + tpl.desc + '</div>' +
+                     '<div style="display:flex;gap:6px;margin-top:10px">' +
+                       '<button class="cert-gen-btn" data-key="' + key + '" data-preview="0" style="flex:1;padding:7px;background:var(--red);color:white;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer">Generate All</button>' +
+                       '<button class="cert-gen-btn" data-key="' + key + '" data-preview="1" style="flex:1;padding:7px;background:white;color:var(--red);border:1.5px solid var(--red);border-radius:6px;font-size:11px;font-weight:700;cursor:pointer">Preview</button>' +
+                     '</div>';
+    grid.appendChild(card);
+  });
+  grid.querySelectorAll('.cert-gen-btn').forEach(b => {
+    b.onclick = (e) => {
+      e.stopPropagation();
+      const key = b.dataset.key;
+      const preview = b.dataset.preview === '1';
+      closeCertPicker();
+      generateEventCertificates(key, preview);
+    };
+  });
+  modal.style.display = 'flex';
+}
+
+function closeCertPicker() {
+  const modal = document.getElementById('cert-picker-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+async function generateEventCertificates(templateKey, previewOnly) {
+  templateKey = templateKey || 'classic_mcf';
+  previewOnly = previewOnly || false;
   const btn = document.getElementById('cert-btn');
   if (btn) { btn.textContent = 'Building...'; btn.disabled = true; }
 
   try {
+    const tpl = window.CERT_TEMPLATES[templateKey] || window.CERT_TEMPLATES.classic_mcf;
     const { jsPDF } = window.jspdf;
     const evName = document.getElementById('event-name').textContent;
     const { data: ev } = await db.from('events').select('*').eq('id', eventId).single();
@@ -44,7 +83,7 @@ async function generateEventCertificates(previewOnly = false) {
     const eligible = allParticipants.filter(p => signedIds.has(p.id));
 
     if (!eligible.length) { alert('No participants have signed attendance yet.'); return; }
-    if (previewOnly) { eligible.splice(1); } // preview: first participant only
+    if (previewOnly) { eligible.splice(1); }
 
     async function loadImg(url) {
       try {
@@ -58,55 +97,15 @@ async function generateEventCertificates(previewOnly = false) {
     const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
     const W = doc.internal.pageSize.getWidth();
     const H = doc.internal.pageSize.getHeight();
-    const RED=[235,0,27], ORANGE=[255,95,0], YELLOW=[247,158,27], BLACK=[0,0,0], WHITE=[255,255,255];
     const dateStr = ev.event_date ? new Date(ev.event_date).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'}) : new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
 
     eligible.forEach((p, idx) => {
       if (idx > 0) doc.addPage();
-      doc.setFillColor(...WHITE); doc.rect(0,0,W,H,'F');
-      doc.setFillColor(...RED); doc.rect(0,0,W,55,'F');
-      doc.setFillColor(...ORANGE); doc.rect(0,40,W,15,'F');
-      doc.setFillColor(...YELLOW); doc.rect(0,55,W,6,'F');
-      doc.setFillColor(...BLACK); doc.rect(0,H-55,W,55,'F');
-      doc.setFillColor(...YELLOW); doc.rect(0,H-55,W,8,'F');
-      doc.setFillColor(...RED); doc.rect(0,61,10,H-116,'F');
-      doc.setFillColor(...ORANGE); doc.rect(W-10,61,10,H-116,'F');
-      doc.setTextColor(...WHITE); doc.setFontSize(13); doc.setFont('helvetica','bold');
-      doc.text('CERTIFICATE OF PARTICIPATION',W/2,28,{align:'center'});
-      doc.setFontSize(9); doc.setFont('helvetica','normal');
-      doc.text('',30,H-22);
-      doc.text(dateStr,W-30,H-22,{align:'right'});
-      const CX=40, CY=85;
-      doc.setTextColor(120,120,120); doc.setFontSize(13); doc.setFont('helvetica','italic');
-      doc.text('This is to certify that',CX,CY);
-      const fs = p.name.length>25?32:p.name.length>20?36:42;
-      doc.setFontSize(fs); doc.setFont('helvetica','bold'); doc.setTextColor(...RED);
-      doc.text(p.name||'',CX,CY+50);
-      const nw=Math.min(doc.getTextWidth(p.name||''),W-80);
-      doc.setFillColor(...YELLOW); doc.rect(CX,CY+56,nw,4,'F');
-      const det=[p.position_title,p.org].filter(Boolean).join('   ·   ');
-      doc.setTextColor(80,80,80); doc.setFontSize(12); doc.setFont('helvetica','normal');
-      if(det) doc.text(det,CX,CY+78);
-      doc.setTextColor(100,100,100); doc.setFontSize(13); doc.setFont('helvetica','italic');
-      doc.text('has successfully participated in',CX,CY+108);
-      doc.setTextColor(...ORANGE); doc.setFontSize(22); doc.setFont('helvetica','bold');
-      const evLines=doc.splitTextToSize(evName,W-320);
-      doc.text(evLines,CX,CY+135);
-      doc.setTextColor(100,100,100); doc.setFontSize(11); doc.setFont('helvetica','normal');
-      if(ev.organizer) doc.text('Organised by  '+ev.organizer,CX,CY+135+evLines.length*26+8);
-      const SX=W-260, SY=H-110;
-      if(sigB64) doc.addImage(sigB64,'PNG',SX,SY-45,150,40);
-      doc.setDrawColor(...BLACK); doc.setLineWidth(1); doc.line(SX,SY,SX+200,SY);
-      doc.setTextColor(...BLACK); doc.setFontSize(11); doc.setFont('helvetica','bold');
-      doc.text(ev.signatory_name||'Authorised Signatory',SX,SY+14);
-      doc.setFontSize(9); doc.setFont('helvetica','normal'); doc.setTextColor(80,80,80);
-      if(ev.signatory_title) doc.text(ev.signatory_title,SX,SY+26);
-      doc.setFillColor(...YELLOW); doc.roundedRect(CX,H-100-14,90,20,4,4,'F');
-      doc.setTextColor(...BLACK); doc.setFontSize(9); doc.setFont('helvetica','bold');
-      doc.text(p.code||'',CX+45,H-100-0.5,{align:'center'});
+      tpl.render({ doc, p, ev, evName, dateStr, sigB64, W, H });
     });
 
-    doc.save((previewOnly ? 'PREVIEW-certificate-' : 'certificates-') + evName.replace(/\s+/g,'-') + '-' + new Date().toISOString().slice(0,10) + '.pdf');
+    const safeName = evName.replace(/\s+/g, '-');
+    doc.save((previewOnly ? 'PREVIEW-' : '') + 'certificates-' + templateKey + '-' + safeName + '-' + new Date().toISOString().slice(0,10) + '.pdf');
   } catch(e) { alert('Certificate generation failed: '+e.message); console.error(e); }
   finally { if(btn){btn.textContent='🎓 Certificates';btn.disabled=false;} }
 }
@@ -638,8 +637,8 @@ async function checkAdminPwd() {
   else if (action === 'delete')    deleteEventFromPage();
   else if (action === 'back')      goBackToEvents();
   else if (action === 'editparts') toggleParticipantList();
-  else if (action === 'certs')     generateEventCertificates();
-  else if (action === 'cert-preview') generateEventCertificates(true);
+  else if (action === 'certs')     openCertPicker(false);
+  else if (action === 'cert-preview') openCertPicker(true);
 }
 
 // ── Manage zone functions (admin only) ──
