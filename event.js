@@ -83,12 +83,17 @@ function showCertPreviewImage(doc, templateName) {
     document.body.appendChild(modal);
   }
   document.getElementById('cpm-name').textContent = templateName;
-  // Convert PDF to image using PDF.js via embedded canvas rendering trick
-  // Simpler: use the PDF's first page as image by converting via canvas
   renderPdfToImage(doc).then(imgUrl => {
     document.getElementById('cpm-img').src = imgUrl;
     modal.style.display = 'flex';
   });
+  // When modal closes, reopen the template picker
+  modal.onclick = (e) => {
+    if (e.target === modal) { modal.style.display = 'none'; openCertPicker(true); }
+  };
+  // Update close button to reopen picker
+  const closeBtn = modal.querySelector('button');
+  if (closeBtn) closeBtn.onclick = () => { modal.style.display = 'none'; openCertPicker(true); };
 }
 
 async function renderPdfToImage(doc) {
