@@ -60,6 +60,8 @@
 
         <!-- Row 2: Certificates + Pre-reg link -->
         <button id="cert-btn" onclick="promptAdminAction('certs')" style="display:none;padding:14px 8px;background:var(--yellow);border:none;border-radius:var(--radius-md);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--black);text-align:center">🎓 Certificates</button>
+        <button id="cert-btn-tab" onclick="openCertPicker('tab')" style="display:none;padding:14px 8px;background:white;border:1.5px solid var(--orange);border-radius:var(--radius-md);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--orange);text-align:center">🎓 Preview — New Tab</button>
+        <button id="cert-btn-iframe" onclick="openCertPicker('iframe')" style="display:none;padding:14px 8px;background:white;border:1.5px solid var(--teal,#2F7B6B);border-radius:var(--radius-md);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--teal,#2F7B6B);text-align:center">🎓 Preview — In-App</button>
         <button id="share-prereg-btn" onclick="copyShareLink('prereg')" style="padding:14px 8px;background:white;border:1.5px solid var(--orange);border-radius:var(--radius-md);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--orange);text-align:center">📋 Pre-reg Link</button>
 
         <!-- Claude MEL Summary -->
