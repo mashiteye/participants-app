@@ -161,6 +161,7 @@ async function init() {
   // Store for stats use
   window._eventDays = eventDays;
   document.getElementById('event-ui').style.display = 'block';
+  loadEventStats();
   document.getElementById('event-name').textContent = ev.name;
   document.getElementById('back-to-events-btn').style.display = 'inline-block';
   // Status badge removed

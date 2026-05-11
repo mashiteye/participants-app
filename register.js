@@ -82,18 +82,14 @@ function buildStatsDays() {
       if (c.days) { document.getElementById('stat-days-boxes').innerHTML = c.days; return; }
     } catch(e) {}
   }
-  // Build chip placeholders
   const days = eventData.days || 1;
   const container = document.getElementById('stat-days-boxes');
-  container.style.display = 'contents';
   container.innerHTML = '';
   for (let i = 1; i <= days; i++) {
     const d = 'Day ' + i;
-    const box = document.createElement('div');
-    box.className = 'stat-box';
-    box.id = 'stat-day-' + i;
-    box.innerHTML = '<div class="stat-num orange" id="stat-day-num-' + i + '">0</div><div class="stat-label">' + d + '</div>';
-    container.appendChild(box);
+    container.innerHTML += '<div class="kpi-card" style="border:1.5px solid #e8e8e8">' +
+      '<div class="kpi-num" style="color:#333" id="stat-day-num-' + i + '">0</div>' +
+      '<div class="kpi-lbl">' + d + '</div></div>';
   }
 }
 
