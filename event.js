@@ -91,11 +91,11 @@ function showCertPreviewImage(doc, templateName) {
   });
   // When modal closes, reopen the template picker
   modal.onclick = (e) => {
-    if (e.target === modal) { modal.style.display = 'none'; openCertPicker(true); }
+    if (e.target === modal) { modal.style.display = 'none'; openCertificatePicker(eventId); }
   };
   // Update close button to reopen picker
   const closeBtn = modal.querySelector('button');
-  if (closeBtn) closeBtn.onclick = () => { modal.style.display = 'none'; openCertPicker(true); };
+  if (closeBtn) closeBtn.onclick = () => { modal.style.display = 'none'; openCertificatePicker(eventId); };
 }
 
 async function renderPdfToImage(doc) {
@@ -668,8 +668,8 @@ function promptAdminAction(action) {
   else if (action === 'delete')    deleteEventFromPage();
   else if (action === 'back')      goBackToEvents();
   else if (action === 'editparts') toggleParticipantList();
-  else if (action === 'certs')     openCertPicker(false);
-  else if (action === 'cert-preview') openCertPicker(true);
+  else if (action === 'certs')     openCertificatePicker(eventId);
+  else if (action === 'cert-preview') openCertificatePicker(eventId);
 }
 
 function promptEditEvent() { promptAdminAction('edit'); }
@@ -703,8 +703,8 @@ async function checkAdminPwd() {
   else if (action === 'delete')    deleteEventFromPage();
   else if (action === 'back')      goBackToEvents();
   else if (action === 'editparts') toggleParticipantList();
-  else if (action === 'certs')     openCertPicker(false);
-  else if (action === 'cert-preview') openCertPicker(true);
+  else if (action === 'certs')     openCertificatePicker(eventId);
+  else if (action === 'cert-preview') openCertificatePicker(eventId);
 }
 
 // ── Manage zone functions (admin only) ──
