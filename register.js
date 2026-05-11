@@ -162,21 +162,27 @@ function buildDayButtons(containerId) {
         const canvas  = document.getElementById('sign-canvas');
         const clearBtn = document.querySelector('[onclick*="clearSig"]');
         const confirmBtn = document.getElementById('btn-confirm');
+        const hint = document.getElementById('sign-hint');
+        const sigLabel = document.querySelector('#screen-sign .section-lbl');
         if (att[label] && att[label].signature_url) {
-          // Signed day: show signature preview, hide canvas and confirm
+          // Signed day: show signature preview, hide canvas, confirm, hint, label
           if (preview) { preview.src = att[label].signature_url; preview.style.display = 'block'; }
           if (canvas) canvas.style.display = 'none';
           if (clearBtn) clearBtn.style.display = 'none';
           if (confirmBtn) confirmBtn.style.display = 'none';
+          if (hint) hint.style.display = 'none';
+          if (sigLabel) sigLabel.style.display = 'none';
           document.getElementById('sign-err').textContent = label + ' attendance confirmed ✓';
           document.getElementById('sign-err').style.display = 'block';
           document.getElementById('sign-err').style.color = '#2F7B6B';
         } else {
-          // Unsigned day: show canvas and confirm, hide preview
+          // Unsigned day: show canvas, confirm, hint, label — hide preview
           if (preview) preview.style.display = 'none';
           if (canvas) canvas.style.display = 'block';
           if (clearBtn) clearBtn.style.display = '';
           if (confirmBtn) confirmBtn.style.display = '';
+          if (hint) hint.style.display = '';
+          if (sigLabel) sigLabel.style.display = '';
           document.getElementById('sign-err').style.display = 'none';
           document.getElementById('sign-err').style.color = '';
           clearSig('sign');
@@ -389,6 +395,8 @@ function openSignScreen(p) {
     if (canvas) canvas.style.display = 'none';
     if (clearBtn) clearBtn.style.display = 'none';
     if (confirmBtn) confirmBtn.style.display = 'none';
+    const hint2 = document.getElementById('sign-hint'); if (hint2) hint2.style.display = 'none';
+    const sigLbl2 = document.querySelector('#screen-sign .section-lbl'); if (sigLbl2) sigLbl2.style.display = 'none';
     document.getElementById('sign-err').textContent = 'All days signed ✓';
     document.getElementById('sign-err').style.display = 'block';
     document.getElementById('sign-err').style.color = '#2F7B6B';
