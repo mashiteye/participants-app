@@ -44,9 +44,9 @@ async function init() {
   document.title = data.name;
 
   // Show pre-program question on pre-reg only, hide on walk-in
-  if (!isWalkin) {
+  if (!isWalkin && data.mel_question) {
     document.getElementById('mel-question-group').style.display = 'block';
-    const melRequired = data.mel_question_required === true;
+    const melRequired = data.mel_question_required === true || data.mel_question_required === 'true';
     const melLabel = data.mel_question ||
       (melRequired ? 'Comments or Questions' : 'Comments or Questions (optional)');
     document.getElementById('mel-question-label').textContent = melLabel;
@@ -130,7 +130,7 @@ function setDay(v) {
 function fval(id) { return document.getElementById(id).value.trim(); }
 
 function validateEmail(email) {
-  if (!email) return { valid: false, msg: 'Email is required.' };
+  if (!email) return { valid: true };
   const re = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
   if (!re.test(email)) return { valid: false, msg: 'Enter a valid email address (e.g. name@org.com).' };
   // Common typo domains
@@ -143,7 +143,7 @@ function validateEmail(email) {
 }
 
 function validatePhone(phone) {
-  if (!phone) return { valid: false, msg: 'Phone number is required.' };
+  if (!phone) return { valid: true };
   const cleaned = phone.replace(/[\s\-().]/g, '');
   // Accept: 0XXXXXXXXX (10 digits), +233XXXXXXXXX, 233XXXXXXXXX
   const local = /^0\d{9}$/.test(cleaned);
@@ -175,10 +175,14 @@ async function registerParticipant() {
     const melVal = fval('f-mel');
     if (!melVal) { errEl.textContent = 'Please answer the pre-reg question.'; errEl.style.display = 'block'; return; }
   }
-  const emailCheck = validateEmail(email);
-  if (!emailCheck.valid) { errEl.textContent = emailCheck.msg; errEl.style.display = 'block'; return; }
-  const phoneCheck = validatePhone(phone);
-  if (!phoneCheck.valid) { errEl.textContent = phoneCheck.msg; errEl.style.display = 'block'; return; }
+  if (email) {
+    const emailCheck = validateEmail(email);
+    if (!emailCheck.valid) { errEl.textContent = emailCheck.msg; errEl.style.display = 'block'; return; }
+  }
+  if (phone) {
+    const phoneCheck = validatePhone(phone);
+    if (!phoneCheck.valid) { errEl.textContent = phoneCheck.msg; errEl.style.display = 'block'; return; }
+  }
   if (isWalkin) {
     const day = fval('f-day');
     if (!day) { errEl.textContent = 'Please select a day.'; errEl.style.display = 'block'; return; }

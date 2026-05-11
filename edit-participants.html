@@ -43,7 +43,7 @@
             <button id="ed-female" onclick="edSex('Female')" style="flex:1;padding:10px;border:2px solid #e0e0e0;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">Female</button>
           </div>
         </div>
-        <div><label class="form-label">Organisation *</label><input id="ed-org" type="text" class="form-input" /></div>
+        <div><label class="form-label">Organisation</label><input id="ed-org" type="text" class="form-input" /></div>
         <div><label class="form-label">Program</label><input id="ed-prog" type="text" class="form-input" /></div>
         <div><label class="form-label">Position</label><input id="ed-position" type="text" class="form-input" /></div>
         <div><label class="form-label">Email</label><input id="ed-email" type="email" class="form-input" /></div>
@@ -146,7 +146,6 @@
       const name = document.getElementById('ed-name').value.trim();
       const org  = document.getElementById('ed-org').value.trim();
       if (!name) { showEdErr('Name is required.'); return; }
-      if (!org)  { showEdErr('Organisation is required.'); return; }
 
       const saveBtn = document.querySelector('#edit-modal button');
       saveBtn.textContent = 'Saving...'; saveBtn.disabled = true;
