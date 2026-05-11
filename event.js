@@ -591,19 +591,14 @@ async function exportEventQRSheet() {
 let _adminAction = null;
 
 function promptAdminAction(action) {
-  _adminAction = action;
-  const titles = {
-    back:      'Enter password to return to All Events Dashboard Form',
-    editparts: 'Enter password to edit participants',
-    certs:     'Enter password to generate certificates',
-    edit:      'Enter password to edit event',
-    delete:    'Enter password to delete event',
-  };
-  document.getElementById('admin-pwd-title').textContent = titles[action] || 'Enter admin password';
-  document.getElementById('admin-pwd-input').value = '';
-  document.getElementById('admin-pwd-err').style.display = 'none';
-  document.getElementById('admin-pwd-modal').style.display = 'flex';
-  setTimeout(() => document.getElementById('admin-pwd-input').focus(), 100);
+  // TESTING MODE — passwords disabled. Run action immediately.
+  // To re-enable, restore the original modal-based flow.
+  if (action === 'edit')           editEvent();
+  else if (action === 'delete')    deleteEventFromPage();
+  else if (action === 'back')      goBackToEvents();
+  else if (action === 'editparts') toggleParticipantList();
+  else if (action === 'certs')     openCertPicker(false);
+  else if (action === 'cert-preview') openCertPicker(true);
 }
 
 function promptEditEvent() { promptAdminAction('edit'); }

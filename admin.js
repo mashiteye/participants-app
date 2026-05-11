@@ -1358,40 +1358,19 @@ async function generateCertificates() {
 }
 
 function promptEditFromList(eventId) {
-  const pwd = prompt('Enter admin password to edit this event:');
-  if (!pwd) return;
-  const encoder = new TextEncoder();
-  const data = encoder.encode(pwd.toUpperCase().trim());
-  crypto.subtle.digest('SHA-256', data).then(hashBuffer => {
-    const hashHex = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2,'0')).join('');
-    if (hashHex !== '3b33a25d09dbd7a9f00296a32852e0cb064eaaa76d4294c370b1b6da15ebb0bc') {
-      alert('Incorrect password.');
-      return;
-    }
-    const BASE_URL = window.location.origin + window.location.pathname.replace('admin.html','');
-    window.location.href = BASE_URL + 'edit-event.html?event=' + eventId;
-  });
+  // TESTING MODE — password disabled
+  const BASE_URL = window.location.origin + window.location.pathname.replace('admin.html','');
+  window.location.href = BASE_URL + 'edit-event.html?event=' + eventId;
 }
 
 function promptDeleteFromList(eventId) {
-  const pwd = prompt('Enter admin password to delete this event:');
-  if (!pwd) return;
-  // Hash and verify
-  const encoder = new TextEncoder();
-  const data = encoder.encode(pwd.toUpperCase().trim());
-  crypto.subtle.digest('SHA-256', data).then(hashBuffer => {
-    const hashHex = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2,'0')).join('');
-    if (hashHex !== '3b33a25d09dbd7a9f00296a32852e0cb064eaaa76d4294c370b1b6da15ebb0bc') {
-      alert('Incorrect password.');
-      return;
-    }
-    if (!confirm('Delete this event and ALL its participants? This cannot be undone.')) return;
-    db.from('attendance').delete().eq('event_id', eventId).then(() =>
-      db.from('participants').delete().eq('event_id', eventId).then(() =>
-        db.from('events').delete().eq('id', eventId).then(() => loadEvents())
-      )
-    );
-  });
+  // TESTING MODE — password disabled, keep delete confirmation as safety
+  if (!confirm('Delete this event and ALL its participants? This cannot be undone.')) return;
+  db.from('attendance').delete().eq('event_id', eventId).then(() =>
+    db.from('participants').delete().eq('event_id', eventId).then(() =>
+      db.from('events').delete().eq('id', eventId).then(() => loadEvents())
+    )
+  );
 }
 
 function handleEventClick(el) {
