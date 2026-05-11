@@ -31,7 +31,7 @@ async function viewSig(participantId, day, e) {
 
 // Show template picker modal
 function openCertPicker(previewMode) {
-  previewMode = previewMode || 'image';
+  previewMode = 'image';
   const modal = document.getElementById('cert-picker-modal');
   const grid = document.getElementById('cert-template-grid');
   if (!modal || !grid || !window.CERT_TEMPLATES) return;
@@ -61,32 +61,6 @@ function openCertPicker(previewMode) {
   modal.style.display = 'flex';
 }
 
-
-function showCertPreviewIframe(doc, templateName) {
-  const pdfBlob = doc.output('blob');
-  const url = URL.createObjectURL(pdfBlob);
-  let modal = document.getElementById('cert-iframe-modal');
-  if (!modal) {
-    modal = document.createElement('div');
-    modal.id = 'cert-iframe-modal';
-    modal.style.cssText = 'display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:10000;align-items:center;justify-content:center;padding:1rem;flex-direction:column';
-    modal.innerHTML = '<div style="background:white;border-radius:12px;max-width:95vw;width:100%;height:85vh;display:flex;flex-direction:column;overflow:hidden">' +
-        '<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:#2F7B6B;color:white">' +
-          '<div><div style="font-size:11px;opacity:0.85;letter-spacing:1px">PREVIEW — IN-APP (OPTION 2)</div><div id="cim-name" style="font-size:15px;font-weight:800"></div></div>' +
-          '<button id="cim-close" style="background:rgba(255,255,255,0.2);color:white;border:none;width:36px;height:36px;border-radius:50%;font-size:20px;cursor:pointer;font-weight:bold">×</button>' +
-        '</div>' +
-        '<iframe id="cim-frame" style="flex:1;border:none;width:100%"></iframe>' +
-        '<div style="padding:8px 16px;background:#f5f5f5;text-align:center;font-size:11px;color:#666">Embedded PDF viewer. Close to pick another template.</div>' +
-      '</div>';
-    document.body.appendChild(modal);
-  }
-  document.getElementById('cim-name').textContent = templateName;
-  document.getElementById('cim-frame').src = url;
-  modal.style.display = 'flex';
-  const close = () => { modal.style.display = 'none'; URL.revokeObjectURL(url); openCertPicker('iframe'); };
-  document.getElementById('cim-close').onclick = close;
-  modal.onclick = (e) => { if (e.target === modal) close(); };
-}
 
 function showCertPreviewImage(doc, templateName) {
   // Convert first page of PDF to image using jsPDF's output as data URI
@@ -196,17 +170,8 @@ async function generateEventCertificates(templateKey, previewOnly) {
       tpl.render({ doc, p, ev, evName, dateStr, sigB64, W, H });
     });
 
-    if (previewOnly === 'tab') {
-      // Option 1: open PDF in new browser tab
-      const blob = doc.output('blob');
-      const url = URL.createObjectURL(blob);
-      window.open(url, '_blank');
-      setTimeout(() => URL.revokeObjectURL(url), 30000);
-    } else if (previewOnly === 'iframe') {
-      // Option 2: embed PDF in iframe inside modal
-      showCertPreviewIframe(doc, tpl.name);
-    } else if (previewOnly === 'image' || previewOnly === true) {
-      // Option 3: render to canvas image in modal (current default)
+    if (previewOnly) {
+      // Option 3: render to canvas image in modal
       showCertPreviewImage(doc, tpl.name);
     } else {
       const safeName = evName.replace(/\s+/g, '-');
@@ -253,8 +218,6 @@ async function init() {
     const showEl = id => { const el = document.getElementById(id); if (el) el.style.display = 'block'; };
     showEl('edit-participants-btn');
     showEl('cert-btn');
-    showEl('cert-btn-tab');
-    showEl('cert-btn-iframe');
     showEl('edit-event-btn');
     showEl('import-csv-btn');
     showEl('delete-event-btn');
