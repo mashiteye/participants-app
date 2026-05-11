@@ -158,11 +158,28 @@ function buildDayButtons(containerId) {
       btn.classList.add('active');
       if (containerId === 'sign-day-row' && selectedParticipant) {
         const att = attendanceMap[selectedParticipant.id] || {};
-        if (att[label]) {
-          document.getElementById('sign-err').textContent = label + ' already signed ✓';
+        const preview = document.getElementById('sign-sig-preview');
+        const canvas  = document.getElementById('sign-canvas');
+        const clearBtn = document.querySelector('[onclick*="clearSig"]');
+        const confirmBtn = document.getElementById('btn-confirm');
+        if (att[label] && att[label].signature_url) {
+          // Signed day: show signature preview, hide canvas and confirm
+          if (preview) { preview.src = att[label].signature_url; preview.style.display = 'block'; }
+          if (canvas) canvas.style.display = 'none';
+          if (clearBtn) clearBtn.style.display = 'none';
+          if (confirmBtn) confirmBtn.style.display = 'none';
+          document.getElementById('sign-err').textContent = label + ' attendance confirmed ✓';
           document.getElementById('sign-err').style.display = 'block';
+          document.getElementById('sign-err').style.color = '#2F7B6B';
         } else {
+          // Unsigned day: show canvas and confirm, hide preview
+          if (preview) preview.style.display = 'none';
+          if (canvas) canvas.style.display = 'block';
+          if (clearBtn) clearBtn.style.display = '';
+          if (confirmBtn) confirmBtn.style.display = '';
           document.getElementById('sign-err').style.display = 'none';
+          document.getElementById('sign-err').style.color = '';
+          clearSig('sign');
         }
       }
     };
@@ -349,11 +366,33 @@ function openSignScreen(p) {
   const days = Array.from({ length: eventData.days || 1 }, (_, i) => 'Day ' + (i + 1));
   const att = attendanceMap[p.id] || {};
   const firstUnsigned = days.find(d => !att[d]);
+  const preview = document.getElementById('sign-sig-preview');
+  const canvas  = document.getElementById('sign-canvas');
+  const clearBtn = document.querySelector('[onclick*="clearSig"]');
+  const confirmBtn = document.getElementById('btn-confirm');
   if (firstUnsigned) {
     selectedDay = firstUnsigned;
     document.querySelector('#sign-day-row [data-day="' + firstUnsigned + '"]')?.classList.add('active');
+    if (preview) preview.style.display = 'none';
+    if (canvas) canvas.style.display = 'block';
+    if (clearBtn) clearBtn.style.display = '';
+    if (confirmBtn) confirmBtn.style.display = '';
+    clearSig('sign');
+  } else {
+    // All days signed — show last day's signature
+    const lastDay = days[days.length - 1];
+    selectedDay = lastDay;
+    document.querySelector('#sign-day-row [data-day="' + lastDay + '"]')?.classList.add('active');
+    if (att[lastDay] && att[lastDay].signature_url) {
+      if (preview) { preview.src = att[lastDay].signature_url; preview.style.display = 'block'; }
+    }
+    if (canvas) canvas.style.display = 'none';
+    if (clearBtn) clearBtn.style.display = 'none';
+    if (confirmBtn) confirmBtn.style.display = 'none';
+    document.getElementById('sign-err').textContent = 'All days signed ✓';
+    document.getElementById('sign-err').style.display = 'block';
+    document.getElementById('sign-err').style.color = '#2F7B6B';
   }
-  clearSig('sign');
   document.getElementById('sign-err').style.display = 'none';
   showScreen('sign');
 }
@@ -384,7 +423,11 @@ async function confirmAttendance() {
   const _ub = document.getElementById('unsigned-btn'); if (_ub) _ub.style.display = 'none';
     showScreen('success');
   } catch(e) {
-    errEl.textContent = 'Error: ' + e.message; errEl.style.display = 'block';
+    let msg = e.message;
+    if (msg.includes('row-level security') || msg.includes('duplicate') || msg.includes('unique')) {
+      msg = 'This day has already been signed. No duplicate record was created.';
+    }
+    errEl.textContent = msg; errEl.style.display = 'block';
   } finally {
     btn.textContent = 'Confirm Attendance'; btn.disabled = false;
   }
